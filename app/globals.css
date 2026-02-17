@@ -1,26 +1,35 @@
 @import "tailwindcss";
+/* @custom-variant dark (&:where(.dark, .dark *));
+@plugin "@tailwindcss/typography"; */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: 255 255 255;
+  --text: 17 24 39;
+  --card: 243 244 246;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --bg: 17 24 39;
+  --text: 243 244 246;
+  --card: 31 41 55;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+@theme {
+  /* Combined into one theme block */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  --color-primary: #9e6752;
+  --color-secondary: #fed7a5;
+  --color-tertiary: #1a3f22;
+  --color-green-dark: #030603;
+  --color-green-light: #bac5bd;
+  --color-green-dark2: #08130a;
+  --color-dark-primary: #100a08;
+  --color-dark-secondary: #201510;
+  --color-dark-tertiary: #2f1f19;
+  --color-dark-forth: #3f2921;
+  --color-light: #e2d1cb;
+  --color-soft-white: #f5f0ee;
+  --color-border-light: #e5e7eb;
 }

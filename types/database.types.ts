@@ -521,31 +521,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string | null
           email: string | null
           email_verified: boolean | null
           id: string
           image: string | null
+          location: string | null
           name: string | null
           role: string | null
           updated_at: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           email_verified?: boolean | null
           id: string
           image?: string | null
+          location?: string | null
           name?: string | null
           role?: string | null
           updated_at?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           email_verified?: boolean | null
           id?: string
           image?: string | null
+          location?: string | null
           name?: string | null
           role?: string | null
           updated_at?: string | null

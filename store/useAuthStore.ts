@@ -4,9 +4,12 @@ import { User } from "@supabase/supabase-js";
 
 // Define what a profile looks like based on your SQL
 interface Profile {
+  created_at: string | number | Date;
   id: string;
   username: string;
-  full_name: string | null;
+  bio: string | null;
+  location: string | null;
+  name: string | null;
   avatar_url: string | null;
   role: string; // 'user' or 'admin'
 }

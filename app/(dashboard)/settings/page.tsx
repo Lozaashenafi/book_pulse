@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -12,12 +12,14 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowLeft,
+  Camera,
 } from "lucide-react";
 import Link from "next/link";
 
 const SettingsPage = () => {
   const { profile, user, syncSession } = useAuthStore();
   const supabase = createClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -27,10 +29,14 @@ const SettingsPage = () => {
 
   // Form States
   const [formData, setFormData] = useState({
-    name: profile?.name || "",
-    location: profile?.location || "",
-    bio: profile?.bio || "",
+    name: "",
+    location: "",
+    bio: "",
   });
+
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -38,12 +44,58 @@ const SettingsPage = () => {
         location: profile.location || "",
         bio: profile.bio || "",
       });
+      setPreviewUrl(profile.image || null);
     }
   }, [profile]);
+
   const [passwordData, setPasswordData] = useState({
     newPassword: "",
     confirmPassword: "",
   });
+
+  // --- HANDLE IMAGE UPLOAD ---
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Show local preview immediately
+    setPreviewUrl(URL.createObjectURL(file));
+
+    try {
+      setUploading(true);
+
+      // 1. Upload to Supabase Storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      const filePath = `user_avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      // 3. Update Database immediately
+      const { error: dbError } = await supabase
+        .from("profiles")
+        .update({ image: publicUrl })
+        .eq("id", user.id);
+
+      if (dbError) throw dbError;
+
+      await syncSession();
+      setMessage({ type: "success", text: "Profile picture updated!" });
+    } catch (error: any) {
+      setMessage({ type: "error", text: error.message });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +114,7 @@ const SettingsPage = () => {
     if (error) {
       setMessage({ type: "error", text: error.message });
     } else {
-      await syncSession(); // Refresh global state
+      await syncSession();
       setMessage({ type: "success", text: "Profile updated successfully!" });
     }
     setLoading(false);
@@ -92,7 +144,6 @@ const SettingsPage = () => {
   return (
     <div className="min-h-screen bg-soft-white dark:bg-[#121212] pt-32 pb-20 px-6">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link
@@ -125,11 +176,51 @@ const SettingsPage = () => {
         )}
 
         <div className="space-y-8">
-          {/* Section 1: Public Profile */}
           <section className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-primary/5">
-            <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-dark-secondary dark:text-white">
+            <h2 className="text-xl font-serif font-bold mb-8 flex items-center gap-2 text-dark-secondary dark:text-white">
               <User className="text-primary" size={20} /> Public Profile
             </h2>
+
+            {/* --- AVATAR UPLOAD UI --- */}
+            <div className="flex flex-col items-center mb-10">
+              <div className="relative group">
+                <div className="w-32 h-32 rounded-full border-4 border-primary/10 p-1 overflow-hidden">
+                  {previewUrl ? (
+                    <img
+                      src={previewUrl}
+                      className="w-full h-full object-cover rounded-full"
+                      alt="Avatar"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 dark:bg-white/5 flex items-center justify-center rounded-full text-gray-400">
+                      <User size={40} />
+                    </div>
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                      <Loader2 className="animate-spin text-white" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  type="button"
+                  className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-xl hover:scale-110 transition-transform"
+                >
+                  <Camera size={18} />
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-3 font-bold uppercase tracking-widest">
+                Change Photo
+              </p>
+            </div>
 
             <form onSubmit={handleProfileUpdate} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,7 +283,7 @@ const SettingsPage = () => {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploading}
                 className="bg-primary dark:bg-[#d4a373] text-white dark:text-[#1a1a1a] px-8 py-3 rounded-2xl font-bold shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50"
               >
                 {loading ? (
@@ -204,7 +295,7 @@ const SettingsPage = () => {
             </form>
           </section>
 
-          {/* Section 2: Security */}
+          {/* Security Section */}
           <section className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-primary/5">
             <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-dark-secondary dark:text-white">
               <Lock className="text-primary" size={20} /> Security
@@ -250,7 +341,7 @@ const SettingsPage = () => {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploading}
                 className="bg-dark-secondary dark:bg-white/10 text-white dark:text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50"
               >
                 Update Password

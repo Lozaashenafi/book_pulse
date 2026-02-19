@@ -11,6 +11,7 @@ import {
   LibraryBig,
 } from "lucide-react";
 import ClubCard, { Book } from "../../../../components/ui/ClubCard";
+import { useRouter } from "next/navigation";
 
 // Mock Data for User's Joined/Owned Clubs
 const MY_CLUBS: Book[] = [
@@ -27,28 +28,34 @@ const MY_CLUBS: Book[] = [
   },
 ];
 
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-24 text-center bg-white dark:bg-[#1E1E1E] rounded-[40px_10px_40px_10px] border-2 border-dashed border-[#9E6752]/20 shadow-sm">
-    <div className="w-20 h-20 bg-[#FDF8F1] dark:bg-[#2A2A2A] rounded-full flex items-center justify-center mb-6">
-      <LibraryBig size={40} className="text-[#9E6752] dark:text-[#FED7A5]" />
+const EmptyState = () => {
+  const router = useRouter();
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center bg-white dark:bg-[#1E1E1E] rounded-[40px_10px_40px_10px] border-2 border-dashed border-[#9E6752]/20 shadow-sm">
+      <div className="w-20 h-20 bg-[#FDF8F1] dark:bg-[#2A2A2A] rounded-full flex items-center justify-center mb-6">
+        <LibraryBig size={40} className="text-[#9E6752] dark:text-[#FED7A5]" />
+      </div>
+      <h3 className="text-2xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
+        No Active Clubs
+      </h3>
+      <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-3 max-w-sm mx-auto italic">
+        You haven't joined or created any book clubs yet. Start your own reading
+        circle today!
+      </p>
+      <button
+        className="mt-8 px-8 py-4 bg-[#9E6752] hover:bg-[#8B5A46] text-white rounded-full font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95"
+        onClick={() => router.push("/clubs/add")}
+      >
+        <Plus size={20} />
+        Create New Club
+      </button>
     </div>
-    <h3 className="text-2xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
-      No Active Clubs
-    </h3>
-    <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-3 max-w-sm mx-auto italic">
-      You haven't joined or created any book clubs yet. Start your own reading
-      circle today!
-    </p>
-    <button className="mt-8 px-8 py-4 bg-[#9E6752] hover:bg-[#8B5A46] text-white rounded-full font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95">
-      <Plus size={20} />
-      Create New Club
-    </button>
-  </div>
-);
+  );
+};
 
 const MyClubsPage = () => {
-  // Toggle this to [] to see the empty state
   const [clubs] = useState<Book[]>(MY_CLUBS);
+  const router = useRouter(); // ✅ Move this to the top level
 
   return (
     <div className="min-h-screen bg-[#fdf8f1] dark:bg-[#121212] pt-32 pb-20 transition-colors duration-500">
@@ -66,7 +73,10 @@ const MyClubsPage = () => {
           </div>
 
           {clubs.length > 0 && (
-            <button className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] text-[#9E6752] dark:text-[#FED7A5] px-6 py-3 rounded-xl border border-[#9E6752]/20 font-bold hover:bg-[#9E6752] hover:text-white transition-all shadow-sm">
+            <button
+              className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] text-[#9E6752] dark:text-[#FED7A5] px-6 py-3 rounded-xl border border-[#9E6752]/20 font-bold hover:bg-[#9E6752] hover:text-white transition-all shadow-sm"
+              onClick={() => router.push("/clubs/add")} // ✅ Just use the variable here
+            >
               <Plus size={18} />
               Create Club
             </button>

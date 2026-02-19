@@ -4,7 +4,7 @@ import React from "react";
 function page() {
   return (
     <>
-      <AuthPage type="sign-up" />
+      <AuthPage type="register" />
     </>
   );
 }

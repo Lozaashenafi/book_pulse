@@ -81,9 +81,9 @@ const BookPulseProfile = () => {
               <div className="relative flex-shrink-0">
                 <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-primary to-[#d4a373] p-1 shadow-inner">
                   <div className="w-full h-full rounded-full bg-soft-white dark:bg-[#121212] flex items-center justify-center overflow-hidden">
-                    {profile?.avatar_url ? (
+                    {profile?.image ? (
                       <img
-                        src={profile.avatar_url}
+                        src={profile.image}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />

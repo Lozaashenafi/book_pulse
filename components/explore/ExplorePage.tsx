@@ -1,34 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Search,
-  Filter,
-  ChevronRight,
-  BookX,
-  Users,
-  BookOpen,
-  Calendar,
-  SlidersHorizontal,
-} from "lucide-react";
-import ClubCard, { Book } from "../ui/ClubCard";
+import { Search, BookX, SlidersHorizontal, Loader2 } from "lucide-react";
+import ClubCard from "../ui/ClubCard";
+import { useExploreClubs } from "@/hooks/useExploreClubs";
 
-// 2. Define Props for Sub-components
-interface SearchBarProps {
-  searchQuery: string;
-  setSearchQuery: (val: string) => void;
-}
-
-interface CategoryFilterProps {
-  activeCategory: string;
-  setActiveCategory: (val: string) => void;
-}
-
-interface BookCardProps {
-  book: Book;
-}
-
-// --- Mock Data Updated ---
+// 1. Define the Categories Constants
 const CATEGORIES: string[] = [
   "All",
   "Classic Fiction",
@@ -41,44 +18,18 @@ const CATEGORIES: string[] = [
   "Literary Fiction",
 ];
 
-const BOOKS: Book[] = [
-  {
-    id: 1,
-    title: "Norwegian Wood",
-    author: "Haruki Murakami",
-    category: "Literary Fiction",
-    desc: "A nostalgic coming-of-age novel about loss, memory, and the search for connection in 1960s...",
-    color: "bg-[#8B4513]",
-    readers: 19,
-    chapters: 11,
-    dateRange: "Feb 25 — Mar 22",
-  },
-  {
-    id: 2,
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    category: "Classic Fiction",
-    desc: "A tale of mystery, romance, and the American dream in the Roaring Twenties.",
-    color: "bg-[#9e6752]",
-    readers: 42,
-    chapters: 9,
-    dateRange: "Mar 01 — Mar 30",
-  },
-  {
-    id: 3,
-    title: "Atomic Habits",
-    author: "James Clear",
-    category: "Self-Help",
-    desc: "An easy & proven way to build good habits and break bad ones.",
-    color: "bg-primary",
-    readers: 120,
-    chapters: 20,
-    dateRange: "Apr 05 — May 10",
-  },
-];
+// 2. Define Props Interfaces
+interface SearchBarProps {
+  searchQuery: string;
+  setSearchQuery: (val: string) => void;
+}
 
-// --- Sub-components (Kept the same) ---
+interface CategoryFilterProps {
+  activeCategory: string;
+  setActiveCategory: (val: string) => void;
+}
 
+// 3. Define the SearchBar Component
 const SearchBar = ({ searchQuery, setSearchQuery }: SearchBarProps) => (
   <div className="relative group w-full mb-8">
     <input
@@ -95,6 +46,7 @@ const SearchBar = ({ searchQuery, setSearchQuery }: SearchBarProps) => (
   </div>
 );
 
+// 4. Define the CategoryFilter Component
 const CategoryFilter = ({
   activeCategory,
   setActiveCategory,
@@ -125,12 +77,16 @@ const CategoryFilter = ({
   </div>
 );
 
+// 5. Main ExplorePage Component
 const ExplorePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // Real dynamic data from your hook
+  const { clubs, isLoading } = useExploreClubs();
+
   const filteredBooks = useMemo(() => {
-    return BOOKS.filter((book) => {
+    return clubs.filter((book) => {
       const matchesCategory =
         activeCategory === "All" || book.category === activeCategory;
       const matchesSearch =
@@ -138,7 +94,15 @@ const ExplorePage = () => {
         book.author.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, searchQuery, clubs]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fdf8f1] dark:bg-[#121212]">
+        <Loader2 className="animate-spin text-[#9E6752]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fdf8f1] dark:bg-[#121212] pt-32 pb-20 transition-colors duration-500">
@@ -147,12 +111,12 @@ const ExplorePage = () => {
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
             Explore{" "}
             <span className="text-[#9E6752] dark:text-[#FED7A5]">
-              Book Clubs
+              Book Circles
             </span>
           </h1>
           <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-4 max-w-xl mx-auto italic">
-            Find your next reading adventure. Join a club and start reading
-            together.
+            Discover community-led reading circles and dive into your next
+            story.
           </p>
         </header>
 
@@ -172,32 +136,20 @@ const ExplorePage = () => {
 
           <main className="lg:w-3/4">
             {filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {filteredBooks.map((book) => (
                   <ClubCard key={book.id} book={book} />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white/50 dark:bg-[#1E1E1E]/50 rounded-3xl border-2 border-dashed border-[#9E6752]/20 dark:border-white/10">
-                <BookX
-                  size={48}
-                  className="text-[#9E6752] dark:text-[#FED7A5] opacity-50 mb-4"
-                />
-                <h3 className="text-xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
-                  No books found
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white/50 dark:bg-[#1E1E1E]/50 rounded-3xl border-2 border-dashed border-[#9E6752]/20">
+                <BookX size={48} className="text-[#9E6752] opacity-50 mb-4" />
+                <h3 className="text-xl font-serif font-bold dark:text-white">
+                  No circles found
                 </h3>
-                <p className="text-[#7A7A7A] dark:text-[#A0A0A0] mt-2">
-                  Try adjusting your search or category.
+                <p className="text-[#7A7A7A] mt-2">
+                  Try a different search or category.
                 </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setActiveCategory("All");
-                  }}
-                  className="mt-6 text-[#9E6752] dark:text-[#FED7A5] font-bold underline"
-                >
-                  Clear all filters
-                </button>
               </div>
             )}
           </main>

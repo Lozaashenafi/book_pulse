@@ -1,32 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   Plus,
   Settings,
   ChevronRight,
-  Users,
-  BookOpen,
-  LayoutGrid,
   LibraryBig,
+  Loader2,
+  Book as BookIcon,
 } from "lucide-react";
-import ClubCard, { Book } from "../../../../components/ui/ClubCard";
+import ClubCard from "../../../../components/ui/ClubCard";
 import { useRouter } from "next/navigation";
-
-// Mock Data for User's Joined/Owned Clubs
-const MY_CLUBS: Book[] = [
-  {
-    id: 1,
-    title: "Norwegian Wood",
-    author: "Haruki Murakami",
-    category: "Literary Fiction",
-    desc: "Our current progress: Chapter 4. Next meeting is this Sunday!",
-    color: "bg-[#8B4513]",
-    readers: 19,
-    chapters: 11,
-    dateRange: "Feb 25 — Mar 22",
-  },
-];
+import { useAuthStore } from "@/store/useAuthStore";
+import { useMyClubs } from "@/hooks/useMyClubs";
 
 const EmptyState = () => {
   const router = useRouter();
@@ -54,13 +40,27 @@ const EmptyState = () => {
 };
 
 const MyClubsPage = () => {
-  const [clubs] = useState<Book[]>(MY_CLUBS);
-  const router = useRouter(); // ✅ Move this to the top level
+  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuthStore();
+  const { clubs, isLoading: dataLoading } = useMyClubs(user?.id);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || dataLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-[#fdf8f1] dark:bg-[#121212]">
+        <Loader2 className="animate-spin text-[#9E6752]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fdf8f1] dark:bg-[#121212] pt-32 pb-20 transition-colors duration-500">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Header Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="text-left">
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
@@ -72,49 +72,52 @@ const MyClubsPage = () => {
             </p>
           </div>
 
-          {clubs.length > 0 && (
-            <button
-              className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] text-[#9E6752] dark:text-[#FED7A5] px-6 py-3 rounded-xl border border-[#9E6752]/20 font-bold hover:bg-[#9E6752] hover:text-white transition-all shadow-sm"
-              onClick={() => router.push("/clubs/add")} // ✅ Just use the variable here
-            >
-              <Plus size={18} />
-              Create Club
-            </button>
-          )}
+          <button
+            className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] text-[#9E6752] dark:text-[#FED7A5] px-6 py-3 rounded-xl border border-[#9E6752]/20 font-bold hover:bg-[#9E6752] hover:text-white transition-all shadow-sm"
+            onClick={() => router.push("/clubs/add")}
+          >
+            <Plus size={18} />
+            Create Club
+          </button>
         </header>
 
-        {/* Conditional Rendering */}
         {clubs.length > 0 ? (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {clubs.map((club) => (
-                <div key={club.id} className="relative group">
-                  {/* Action Overlay for 'My Clubs' context */}
-                  <div className="absolute top-4 right-4 z-10 flex gap-2">
-                    <button className="p-2 bg-white/90 dark:bg-black/50 backdrop-blur-md rounded-full text-[#9E6752] hover:bg-[#9E6752] hover:text-white transition-colors">
-                      <Settings size={18} />
-                    </button>
-                  </div>
-
-                  <ClubCard book={club} />
-
-                  {/* Progress Footer */}
-                  <div className="mt-[-10px] bg-white dark:bg-[#1E1E1E] border-x border-b border-[#9E6752]/10 p-5 rounded-b-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="text-xs uppercase tracking-tighter text-[#7A7A7A]">
-                        Next Discussion
-                      </div>
-                      <div className="text-sm font-bold text-[#2D2D2D] dark:text-white">
-                        In 3 days
-                      </div>
-                    </div>
-                    <button className="text-[#9E6752] dark:text-[#FED7A5] text-sm font-bold flex items-center gap-1 hover:underline">
-                      Open Dashboard <ChevronRight size={16} />
-                    </button>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {clubs.map((club) => (
+              <div key={club.id} className="relative group flex flex-col">
+                {/* Action Settings Button */}
+                <div className="absolute top-4 right-4 z-20">
+                  <button
+                    onClick={() => router.push(`/clubs/settings/${club.id}`)}
+                    className="p-2 bg-white/90 dark:bg-black/50 backdrop-blur-md rounded-full text-[#9E6752] hover:bg-[#9E6752] hover:text-white transition-all shadow-md"
+                  >
+                    <Settings size={18} />
+                  </button>
                 </div>
-              ))}
-            </div>
+
+                <div className="flex-1 min-w-0 pt-4">
+                  <ClubCard book={club} />
+                </div>
+
+                {/* Progress Footer */}
+                <div className="mt-[-12px] bg-white dark:bg-[#1E1E1E] border-x border-b border-[#9E6752]/10 p-5 rounded-b-2xl flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-4 overflow-hidden">
+                    <div className="hidden sm:block text-xs uppercase tracking-tighter text-[#7A7A7A] whitespace-nowrap">
+                      Currently Reading
+                    </div>
+                    <div className="text-sm font-bold text-[#2D2D2D] dark:text-white truncate">
+                      {club.bookTitle}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.push(`/clubs/${club.id}`)}
+                    className="text-[#9E6752] dark:text-[#FED7A5] text-sm font-bold flex items-center gap-1 hover:underline shrink-0 ml-4"
+                  >
+                    Dashboard <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <EmptyState />

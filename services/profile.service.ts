@@ -97,4 +97,49 @@ export const profileService = {
       .map((c: any) => (Array.isArray(c.clubs) ? c.clubs[0] : c.clubs))
       .filter((club) => club !== null);
   },
+  // src/services/profile.service.ts
+  async getMyClubs(userId: string) {
+    const { data, error } = await supabase
+      .from("club_members")
+      .select(
+        `
+      role,
+      clubs (
+        id,
+        name,
+        description,
+        start_date,
+        end_date,
+        books (
+          title,
+          author,
+          cover_url
+        )
+      )
+    `,
+      )
+      .eq("user_id", userId);
+
+    if (error) throw error;
+
+    return (data || []).map((item: any) => {
+      // Handle if Supabase returns club as an array or object
+      const club = Array.isArray(item.clubs) ? item.clubs[0] : item.clubs;
+      const book = Array.isArray(club?.books) ? club.books[0] : club?.books;
+
+      return {
+        id: club?.id,
+        title: club?.name || "Unnamed Club",
+        bookTitle: book?.title || "No Book",
+        author: book?.author || "Unknown",
+        category: item.role === "OWNER" ? "My Circle" : "Member",
+        desc: club?.description || "",
+        cover: book?.cover_url,
+        readers: 1, // You can add a real count query later
+        dateRange: club?.start_date
+          ? `${new Date(club.start_date).toLocaleDateString()} - ${new Date(club.end_date).toLocaleDateString()}`
+          : "TBD",
+      };
+    });
+  },
 };

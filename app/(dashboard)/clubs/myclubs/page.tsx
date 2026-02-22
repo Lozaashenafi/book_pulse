@@ -86,7 +86,7 @@ const MyClubsPage = () => {
             {clubs.map((club) => (
               <div key={club.id} className="relative group flex flex-col">
                 {/* Action Settings Button */}
-                <div className="absolute top-4 right-4 z-20">
+                <div className="absolute top-6 right-4 z-20">
                   <button
                     onClick={() => router.push(`/clubs/settings/${club.id}`)}
                     className="p-2 bg-white/90 dark:bg-black/50 backdrop-blur-md rounded-full text-[#9E6752] hover:bg-[#9E6752] hover:text-white transition-all shadow-md"
@@ -97,24 +97,6 @@ const MyClubsPage = () => {
 
                 <div className="flex-1 min-w-0 pt-4">
                   <ClubCard book={club} />
-                </div>
-
-                {/* Progress Footer */}
-                <div className="mt-[-12px] bg-white dark:bg-[#1E1E1E] border-x border-b border-[#9E6752]/10 p-5 rounded-b-2xl flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-4 overflow-hidden">
-                    <div className="hidden sm:block text-xs uppercase tracking-tighter text-[#7A7A7A] whitespace-nowrap">
-                      Currently Reading
-                    </div>
-                    <div className="text-sm font-bold text-[#2D2D2D] dark:text-white truncate">
-                      {club.bookTitle}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => router.push(`/clubs/${club.id}`)}
-                    className="text-[#9E6752] dark:text-[#FED7A5] text-sm font-bold flex items-center gap-1 hover:underline shrink-0 ml-4"
-                  >
-                    Dashboard <ChevronRight size={16} />
-                  </button>
                 </div>
               </div>
             ))}

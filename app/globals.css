@@ -33,3 +33,14 @@
   --color-soft-white: #f5f0ee;
   --color-border-light: #e5e7eb;
 }
+@layer components {
+  .input-style {
+    @apply w-full bg-white dark:bg-white/5 border border-primary/10 p-4 rounded-xl dark:text-white outline-none focus:ring-2 focus:ring-primary/20;
+  }
+  .btn-primary {
+    @apply bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 hover:scale-[1.01] transition-transform;
+  }
+  .btn-outline {
+    @apply border border-primary/20 py-4 rounded-xl font-bold dark:text-white hover:bg-primary/5;
+  }
+}

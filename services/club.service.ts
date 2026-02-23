@@ -20,7 +20,8 @@ export const clubService = {
         books (
           title,
           author,
-          cover_url
+          cover_url,
+          category  
         )
       `,
       )
@@ -45,7 +46,7 @@ export const clubService = {
         title: club.name, // The Club's Name
         bookTitle: book?.title || "Unknown Book",
         author: book?.author || "Unknown Author",
-        category: "General", // Defaulted because it's not in your DB yet
+        category: book?.category, // Defaulted because it's not in your DB yet
         desc: club.description || "No description provided.",
         cover: book?.cover_url,
         readers: 1,

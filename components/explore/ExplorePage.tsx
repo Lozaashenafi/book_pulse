@@ -1,22 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Search, BookX, SlidersHorizontal, Loader2 } from "lucide-react";
 import ClubCard from "../ui/ClubCard";
 import { useExploreClubs } from "@/hooks/useExploreClubs";
-
-// 1. Define the Categories Constants
-const CATEGORIES: string[] = [
-  "All",
-  "Classic Fiction",
-  "Self-Help",
-  "Science Fiction",
-  "Dystopian",
-  "Non-Fiction",
-  "Fable",
-  "Memoir",
-  "Literary Fiction",
-];
+import { clubService } from "@/services/club.service"; // Import the service
 
 // 2. Define Props Interfaces
 interface SearchBarProps {
@@ -27,6 +15,7 @@ interface SearchBarProps {
 interface CategoryFilterProps {
   activeCategory: string;
   setActiveCategory: (val: string) => void;
+  categories: string[]; // Added categories as a prop
 }
 
 // 3. Define the SearchBar Component
@@ -50,6 +39,7 @@ const SearchBar = ({ searchQuery, setSearchQuery }: SearchBarProps) => (
 const CategoryFilter = ({
   activeCategory,
   setActiveCategory,
+  categories, // Use the dynamic list here
 }: CategoryFilterProps) => (
   <div className="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl border border-[#9E6752]/10 dark:border-white/5 shadow-sm">
     <div className="flex items-center space-x-2 mb-6 text-[#9E6752] dark:text-[#FED7A5]">
@@ -60,7 +50,8 @@ const CategoryFilter = ({
     </div>
 
     <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((cat) => (
+      {/* Always include 'All' manually, then map dynamic ones */}
+      {["All", ...categories.filter((c) => c !== "All")].map((cat) => (
         <button
           key={cat}
           onClick={() => setActiveCategory(cat)}
@@ -81,9 +72,23 @@ const CategoryFilter = ({
 const ExplorePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]); // New state for dynamic categories
 
   // Real dynamic data from your hook
   const { clubs, isLoading } = useExploreClubs();
+
+  // Fetch dynamic categories on mount
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const cats = await clubService.getCategories();
+        setDynamicCategories(cats);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCats();
+  }, []);
 
   const filteredBooks = useMemo(() => {
     return clubs.filter((book) => {
@@ -130,6 +135,7 @@ const ExplorePage = () => {
               <CategoryFilter
                 activeCategory={activeCategory}
                 setActiveCategory={setActiveCategory}
+                categories={dynamicCategories} // Pass dynamic list
               />
             </div>
           </aside>

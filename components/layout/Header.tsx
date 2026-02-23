@@ -148,6 +148,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-10">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/explore">Explore</NavLink>
+            <NavLink href="/posts">Posts</NavLink>
             {user && <NavLink href="/clubs/myclubs">My Clubs</NavLink>}
           </div>
 
@@ -182,7 +183,7 @@ const Header = () => {
                     )}
 
                     {/* User Profile Info */}
-                    <div className="flex items-center space-x-3 bg-white dark:bg-[#262626] border border-primary/10 dark:border-white/5 pl-2 pr-1 py-1 rounded-full shadow-sm">
+                    <div className="flex items-center space-x-3   pl-2 pr-1 py-1 rounded-full shadow-sm">
                       <span className="text-xs font-bold text-gray-700 dark:text-gray-200 hidden lg:block">
                         {profile?.name?.split(" ")[0] || "Reader"}
                       </span>
@@ -190,9 +191,9 @@ const Header = () => {
                         href="/profile"
                         className="h-8 w-8 rounded-full bg-secondary dark:bg-[#d4a373]/20 flex items-center justify-center overflow-hidden border border-primary/10 transition-transform hover:scale-105"
                       >
-                        {profile?.avatar_url ? (
+                        {profile?.image ? (
                           <img
-                            src={profile.avatar_url}
+                            src={profile.image}
                             alt="Profile"
                             className="h-full w-full object-cover"
                           />
@@ -244,8 +245,7 @@ const Header = () => {
         {/* Mobile Dropdown */}
         {isOpen && (
           <div className="absolute top-full mt-3 left-0 right-0 bg-[#fdf8f1] dark:bg-[#262626] border border-primary/20 dark:border-white/10 rounded-xl p-6 flex flex-col space-y-4 shadow-2xl md:hidden animate-in slide-in-from-top-2 duration-300">
-            {["/", "/explore", "/clubs/myclubs"].map((path) => {
-              // Only show My Clubs if user is logged in
+            {["/", "/explore", "/posts", "/clubs/myclubs"].map((path) => {
               if (path === "/clubs/myclubs" && !user) return null;
 
               return (

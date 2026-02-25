@@ -13,6 +13,9 @@ import {
   AlertCircle,
   ArrowLeft,
   Camera,
+  Bell,
+  Eye,
+  Paperclip,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -27,7 +30,6 @@ const SettingsPage = () => {
     text: string;
   } | null>(null);
 
-  // Form States
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -53,41 +55,27 @@ const SettingsPage = () => {
     confirmPassword: "",
   });
 
-  // --- HANDLE IMAGE UPLOAD ---
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
-    // Show local preview immediately
     setPreviewUrl(URL.createObjectURL(file));
-
     try {
       setUploading(true);
-
-      // 1. Upload to Supabase Storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `user_avatars/${fileName}`;
-
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file);
-
       if (uploadError) throw uploadError;
-
-      // 2. Get Public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-      // 3. Update Database immediately
       const { error: dbError } = await supabase
         .from("profiles")
         .update({ image: publicUrl })
         .eq("id", user.id);
-
       if (dbError) throw dbError;
-
       await syncSession();
       setMessage({ type: "success", text: "Profile picture updated!" });
     } catch (error: any) {
@@ -100,8 +88,6 @@ const SettingsPage = () => {
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
-
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -110,10 +96,8 @@ const SettingsPage = () => {
         bio: formData.bio,
       })
       .eq("id", user?.id);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
-    } else {
+    if (error) setMessage({ type: "error", text: error.message });
+    else {
       await syncSession();
       setMessage({ type: "success", text: "Profile updated successfully!" });
     }
@@ -126,15 +110,12 @@ const SettingsPage = () => {
       setMessage({ type: "error", text: "Passwords do not match!" });
       return;
     }
-
     setLoading(true);
     const { error } = await supabase.auth.updateUser({
       password: passwordData.newPassword,
     });
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
-    } else {
+    if (error) setMessage({ type: "error", text: error.message });
+    else {
       setMessage({ type: "success", text: "Password updated successfully!" });
       setPasswordData({ newPassword: "", confirmPassword: "" });
     }
@@ -142,90 +123,92 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-soft-white dark:bg-[#121212] pt-32 pb-20 px-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 text-primary dark:text-[#d4a373] text-sm font-bold mb-2 hover:underline"
-            >
-              <ArrowLeft size={16} /> Back to Profile
-            </Link>
-            <h1 className="text-4xl font-serif font-bold text-dark-secondary dark:text-white">
-              Account Settings
-            </h1>
-          </div>
+    <div className="max-w-4xl mx-auto py-4 px-2">
+      {/* Header "Library Bookmark" Style */}
+      <div className="mb-10 flex items-end justify-between border-b-2 border-[#5c4033]/20 pb-4">
+        <div>
+          <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+            The Setup
+          </h1>
+          <p className="text-xs font-mono uppercase tracking-widest text-[#8b5a2b] mt-1">
+            Personalize your reading experience
+          </p>
         </div>
+        <Link
+          href="/profile"
+          className="text-xs font-bold uppercase tracking-tighter text-[#5c4033] hover:underline flex items-center gap-1"
+        >
+          <ArrowLeft size={14} /> Back to shelf
+        </Link>
+      </div>
 
-        {message && (
-          <div
-            className={`mb-6 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${
-              message.type === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {message.type === "success" ? (
-              <CheckCircle2 size={20} />
-            ) : (
-              <AlertCircle size={20} />
-            )}
-            <p className="text-sm font-bold">{message.text}</p>
-          </div>
-        )}
+      {message && (
+        <div
+          className={`mb-6 p-4 border-l-4 font-serif italic shadow-sm ${
+            message.type === "success"
+              ? "bg-green-50 border-green-500 text-green-800"
+              : "bg-red-50 border-red-500 text-red-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
-        <div className="space-y-8">
-          <section className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-primary/5">
-            <h2 className="text-xl font-serif font-bold mb-8 flex items-center gap-2 text-dark-secondary dark:text-white">
-              <User className="text-primary" size={20} /> Public Profile
-            </h2>
+      <div className="grid grid-cols-1 gap-10">
+        {/* Profile Section: Scrap Paper Style */}
+        <section className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[10px] border-[#8b5a2b]/30">
+          <Paperclip
+            className="absolute -top-4 right-10 text-gray-400 rotate-12"
+            size={32}
+          />
 
-            {/* --- AVATAR UPLOAD UI --- */}
-            <div className="flex flex-col items-center mb-10">
-              <div className="relative group">
-                <div className="w-32 h-32 rounded-full border-4 border-primary/10 p-1 overflow-hidden">
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      className="w-full h-full object-cover rounded-full"
-                      alt="Avatar"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-100 dark:bg-white/5 flex items-center justify-center rounded-full text-gray-400">
-                      <User size={40} />
-                    </div>
-                  )}
-                  {uploading && (
-                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-                      <Loader2 className="animate-spin text-white" />
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  type="button"
-                  className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-xl hover:scale-110 transition-transform"
-                >
-                  <Camera size={18} />
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  hidden
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
+          <h2 className="text-xl font-serif font-bold mb-8 flex items-center gap-2 text-[#5c4033] dark:text-gray-100">
+            <User size={20} /> Public Identity
+          </h2>
+
+          <div className="flex flex-col md:flex-row gap-10 items-start">
+            {/* Avatar */}
+            <div className="relative group flex-shrink-0">
+              <div className="w-32 h-32 bg-[#f4ebd0] border-2 border-[#d6c7a1] shadow-[5px_5px_0px_#bcab79] overflow-hidden">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    className="w-full h-full object-cover"
+                    alt="Avatar"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[#8b5a2b]">
+                    <User size={40} />
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Loader2 className="animate-spin text-white" />
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-400 mt-3 font-bold uppercase tracking-widest">
-                Change Photo
-              </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 bg-[#5c4033] text-[#f4ebd0] p-2 shadow-lg hover:scale-110 transition-transform"
+              >
+                <Camera size={16} />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
             </div>
 
-            <form onSubmit={handleProfileUpdate} className="space-y-6">
+            <form
+              onSubmit={handleProfileUpdate}
+              className="flex-1 space-y-6 w-full"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
                     Full Name
                   </label>
                   <input
@@ -234,124 +217,141 @@ const SettingsPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full px-5 py-3 bg-soft-white dark:bg-[#262626] rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
-                    placeholder="Your Name"
+                    className="w-full border-b border-dashed border-gray-300 bg-transparent py-2 font-serif text-lg outline-none focus:border-[#5c4033] transition-colors dark:text-white"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
                     Location
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) =>
-                        setFormData({ ...formData, location: e.target.value })
-                      }
-                      className="w-full pl-12 pr-5 py-3 bg-soft-white dark:bg-[#262626] rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
-                      placeholder="e.g. London, UK"
-                    />
-                    <MapPin
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                      size={18}
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
+                    className="w-full border-b border-dashed border-gray-300 bg-transparent py-2 font-serif text-lg outline-none focus:border-[#5c4033] transition-colors dark:text-white"
+                  />
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
-                  Bio
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                  Reading Bio
                 </label>
-                <div className="relative">
-                  <textarea
-                    rows={4}
-                    value={formData.bio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bio: e.target.value })
-                    }
-                    className="w-full pl-12 pr-5 py-4 bg-soft-white dark:bg-[#262626] rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white resize-none"
-                    placeholder="Tell us about your reading style..."
-                  />
-                  <FileText
-                    className="absolute left-4 top-4 text-gray-400"
-                    size={18}
-                  />
-                </div>
+                <textarea
+                  rows={3}
+                  value={formData.bio}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
+                  className="w-full border border-dashed border-gray-300 bg-gray-50 dark:bg-black/20 p-4 font-serif italic outline-none focus:border-[#5c4033] transition-colors dark:text-white"
+                  placeholder="The books that made me..."
+                />
               </div>
-
               <button
                 type="submit"
-                disabled={loading || uploading}
-                className="bg-primary dark:bg-[#d4a373] text-white dark:text-[#1a1a1a] px-8 py-3 rounded-2xl font-bold shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50"
+                className="bg-[#5c4033] text-[#f4ebd0] px-8 py-2 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-1 hover:shadow-none transition-all"
               >
-                {loading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  "Save Changes"
-                )}
+                {loading ? "Updating..." : "Pin Changes"}
               </button>
             </form>
-          </section>
+          </div>
+        </section>
 
-          {/* Security Section */}
-          <section className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-primary/5">
-            <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-dark-secondary dark:text-white">
-              <Lock className="text-primary" size={20} /> Security
-            </h2>
+        {/* --- NEW: READING PREFERENCES SECTION --- */}
+        <section className="bg-[#f4ebd0] dark:bg-[#2c2420] p-8 border-2 border-[#d6c7a1] shadow-inner">
+          <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-[#5c4033] dark:text-gray-100">
+            <Bell size={20} /> The Buzz & Privacy
+          </h2>
+          <div className="space-y-6">
+            <ToggleRow
+              label="Email Notifications"
+              description="Get notified when someone likes your scribbles."
+            />
+            <ToggleRow
+              label="Private Shelf"
+              description="Only you can see your 'Brain Dumps' and progress."
+            />
+            <ToggleRow
+              label="Club Invites"
+              description="Allow squads to invite you to their circles."
+            />
+          </div>
+        </section>
 
-            <form onSubmit={handlePasswordUpdate} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      setPasswordData({
-                        ...passwordData,
-                        newPassword: e.target.value,
-                      })
-                    }
-                    className="w-full px-5 py-3 bg-soft-white dark:bg-[#262626] rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordData({
-                        ...passwordData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    className="w-full px-5 py-3 bg-soft-white dark:bg-[#262626] rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all dark:text-white"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || uploading}
-                className="bg-dark-secondary dark:bg-white/10 text-white dark:text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50"
-              >
-                Update Password
-              </button>
-            </form>
-          </section>
-        </div>
+        {/* Security Section: Library Card Style */}
+        <section className="bg-white dark:bg-[#252525] p-8 shadow-md border-l-[12px] border-[#5c4033]/10">
+          <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-[#5c4033] dark:text-gray-100">
+            <Lock size={20} /> Vault Security
+          </h2>
+          <form
+            onSubmit={handlePasswordUpdate}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end"
+          >
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    newPassword: e.target.value,
+                  })
+                }
+                className="w-full border-b border-gray-200 bg-transparent py-2 outline-none focus:border-[#5c4033] dark:text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                Confirm
+              </label>
+              <input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    confirmPassword: e.target.value,
+                  })
+                }
+                className="w-full border-b border-gray-200 bg-transparent py-2 outline-none focus:border-[#5c4033] dark:text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-gray-200 dark:bg-white/10 text-[#5c4033] dark:text-gray-300 px-6 py-2 font-bold text-xs uppercase tracking-widest hover:bg-gray-300 transition-colors"
+            >
+              Update Password
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );
 };
+
+// Helper for the preference toggles
+const ToggleRow = ({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) => (
+  <div className="flex items-center justify-between py-4 border-b border-[#5c4033]/10 last:border-0">
+    <div>
+      <p className="font-serif font-bold text-[#5c4033] dark:text-gray-100">
+        {label}
+      </p>
+      <p className="text-xs text-gray-500 font-mono italic">{description}</p>
+    </div>
+    <div className="w-12 h-6 bg-[#5c4033]/20 rounded-full relative cursor-pointer p-1">
+      <div className="w-4 h-4 bg-[#5c4033] rounded-full" />
+    </div>
+  </div>
+);
 
 export default SettingsPage;

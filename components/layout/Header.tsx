@@ -148,8 +148,8 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-10">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/explore">Explore</NavLink>
-            <NavLink href="/posts">Posts</NavLink>
-            {user && <NavLink href="/clubs/myclubs">My Clubs</NavLink>}
+            {user && <NavLink href="/posts">Posts</NavLink>}
+            <NavLink href="/clubs/myclubs">My Clubs</NavLink>
           </div>
 
           {/* Right Actions */}

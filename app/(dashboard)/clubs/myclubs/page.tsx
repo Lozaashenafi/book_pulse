@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useEffect } from "react";
-import {
-  Plus,
-  Settings,
-  ChevronRight,
-  LibraryBig,
-  Loader2,
-  Book as BookIcon,
-} from "lucide-react";
-import ClubCard from "../../../../components/ui/ClubCard";
+import { Plus, Settings, LibraryBig, Loader2, Paperclip } from "lucide-react";
+import MyClubCard from "../../../../components/ui/MyClubCard";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMyClubs } from "@/hooks/useMyClubs";
@@ -17,23 +10,30 @@ import { useMyClubs } from "@/hooks/useMyClubs";
 const EmptyState = () => {
   const router = useRouter();
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center bg-white dark:bg-[#1E1E1E] rounded-[40px_10px_40px_10px] border-2 border-dashed border-[#9E6752]/20 shadow-sm">
-      <div className="w-20 h-20 bg-[#FDF8F1] dark:bg-[#2A2A2A] rounded-full flex items-center justify-center mb-6">
-        <LibraryBig size={40} className="text-[#9E6752] dark:text-[#FED7A5]" />
+    <div className="relative flex flex-col items-center justify-center py-20 text-center bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-[#5c4033] shadow-[8px_8px_0px_rgba(92,64,51,0.1)] rotate-1 max-w-2xl mx-auto mt-12">
+      <Paperclip
+        className="absolute -top-4 right-10 text-gray-400 rotate-12"
+        size={40}
+      />
+
+      <div className="w-20 h-20 bg-[#5c4033] dark:bg-[#d4a373] flex items-center justify-center mb-6 shadow-md">
+        <LibraryBig size={40} className="text-[#f4ebd0] dark:text-[#1a1614]" />
       </div>
-      <h3 className="text-2xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
-        No Active Clubs
+
+      <h3 className="text-3xl font-serif font-black text-[#5c4033] dark:text-gray-100">
+        Shelf is Empty
       </h3>
-      <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-3 max-w-sm mx-auto italic">
-        You haven't joined or created any book clubs yet. Start your own reading
-        circle today!
+      <p className="text-[#8b5a2b] dark:text-gray-400 mt-3 max-w-sm mx-auto font-serif italic text-lg">
+        "A room without books is like a body without a soul." Start your own
+        fellowship today.
       </p>
+
       <button
-        className="mt-8 px-8 py-4 bg-[#9E6752] hover:bg-[#8B5A46] text-white rounded-full font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95"
+        className="mt-8 px-8 py-3 bg-[#5c4033] text-[#f4ebd0] font-serif italic text-lg shadow-[4px_4px_0px_#3e2b22] hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2"
         onClick={() => router.push("/clubs/add")}
       >
         <Plus size={20} />
-        Create New Club
+        Inaugurate a Squad
       </button>
     </div>
   );
@@ -52,58 +52,68 @@ const MyClubsPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#fdf8f1] dark:bg-[#121212]">
-        <Loader2 className="animate-spin text-[#9E6752]" size={40} />
+      <div className="h-full w-full flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#5c4033]" size={40} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fdf8f1] dark:bg-[#121212] pt-32 pb-20 transition-colors duration-500">
-      <div className="max-w-6xl mx-auto px-6">
-        <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="text-left">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
-              My{" "}
-              <span className="text-[#9E6752] dark:text-[#FED7A5]">Clubs</span>
-            </h1>
-            <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-3 italic">
-              Manage your reading groups and track your progress.
-            </p>
-          </div>
+    <div className="max-w-5xl mx-auto py-6">
+      {/* Header "Library Index" Style */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-4 border-[#5c4033]/10 pb-6 gap-6">
+        <div className="text-left">
+          <h1 className="text-5xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+            My{" "}
+            <span className="italic underline decoration-wavy decoration-[#8b5a2b]/30">
+              Squads
+            </span>
+          </h1>
+          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-mono text-xs uppercase tracking-[0.2em] font-bold">
+            Personal Registry // {clubs.length} Active Fellowships
+          </p>
+        </div>
 
-          <button
-            className="flex items-center gap-2 bg-white dark:bg-[#1E1E1E] text-[#9E6752] dark:text-[#FED7A5] px-6 py-3 rounded-xl border border-[#9E6752]/20 font-bold hover:bg-[#9E6752] hover:text-white transition-all shadow-sm"
-            onClick={() => router.push("/clubs/add")}
-          >
-            <Plus size={18} />
-            Create Club
-          </button>
-        </header>
+        <button
+          className="flex items-center gap-2 bg-[#fdfdfd] dark:bg-[#252525] text-[#5c4033] dark:text-[#d4a373] px-6 py-2 border-2 border-[#5c4033] dark:border-[#d4a373] font-serif italic font-bold hover:bg-[#5c4033] hover:text-[#f4ebd0] transition-all shadow-[4px_4px_0px_rgba(92,64,51,0.2)]"
+          onClick={() => router.push("/clubs/add")}
+        >
+          <Plus size={18} />
+          Form New Circle
+        </button>
+      </header>
 
-        {clubs.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {clubs.map((club) => (
-              <div key={club.id} className="relative group flex flex-col">
-                {/* Action Settings Button */}
-                <div className="absolute top-6 right-4 z-20">
-                  <button
-                    onClick={() => router.push(`/clubs/settings/${club.id}`)}
-                    className="p-2 bg-white/90 dark:bg-black/50 backdrop-blur-md rounded-full text-[#9E6752] hover:bg-[#9E6752] hover:text-white transition-all shadow-md"
-                  >
-                    <Settings size={18} />
-                  </button>
-                </div>
-
-                <div className="flex-1 min-w-0 pt-4">
-                  <ClubCard book={club} />
-                </div>
+      {clubs.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {clubs.map((club) => (
+            <div key={club.id} className="relative group">
+              {/* "Library Card" Style Action Button */}
+              <div className="absolute -top-3 -right-3 z-20">
+                <button
+                  onClick={() => router.push(`/clubs/settings/${club.id}`)}
+                  className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
+                  title="Modify Ledger"
+                >
+                  <Settings size={18} />
+                </button>
               </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState />
-        )}
+
+              {/* The Club Card Container */}
+              <div className="transition-transform hover:-rotate-1 duration-300">
+                <MyClubCard book={club} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState />
+      )}
+
+      {/* Footer Decoration */}
+      <div className="mt-20 border-t border-dashed border-[#5c4033]/20 pt-8 text-center">
+        <p className="font-mono text-[10px] uppercase text-[#8b5a2b] opacity-50">
+          BookPulse Literary Registry — End of List
+        </p>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import SideBar from "../../../components/layout/SideBar";
+import SideBar from "../../components/layout/SideBar";
 
 export default function SiteLayout({ children }) {
   return (

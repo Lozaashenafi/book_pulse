@@ -4,16 +4,15 @@ import React from "react";
 import {
   ArrowLeft,
   Plus,
-  Upload,
   Trash2,
   ChevronRight,
-  ChevronLeft,
   Image as ImageIcon,
   FileText,
-  Link,
+  Link as LinkIcon,
   CheckCircle2,
   Loader2,
   ChevronDown,
+  Paperclip,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -25,18 +24,15 @@ const CreateClubPage = () => {
   const { user } = useAuthStore();
   const h = useCreateClub(user?.id);
 
-  // Constants for re-usable Tailwind styles
+  // Re-styled Tailwind constants to match the Sidebar/Desk aesthetic
   const inputClass =
-    "w-full bg-white dark:bg-white/5 border border-primary/10 p-4 rounded-xl dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all";
+    "w-full bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 p-4 font-serif outline-none focus:border-[#5c4033] transition-colors dark:text-white shadow-inner";
+
   const btnPrimary =
-    "w-full bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10";
-  const btnOutline = `
-  flex-1 px-6 py-4 rounded-2xl border-2 border-primary/30 
-  text-primary font-bold bg-transparent
-  hover:bg-primary hover:text-white hover:border-primary
-  transition-all duration-300 ease-out
-  active:scale-[0.97] flex items-center justify-center gap-2
-`;
+    "w-full bg-[#5c4033] text-[#f4ebd0] py-4 font-serif italic text-lg shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50";
+
+  const btnOutline =
+    "flex-1 px-6 py-4 border-2 border-[#5c4033] text-[#5c4033] dark:text-[#d4a373] dark:border-[#d4a373] font-serif italic font-bold hover:bg-[#5c4033] hover:text-[#f4ebd0] transition-all shadow-[4px_4px_0px_rgba(92,64,51,0.1)]";
 
   const prevStep = () => {
     if (h.step === 1) router.back();
@@ -44,39 +40,52 @@ const CreateClubPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-soft-white dark:bg-[#121212] transition-colors duration-500">
-      <nav className="max-w-5xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto py-4 px-2">
+      {/* Top Navigation */}
+      <nav className="mb-8 flex items-center justify-between border-b-2 border-[#5c4033]/10 pb-4">
         <button
           onClick={prevStep}
-          className="flex items-center space-x-2 text-dark-secondary/60 dark:text-gray-400 hover:text-primary transition-colors"
+          className="flex items-center space-x-2 text-[#8b5a2b] hover:text-[#5c4033] transition-colors font-mono text-xs uppercase font-bold tracking-widest"
         >
-          <ArrowLeft size={20} />
-          <span className="font-medium">
-            {h.step === 1 ? "Discard & Exit" : "Back"}
-          </span>
+          <ArrowLeft size={16} />
+          <span>{h.step === 1 ? "Discard Ledger" : "Back Step"}</span>
         </button>
+        <div className="font-mono text-[10px] font-bold text-[#8b5a2b] uppercase tracking-[0.3em]">
+          Registry Entry / Part {h.step}
+        </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-6 pb-20">
-        <div className="flex justify-between mb-12">
+      <main className="pb-20">
+        {/* Progress "Ink Trail" */}
+        <div className="flex justify-between mb-12 gap-2">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full mx-1 ${h.step >= i ? "bg-primary" : "bg-gray-200 dark:bg-white/10"}`}
+              className={`h-1.5 flex-1 transition-all duration-700 ${
+                h.step >= i ? "bg-[#5c4033] shadow-sm" : "bg-[#5c4033]/10"
+              }`}
             />
           ))}
         </div>
 
         {/* STEP 1: BOOK DETAILS */}
         {h.step === 1 && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[12px] border-[#8b5a2b]/20 animate-in fade-in slide-in-from-bottom-4">
+            <Paperclip
+              className="absolute -top-4 right-10 text-gray-400 rotate-12"
+              size={32}
+            />
             <header className="mb-8">
-              <h1 className="text-4xl font-serif font-bold dark:text-white">
-                The Book
+              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                The Manuscript
               </h1>
+              <p className="font-serif italic text-[#8b5a2b]">
+                Identify the book for this fellowship
+              </p>
             </header>
+
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   className={inputClass}
                   placeholder="Book Title"
@@ -94,9 +103,10 @@ const CreateClubPage = () => {
                   }
                 />
               </div>
+
               <div className="relative">
                 <select
-                  className={`${inputClass} appearance-none cursor-pointer`}
+                  className={`${inputClass} appearance-none cursor-pointer bg-transparent`}
                   value={h.bookData.category}
                   onChange={(e) =>
                     h.setBookData({ ...h.bookData, category: e.target.value })
@@ -109,29 +119,32 @@ const CreateClubPage = () => {
                   ))}
                 </select>
                 <ChevronDown
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] pointer-events-none"
                   size={18}
                 />
               </div>
+
               <textarea
-                className={`${inputClass} h-24 resize-none`}
-                placeholder="Book Description (Optional)"
+                className={`${inputClass} h-24 resize-none italic`}
+                placeholder="Briefly describe the story..."
                 value={h.bookData.description}
                 onChange={(e) =>
                   h.setBookData({ ...h.bookData, description: e.target.value })
                 }
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <label className="relative flex flex-col items-center justify-center h-56 border-2 border-dashed border-primary/20 rounded-2xl cursor-pointer overflow-hidden group hover:bg-primary/5 transition-all">
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                <label className="relative flex flex-col items-center justify-center h-56 border-2 border-dashed border-[#5c4033]/20 bg-[#fdfdfd] dark:bg-black/10 cursor-pointer overflow-hidden group hover:border-[#5c4033] transition-all">
                   {h.imagePreview ? (
                     <img
                       src={h.imagePreview}
                       className="w-full h-full object-cover"
+                      alt="Cover preview"
                     />
                   ) : (
-                    <div className="text-gray-400 flex flex-col items-center">
-                      <ImageIcon size={28} />
-                      <span className="text-sm mt-2">Cover (Required)</span>
+                    <div className="text-[#8b5a2b] flex flex-col items-center font-serif italic">
+                      <ImageIcon size={32} strokeWidth={1.5} />
+                      <span className="text-sm mt-2">Paste Cover Art</span>
                     </div>
                   )}
                   <input
@@ -147,18 +160,19 @@ const CreateClubPage = () => {
                     }}
                   />
                 </label>
+
                 <label
-                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${h.bookData.pdfFile ? "border-green-500/50 bg-green-500/5" : "border-primary/20 hover:bg-primary/5 text-gray-400"}`}
+                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed transition-all cursor-pointer ${h.bookData.pdfFile ? "border-green-600 bg-green-50/10" : "border-[#5c4033]/20 text-[#8b5a2b] bg-[#fdfdfd] dark:bg-black/10"}`}
                 >
                   {h.bookData.pdfFile ? (
-                    <CheckCircle2 size={28} className="text-green-500" />
+                    <CheckCircle2 size={32} className="text-green-600" />
                   ) : (
-                    <FileText size={28} />
+                    <FileText size={32} strokeWidth={1.5} />
                   )}
-                  <span className="text-sm mt-2 px-4 truncate w-full text-center">
+                  <span className="text-sm mt-2 px-4 truncate w-full text-center font-serif italic">
                     {h.bookData.pdfFile
                       ? h.bookData.pdfFile.name
-                      : "Upload PDF (Optional)"}
+                      : "Attach PDF (Optional)"}
                   </span>
                   <input
                     type="file"
@@ -173,44 +187,47 @@ const CreateClubPage = () => {
                   />
                 </label>
               </div>
+
               <button
                 disabled={!h.bookData.title || !h.bookData.coverFile}
                 onClick={() => h.setStep(2)}
                 className={btnPrimary}
               >
-                Set Reading Goals <ChevronRight size={20} />
+                Draft Breakdown <ChevronRight size={20} />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: BREAKDOWN */}
+        {/* STEP 2: BREAKDOWN (Ledger Style) */}
         {h.step === 2 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <header className="mb-8">
-              <h1 className="text-4xl font-serif font-bold dark:text-white">
-                Breakdown
+          <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-8 border-2 border-[#d6c7a1] shadow-inner animate-in fade-in slide-in-from-right-4">
+            <header className="mb-8 border-b-2 border-[#5c4033]/10 pb-4">
+              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                The Breakdown
               </h1>
+              <p className="font-mono text-[10px] uppercase font-bold text-[#8b5a2b]">
+                Reading Milestones & Chapters
+              </p>
             </header>
+
             <div className="space-y-4 mb-8">
               {h.chapters.map((ch, i) => {
-                // LOGIC: Is this the last chapter in the list?
                 const isLast = i === h.chapters.length - 1;
-                // LOGIC: Is there more than one chapter total?
                 const hasMoreThanOne = h.chapters.length > 1;
 
                 return (
                   <div
                     key={i}
-                    className="flex gap-4 items-center bg-white dark:bg-white/5 p-4 rounded-xl border border-primary/5"
+                    className="flex gap-4 items-center bg-white/50 dark:bg-black/20 p-4 border-b border-[#5c4033]/10"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                    <div className="w-8 h-8 bg-[#5c4033] text-[#f4ebd0] flex items-center justify-center font-serif italic shrink-0 shadow-sm">
                       {i + 1}
                     </div>
 
                     <input
-                      className="flex-1 bg-transparent border-b border-gray-200 dark:border-white/10 p-1 dark:text-white outline-none"
-                      placeholder="Title"
+                      className="flex-1 bg-transparent border-b border-dotted border-[#5c4033]/30 p-1 font-serif text-[#5c4033] dark:text-gray-100 outline-none placeholder:text-[#8b5a2b]/40"
+                      placeholder="Chapter Title or Goal"
                       value={ch.title}
                       onChange={(e) => {
                         const n = [...h.chapters];
@@ -219,26 +236,26 @@ const CreateClubPage = () => {
                       }}
                     />
 
-                    <div className="flex items-center gap-2 bg-soft-white dark:bg-[#1a1a1a] px-3 py-2 rounded-lg border border-primary/5">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] uppercase font-bold text-gray-400">
-                          Start
+                    <div className="flex items-center gap-3 bg-white dark:bg-[#1a1614] px-4 py-2 border border-[#5c4033]/10 shadow-sm">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
+                          START
                         </span>
                         <input
                           type="number"
-                          className="w-12 bg-transparent text-center dark:text-white outline-none font-bold"
+                          className="w-10 bg-transparent text-center font-bold text-xs"
                           value={ch.start_page}
                           readOnly
                         />
                       </div>
-                      <span className="text-gray-300">—</span>
-                      <div className="flex flex-col">
-                        <span className="text-[8px] uppercase font-bold text-gray-400">
-                          End
+                      <div className="h-4 w-[1px] bg-[#5c4033]/20" />
+                      <div className="flex flex-col items-center">
+                        <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
+                          END
                         </span>
                         <input
                           type="number"
-                          className="w-12 bg-transparent text-center dark:text-white outline-none font-bold text-primary"
+                          className="w-10 bg-transparent text-center font-bold text-xs text-[#5c4033] dark:text-[#d4a373]"
                           value={ch.end_page}
                           onChange={(e) =>
                             h.handleChapterEndChange(i, e.target.value)
@@ -247,118 +264,140 @@ const CreateClubPage = () => {
                       </div>
                     </div>
 
-                    {/* ACTION: Show delete ONLY if it's the last one and not the ONLY one */}
-                    <div className="w-9 flex justify-center">
-                      {isLast && hasMoreThanOne ? (
-                        <button
-                          onClick={() =>
-                            h.setChapters(
-                              h.chapters.filter((_, idx) => idx !== i),
-                            )
-                          }
-                          className="text-gray-300 hover:text-red-400 transition-colors p-2"
-                          title="Remove last chapter"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      ) : (
-                        // Helpful tooltip for users to know why they can't delete
-                        <div
-                          className="w-5 h-5 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center"
-                          title="Only the last chapter can be removed"
-                        >
-                          <span className="text-[10px] text-gray-300">?</span>
-                        </div>
-                      )}
-                    </div>
+                    {isLast && hasMoreThanOne && (
+                      <button
+                        onClick={() =>
+                          h.setChapters(
+                            h.chapters.filter((_, idx) => idx !== i),
+                          )
+                        }
+                        className="text-red-700 hover:scale-110 transition-transform p-1"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 );
               })}
 
               <button
                 onClick={h.addChapter}
-                className="w-full py-4 border-2 border-dashed border-primary/10 rounded-xl text-primary font-bold flex items-center justify-center gap-2 hover:bg-primary/5 transition-all"
+                className="w-full py-4 border-2 border-dashed border-[#5c4033]/20 text-[#5c4033] dark:text-[#d4a373] font-serif italic font-bold flex items-center justify-center gap-2 hover:bg-[#5c4033]/5 transition-all"
               >
-                <Plus size={18} /> Add Next Chapter
+                <Plus size={18} /> Append Next Milestone
               </button>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-6">
               <button onClick={() => h.setStep(1)} className={btnOutline}>
-                Back
+                Return
               </button>
               <button onClick={() => h.setStep(3)} className={btnPrimary}>
-                Club Identity <ChevronRight size={20} />
+                The Fellowship <ChevronRight size={20} />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: CLUB */}
+        {/* STEP 3: CLUB (The Fellowship) */}
         {h.step === 3 && (
-          <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <header className="mb-8">
-              <h1 className="text-4xl font-serif font-bold dark:text-white">
-                Club Identity
+          <div className="bg-white dark:bg-[#252525] p-8 shadow-md border-l-[12px] border-[#5c4033]/10 animate-in fade-in slide-in-from-right-4">
+            <header className="mb-10">
+              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                The Fellowship
               </h1>
+              <p className="font-serif italic text-[#8b5a2b]">
+                Set the rules for your inner circle
+              </p>
             </header>
-            <div className="space-y-6">
-              <input
-                className={inputClass}
-                placeholder="Club Name"
-                value={h.clubData.name}
-                onChange={(e) =>
-                  h.setClubData({ ...h.clubData, name: e.target.value })
-                }
-              />
-              <textarea
-                className={`${inputClass} h-24 resize-none`}
-                placeholder="Club Description (Optional)"
-                value={h.clubData.description}
-                onChange={(e) =>
-                  h.setClubData({ ...h.clubData, description: e.target.value })
-                }
-              />
-              <div className="grid grid-cols-2 gap-4">
+
+            <div className="space-y-8">
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                  Squad Name
+                </label>
                 <input
-                  type="date"
                   className={inputClass}
-                  value={h.clubData.startDate}
+                  placeholder="e.g. Midnight Readers"
+                  value={h.clubData.name}
                   onChange={(e) =>
-                    h.setClubData({ ...h.clubData, startDate: e.target.value })
-                  }
-                />
-                <input
-                  type="date"
-                  className={inputClass}
-                  value={h.clubData.endDate}
-                  onChange={(e) =>
-                    h.setClubData({ ...h.clubData, endDate: e.target.value })
+                    h.setClubData({ ...h.clubData, name: e.target.value })
                   }
                 />
               </div>
-              <div className="flex p-1 bg-gray-100 dark:bg-white/5 rounded-2xl w-fit">
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                  Manifesto
+                </label>
+                <textarea
+                  className={`${inputClass} h-24 resize-none`}
+                  placeholder="What's the vibe of this club?"
+                  value={h.clubData.description}
+                  onChange={(e) =>
+                    h.setClubData({
+                      ...h.clubData,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                    Opening Date
+                  </label>
+                  <input
+                    type="date"
+                    className={inputClass}
+                    value={h.clubData.startDate}
+                    onChange={(e) =>
+                      h.setClubData({
+                        ...h.clubData,
+                        startDate: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                    Final Page Date
+                  </label>
+                  <input
+                    type="date"
+                    className={inputClass}
+                    value={h.clubData.endDate}
+                    onChange={(e) =>
+                      h.setClubData({ ...h.clubData, endDate: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex p-1 bg-[#5c4033]/5 border border-[#5c4033]/10 w-fit">
                 <button
                   type="button"
                   onClick={() =>
                     h.setClubData({ ...h.clubData, visibility: "PUBLIC" })
                   }
-                  className={`px-6 py-3 rounded-xl transition-all ${h.clubData.visibility === "PUBLIC" ? "bg-white shadow text-primary" : "text-gray-500"}`}
+                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PUBLIC" ? "bg-[#5c4033] text-[#f4ebd0] shadow-md" : "text-[#5c4033]/60"}`}
                 >
-                  Public
+                  Public Circle
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     h.setClubData({ ...h.clubData, visibility: "PRIVATE" })
                   }
-                  className={`px-6 py-3 rounded-xl transition-all ${h.clubData.visibility === "PRIVATE" ? "bg-white shadow text-primary" : "text-gray-500"}`}
+                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PRIVATE" ? "bg-[#5c4033] text-[#f4ebd0] shadow-md" : "text-[#5c4033]/60"}`}
                 >
-                  Private
+                  Invitation Only
                 </button>
               </div>
+
               {h.clubData.visibility === "PUBLIC" && (
-                <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-3 p-4 bg-[#f4ebd0]/30 border-2 border-dashed border-[#8b5a2b]/20">
                   <input
                     type="checkbox"
                     id="post"
@@ -369,17 +408,18 @@ const CreateClubPage = () => {
                         makePost: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 accent-primary"
+                    className="w-5 h-5 accent-[#5c4033] cursor-pointer"
                   />
                   <label
                     htmlFor="post"
-                    className="text-sm font-medium dark:text-gray-300 cursor-pointer"
+                    className="text-sm font-serif italic text-[#5c4033] cursor-pointer"
                   >
-                    Announce this club to the public feed
+                    Announce our founding to the Daily Scribbles feed
                   </label>
                 </div>
               )}
-              <div className="flex gap-4">
+
+              <div className="flex gap-6 pt-4">
                 <button onClick={() => h.setStep(2)} className={btnOutline}>
                   Back
                 </button>
@@ -391,7 +431,7 @@ const CreateClubPage = () => {
                   {h.loading ? (
                     <Loader2 className="animate-spin" />
                   ) : (
-                    "Found Circle"
+                    "Found Squad"
                   )}
                 </button>
               </div>
@@ -399,36 +439,43 @@ const CreateClubPage = () => {
           </div>
         )}
 
-        {/* STEP 4: SUCCESS */}
+        {/* STEP 4: SUCCESS (Sticky Note Style) */}
         {h.step === 4 && (
-          <div className="text-center animate-in zoom-in duration-500">
-            <CheckCircle2 size={60} className="mx-auto text-green-500 mb-6" />
-            <h1 className="text-4xl font-serif font-bold mb-4 dark:text-white">
-              Founded!
-            </h1>
-            <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-              Invite friends! Share this link to bring them into your circle.
-            </p>
-            <div className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-primary/10 mb-8 flex items-center gap-2">
-              <span className="flex-1 text-sm font-mono truncate dark:text-gray-300">
-                {h.inviteLink}
-              </span>
+          <div className="max-w-md mx-auto relative transform rotate-[-1deg] bg-[#feff9c] dark:bg-[#c4c562] p-10 shadow-[8px_8px_20px_rgba(0,0,0,0.2)] animate-in zoom-in duration-500">
+            {/* "Washi Tape" pushpin look */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 shadow-md" />
+
+            <div className="text-center">
+              <CheckCircle2 size={50} className="mx-auto text-[#5c4033] mb-4" />
+              <h1 className="text-4xl font-serif font-black text-[#2c2c2c] mb-2">
+                Circle Founded!
+              </h1>
+              <p className="text-[#8b5a2b] mb-8 font-serif italic">
+                Your fellowship is recorded. Now, gather the readers.
+              </p>
+
+              <div className="bg-black/5 p-4 border border-black/10 mb-8 flex items-center gap-2">
+                <span className="flex-1 text-xs font-mono truncate text-black/70">
+                  {h.inviteLink}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(h.inviteLink);
+                    toast.success("Link copied!");
+                  }}
+                  className="bg-[#5c4033] text-[#f4ebd0] p-2 hover:scale-105 transition-transform"
+                >
+                  <LinkIcon size={18} />
+                </button>
+              </div>
+
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(h.inviteLink);
-                  toast.success("Link copied!");
-                }}
-                className="bg-primary text-white p-2 rounded-lg"
+                onClick={() => router.push("/clubs/myclubs")}
+                className={btnPrimary}
               >
-                <Link size={20} />
+                Enter the Dashboard
               </button>
             </div>
-            <button
-              onClick={() => router.push("/clubs/myclubs")}
-              className={btnPrimary}
-            >
-              Go to Dashboard
-            </button>
           </div>
         )}
       </main>

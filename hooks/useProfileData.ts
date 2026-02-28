@@ -1,6 +1,12 @@
-// src/hooks/useProfileData.ts
+"use client";
+
+import {
+  getActiveCircles,
+  getCurrentReads,
+  getStats,
+} from "@/services/profile.service";
 import { useState, useEffect } from "react";
-import { profileService } from "@/services/profile.service";
+// Import the server-side service
 
 export function useProfileData(userId: string | undefined) {
   const [data, setData] = useState({
@@ -11,19 +17,17 @@ export function useProfileData(userId: string | undefined) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If no user yet, stay in loading state or handle accordingly
-    if (!userId) {
-      setIsLoading(true);
-      return;
-    }
+    if (!userId) return;
 
     const fetchData = async () => {
       try {
-        console.log("Fetching data for user:", userId);
+        setIsLoading(true);
+
+        // These calls now act as secure requests to the server
         const [stats, currentReads, activeCircles] = await Promise.all([
-          profileService.getStats(userId),
-          profileService.getCurrentReads(userId),
-          profileService.getActiveCircles(userId),
+          getStats(userId),
+          getCurrentReads(userId),
+          getActiveCircles(userId),
         ]);
 
         setData({ stats, currentReads, activeCircles });

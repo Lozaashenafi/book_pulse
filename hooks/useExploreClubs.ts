@@ -1,5 +1,5 @@
+import { getExploreClubs } from "@/services/club.service";
 import { useState, useEffect } from "react";
-import { clubService } from "@/services/club.service";
 
 export function useExploreClubs() {
   const [clubs, setClubs] = useState<any[]>([]);
@@ -8,7 +8,7 @@ export function useExploreClubs() {
   useEffect(() => {
     const fetchClubs = async () => {
       try {
-        const data = await clubService.getExploreClubs();
+        const data = await getExploreClubs();
         setClubs(data);
       } catch (err) {
         console.error("Explore fetch error:", err);

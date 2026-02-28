@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Search, BookX, SlidersHorizontal, Loader2 } from "lucide-react";
 import ClubCard from "../ui/ClubCard";
 import { useExploreClubs } from "@/hooks/useExploreClubs";
-import { clubService } from "@/services/club.service"; // Import the service
+import { getCategories } from "@/services/club.service"; // Import the API function to fetch categories
 
 // 2. Define Props Interfaces
 interface SearchBarProps {
@@ -81,7 +81,7 @@ const ExplorePage = () => {
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const cats = await clubService.getCategories();
+        const cats = await getCategories();
         setDynamicCategories(cats);
       } catch (error) {
         console.error("Error fetching categories:", error);

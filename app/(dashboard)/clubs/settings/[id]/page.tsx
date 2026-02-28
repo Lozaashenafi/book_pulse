@@ -21,9 +21,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { clubService } from "@/services/club.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useClubSettings } from "@/hooks/useClubSettings";
+import {
+  deleteClub,
+  updateBook,
+  updateClub,
+  updateMemberStatus,
+} from "@/services/club.service";
+import { createClient } from "@/lib/supabase/client";
 
 // UI Helper components inside the file to maintain specific styling
 const ClubInput = ({ label, ...props }: any) => (
@@ -71,7 +77,7 @@ const ClubSettingsPage = () => {
   const handleUpdateClub = async () => {
     setSaving(true);
     try {
-      await clubService.updateClub(club.id, club);
+      await updateClub(club.id, club);
       toast.success("Ledger updated!");
     } catch (err: any) {
       toast.error(err.message);
@@ -82,16 +88,38 @@ const ClubSettingsPage = () => {
   const handleUpdateBook = async () => {
     setSaving(true);
     try {
-      await clubService.updateBook(
-        club.books.id,
-        club.books,
-        newPdf || undefined,
-      );
+      let uploadedPdfUrl = club.books.pdf_url; // Default to existing URL
+
+      // 1. If there is a NEW file, upload it to Supabase Storage first
+      if (newPdf) {
+        const supabase = createClient();
+        const fileExt = newPdf.name.split(".").pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `pdfs/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("books")
+          .upload(filePath, newPdf);
+
+        if (uploadError) throw uploadError;
+
+        // Get the Public URL
+        const { data } = supabase.storage.from("books").getPublicUrl(filePath);
+        uploadedPdfUrl = data.publicUrl;
+      }
+
+      // 2. Call the Drizzle Server Action with the URL (string), not the File
+      await updateBook(club.books.id, club.books, uploadedPdfUrl);
+
       toast.success("Manuscript details updated!");
+      setNewPdf(null); // Clear the file input state
+      refresh(); // Refresh the data to show the new link
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error(err.message || "Failed to update book");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleMemberAction = async (
@@ -100,7 +128,7 @@ const ClubSettingsPage = () => {
   ) => {
     if (!confirm("Are you sure?")) return;
     try {
-      await clubService.updateMemberStatus(club.id, targetUserId, action);
+      await updateMemberStatus(club.id, targetUserId, action);
       refresh();
     } catch (err: any) {
       toast.error(err.message);
@@ -110,7 +138,7 @@ const ClubSettingsPage = () => {
   const handleDeleteClub = async () => {
     setSaving(true);
     try {
-      await clubService.deleteClub(club.id);
+      await deleteClub(club.id);
       router.push("/clubs/myclubs");
     } catch (err: any) {
       toast.error(err.message);

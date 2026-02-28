@@ -1,6 +1,6 @@
 // src/hooks/useClubSettings.ts
+import { getCategories, getClubFullData } from "@/services/club.service";
 import { useState, useEffect, useCallback } from "react";
-import { clubService } from "@/services/club.service";
 
 export const useClubSettings = (clubId: string, userId?: string) => {
   const [data, setData] = useState<any>({
@@ -16,8 +16,8 @@ export const useClubSettings = (clubId: string, userId?: string) => {
     try {
       setLoading(true);
       const [clubRes, catRes] = await Promise.all([
-        clubService.getClubFullData(clubId),
-        clubService.getCategories(),
+        getClubFullData(clubId),
+        getCategories(),
       ]);
 
       setData({

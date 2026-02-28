@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { clubService } from "@/services/club.service";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { createFullClub, getCategories } from "@/services/club.service";
 
 export function useCreateClub(userId?: string) {
   const [step, setStep] = useState(1);
@@ -32,8 +33,7 @@ export function useCreateClub(userId?: string) {
   });
 
   useEffect(() => {
-    clubService
-      .getCategories()
+    getCategories()
       .then(setCategories)
       .catch(() => toast.error("Failed to load categories"));
   }, []);
@@ -74,17 +74,50 @@ export function useCreateClub(userId?: string) {
   const submit = async () => {
     if (!userId) return toast.error("Please log in first");
     setLoading(true);
+
     try {
-      const result = await clubService.createFullClub(userId, {
-        bookData,
+      // 2. Initialize the browser client (No await needed here)
+      const supabase = createClient();
+
+      // 3. Upload Cover Art
+      let coverUrl = "";
+      if (bookData.coverFile) {
+        const coverExt = bookData.coverFile.name.split(".").pop();
+        const coverPath = `covers/${crypto.randomUUID()}.${coverExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("books")
+          .upload(coverPath, bookData.coverFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from("books").getPublicUrl(coverPath);
+        coverUrl = data.publicUrl;
+      }
+
+      // 4. Upload PDF (Optional)
+      let pdfUrl = null;
+      if (bookData.pdfFile) {
+        const pdfPath = `pdfs/${crypto.randomUUID()}.pdf`;
+        await supabase.storage.from("books").upload(pdfPath, bookData.pdfFile);
+        pdfUrl = supabase.storage.from("books").getPublicUrl(pdfPath)
+          .data.publicUrl;
+      }
+
+      // 5. Call the Drizzle-powered Server Action
+      // Pass the URLs we just generated to the server
+      const result = await createFullClub(userId, {
+        bookData: { ...bookData, coverUrl, pdfUrl },
         clubData,
         chapters,
       });
-      setInviteLink(result.inviteLink);
+
+      setInviteLink(`${window.location.origin}/join/${result.inviteLink}`);
       setStep(4);
       toast.success("Circle founded successfully!");
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error(err.message || "Failed to create club");
     } finally {
       setLoading(false);
     }

@@ -1,145 +1,142 @@
-// src/services/profile.service.ts
-import { createClient } from "@/lib/supabase/client";
+"use server"; // Add this line
 
-const supabase = createClient();
+import { db } from "@/lib/db";
+import {
+  clubMembers,
+  readingProgress,
+  chatMessages,
+  clubs,
+  books,
+} from "@/lib/db/schema";
+import { eq, count, and } from "drizzle-orm";
 
-export const profileService = {
-  async getStats(userId: string) {
-    const [clubs, progress, messages] = await Promise.all([
-      supabase
-        .from("club_members")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId),
-      supabase
-        .from("reading_progress")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "COMPLETED"),
-      supabase
-        .from("chat_messages")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId),
-    ]);
+export async function getStats(userId: string) {
+  if (!userId) return { circles: 0, booksRead: 0, discussions: 0 };
+
+  try {
+    // We execute these individually to catch which one fails
+    const membershipsResult = await db
+      .select({ value: count() })
+      .from(clubMembers)
+      .where(eq(clubMembers.userId, userId))
+      .catch((e) => {
+        console.error("Stats count error:", e);
+        return [{ value: 0 }];
+      });
+
+    const progressResult = await db
+      .select({ value: count() })
+      .from(readingProgress)
+      .where(
+        and(
+          eq(readingProgress.userId, userId),
+          eq(readingProgress.status, "COMPLETED"),
+        ),
+      )
+      .catch((e) => {
+        console.error("Progress count error:", e);
+        return [{ value: 0 }];
+      });
 
     return {
-      circles: clubs.count || 0,
-      booksRead: progress.count || 0,
-      discussions: messages.count || 0,
+      circles: Number(membershipsResult[0]?.value) || 0,
+      booksRead: Number(progressResult[0]?.value) || 0,
+      discussions: 0,
     };
-  },
+  } catch (error) {
+    console.error("Global stats error:", error);
+    return { circles: 0, booksRead: 0, discussions: 0 };
+  }
+}
+export async function getCurrentReads(userId: string) {
+  if (!userId) return [];
 
-  async getCurrentReads(userId: string) {
-    const { data, error } = await supabase
-      .from("reading_progress")
-      .select(
-        `
-        current_page,
-        status,
-        clubs (
-          id,
-          name,
-          books (
-            title, 
-            author, 
-            total_pages
-          )
-        )
-      `,
+  try {
+    // We use a standard SQL join instead of the complex .findMany relational query
+    const data = await db
+      .select({
+        currentPage: readingProgress.currentPage,
+        status: readingProgress.status,
+        clubName: clubs.name,
+        bookTitle: books.title,
+        bookAuthor: books.author,
+        totalPages: books.totalPages,
+      })
+      .from(readingProgress)
+      .innerJoin(clubs, eq(readingProgress.clubId, clubs.id))
+      .innerJoin(books, eq(clubs.bookId, books.id))
+      .where(
+        and(
+          eq(readingProgress.userId, userId),
+          eq(readingProgress.status, "IN_PROGRESS"),
+        ),
       )
-      .eq("user_id", userId)
-      .eq("status", "IN_PROGRESS")
       .limit(2);
 
-    if (error) {
-      console.error("Error fetching Current Reads:", error);
-      return [];
-    }
+    return data.map((item) => ({
+      title: item.bookTitle || "Unknown",
+      author: item.bookAuthor || "Unknown",
+      progress: Math.min(
+        100,
+        Math.round(((item.currentPage || 0) / (item.totalPages || 100)) * 100),
+      ),
+    }));
+  } catch (err) {
+    console.error("Manual Join Error (CurrentReads):", err);
+    return [];
+  }
+}
 
-    console.log("Raw Reading Data:", data); // Check your console with this!
+export async function getActiveCircles(userId: string) {
+  if (!userId) return [];
 
-    return (data || []).map((item: any) => {
-      // Handle potential array vs object returns from Supabase joins
-      const club = Array.isArray(item.clubs) ? item.clubs[0] : item.clubs;
-      const book = Array.isArray(club?.books) ? club.books[0] : club?.books;
-
-      const total = book?.total_pages || 100;
-      const current = item.current_page || 0;
-
-      return {
-        title: book?.title || "Unknown Title",
-        author: book?.author || "Unknown Author",
-        progress: Math.min(100, Math.round((current / total) * 100)),
-      };
-    });
-  },
-
-  async getActiveCircles(userId: string) {
-    const { data, error } = await supabase
-      .from("club_members")
-      .select(
-        `
-        clubs (
-          id, 
-          name
-        )
-      `,
-      )
-      .eq("user_id", userId)
+  try {
+    const data = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+      })
+      .from(clubMembers)
+      .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
+      .where(eq(clubMembers.userId, userId))
       .limit(5);
 
-    if (error) {
-      console.error("Error fetching Circles:", error);
-      return [];
-    }
+    return data;
+  } catch (err) {
+    console.error("Manual Join Error (ActiveCircles):", err);
+    return [];
+  }
+}
 
-    // Filter out any null joins
-    return (data || [])
-      .map((c: any) => (Array.isArray(c.clubs) ? c.clubs[0] : c.clubs))
-      .filter((club) => club !== null);
-  },
-  // src/services/profile.service.ts
-  async getMyClubs(userId: string) {
-    const { data, error } = await supabase
-      .from("club_members")
-      .select(
-        `
-      role,
-      clubs (
-        id,
-        name,
-        description,
-        start_date,
-        end_date,
-        books (
-          title,
-          author,
-          cover_url
-        )
-      )
-    `,
-      )
-      .eq("user_id", userId);
+// Update getMyClubs as well to be safe
+export async function getMyClubs(userId: string) {
+  if (!userId) return [];
 
-    if (error) throw error;
+  try {
+    const data = await db
+      .select({
+        role: clubMembers.role,
+        club: clubs,
+        book: books,
+      })
+      .from(clubMembers)
+      .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
+      .innerJoin(books, eq(clubs.bookId, books.id))
+      .where(eq(clubMembers.userId, userId));
 
-    return (data || []).map((item: any) => {
-      // Handle if Supabase returns club as an array or object
-      const club = Array.isArray(item.clubs) ? item.clubs[0] : item.clubs;
-      const book = Array.isArray(club?.books) ? club.books[0] : club?.books;
-
-      return {
-        id: club?.id,
-        title: club?.name || "Unnamed Club",
-        bookTitle: book?.title || "No Book",
-        author: book?.author || "Unknown",
-        category: item.role === "OWNER" ? "My Circle" : "Member",
-        desc: club?.description || "",
-        cover: book?.cover_url,
-        readers: 1, // You can add a real count query later
-        dateRange: club?.start_date
-          ? `${new Date(club.start_date).toLocaleDateString()} - ${new Date(club.end_date).toLocaleDateString()}`
-          : "TBD",
-      };
-    });
-  },
-};
+    return data.map((item) => ({
+      id: item.club.id,
+      title: item.club.name,
+      bookTitle: item.book.title,
+      author: item.book.author,
+      category: item.role === "OWNER" ? "My Circle" : "Member",
+      desc: item.club.description,
+      cover: item.book.coverUrl,
+      readers: 1,
+      dateRange: `${new Date(item.club.startDate).toLocaleDateString()} - ${new Date(item.club.endDate).toLocaleDateString()}`,
+    }));
+  } catch (err) {
+    console.error("Manual Join Error (MyClubs):", err);
+    return [];
+  }
+}

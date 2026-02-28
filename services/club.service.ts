@@ -1,317 +1,303 @@
-import { createClient } from "@/lib/supabase/client";
+"use server";
 
-const supabase = createClient();
+import { db } from "@/lib/db";
+import {
+  clubs,
+  books,
+  chapters,
+  chatRooms,
+  readingProgress,
+  clubMembers,
+  clubInvites,
+  posts,
+  profiles,
+} from "@/lib/db/schema";
+import { eq, and, asc } from "drizzle-orm";
+export async function getExploreClubs() {
+  try {
+    // SWITCH TO MANUAL JOINS (Much faster and more stable on Supabase Pooler)
+    const data = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+        description: clubs.description,
+        startDate: clubs.startDate,
+        endDate: clubs.endDate,
+        bookTitle: books.title,
+        author: books.author,
+        coverUrl: books.coverUrl,
+        category: books.category,
+      })
+      .from(clubs)
+      .leftJoin(books, eq(clubs.bookId, books.id))
+      .where(and(eq(clubs.visibility, "PUBLIC"), eq(clubs.isActive, true)));
 
-export const clubService = {
-  async getExploreClubs() {
-    // We remove 'category' because it's not in your SQL schema for the books table
-    const { data, error } = await supabase
-      .from("clubs")
-      .select(
-        `
-        id,
-        name,
-        description,
-        start_date,
-        end_date,
-        visibility,
-        is_active,
-        book_id,
-        books (
-          title,
-          author,
-          cover_url,
-          category  
-        )
-      `,
-      )
-      .eq("visibility", "PUBLIC")
-      .eq("is_active", true);
+    return data.map((c) => ({
+      id: c.id,
+      title: c.name,
+      bookTitle: c.bookTitle || "Unknown Book",
+      author: c.author || "Unknown Author",
+      category: c.category || "General",
+      desc: c.description || "No description provided.",
+      cover: c.coverUrl,
+      readers: 1,
+      dateRange: c.startDate
+        ? `${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate!).toLocaleDateString()}`
+        : "TBD",
+      color: "bg-primary",
+    }));
+  } catch (error) {
+    console.error("Drizzle Explore Error:", error);
+    return [];
+  }
+}
 
-    if (error) {
-      // Professional Tip: Always log the message, not just the object
-      console.error("Supabase Error Message:", error.message);
-      console.error("Supabase Error Details:", error.details);
-      return [];
-    }
+export async function getCategories() {
+  try {
+    // Simple flat query
+    const data = await db.selectDistinct({ name: books.category }).from(books);
+    return data.map((c) => c.name).filter(Boolean) as string[];
+  } catch (error) {
+    console.error("Drizzle Categories Error:", error);
+    return ["Fiction", "Non-Fiction", "Sci-Fi", "Fantasy", "Mystery"];
+  }
+}
+// 3. The Mega-Function: Create everything (Book, Club, Chapters, Chats, Progress, Invites)
+// NOTE: bookData.coverUrl and bookData.pdfUrl must be pre-uploaded via the client storage helper
+export async function createFullClub(
+  userId: string,
+  { bookData, clubData, chapters: chapterList }: any,
+) {
+  if (!chapterList || chapterList.length === 0) {
+    throw new Error("At least one chapter is required.");
+  }
 
-    console.log("Raw Data from DB:", data);
-
-    return (data || []).map((club: any) => {
-      // Handle the case where books might be an object or an array
-      const book = Array.isArray(club.books) ? club.books[0] : club.books;
-
-      return {
-        id: club.id,
-        title: club.name, // The Club's Name
-        bookTitle: book?.title || "Unknown Book",
-        author: book?.author || "Unknown Author",
-        category: book?.category, // Defaulted because it's not in your DB yet
-        desc: club.description || "No description provided.",
-        cover: book?.cover_url,
-        readers: 1,
-        dateRange: club.start_date
-          ? `${new Date(club.start_date).toLocaleDateString()} - ${new Date(club.end_date).toLocaleDateString()}`
-          : "TBD",
-        color: "bg-primary",
-      };
-    });
-  },
-  async getCategories() {
-    const { data, error } = await supabase
-      .from("book_categories")
-      .select("name")
-      .order("name");
-    if (error) throw error;
-    return data.map((c) => c.name);
-  },
-  // src/services/club.service.ts
-
-  async createFullClub(userId: string, { bookData, clubData, chapters }: any) {
-    // 1. Validation to prevent the "length" error
-    if (!chapters || chapters.length === 0) {
-      throw new Error("At least one chapter is required.");
-    }
-
-    try {
-      // 2. Upload Cover
-      const coverExt = bookData.coverFile?.name.split(".").pop();
-      const coverPath = `covers/${crypto.randomUUID()}.${coverExt}`;
-      await supabase.storage
-        .from("books")
-        .upload(coverPath, bookData.coverFile!);
-      const coverUrl = supabase.storage.from("books").getPublicUrl(coverPath)
-        .data.publicUrl;
-
-      // 3. Upload PDF (Optional)
-      let pdfUrl = null;
-      if (bookData.pdfFile) {
-        const pdfExt = bookData.pdfFile.name.split(".").pop();
-        const pdfPath = `pdfs/${crypto.randomUUID()}.${pdfExt}`;
-        await supabase.storage.from("books").upload(pdfPath, bookData.pdfFile);
-        pdfUrl = supabase.storage.from("books").getPublicUrl(pdfPath)
-          .data.publicUrl;
-      }
-
-      // 4. Create Book
-      const { data: book, error: bErr } = await supabase
-        .from("books")
-        .insert({
+  try {
+    return await db.transaction(async (tx) => {
+      // 1. Create Book
+      const [newBook] = await tx
+        .insert(books)
+        .values({
           title: bookData.title,
           author: bookData.author,
           description: bookData.description,
           category: bookData.category,
-          cover_url: coverUrl,
-          pdf_url: pdfUrl,
-          total_pages: chapters[chapters.length - 1].end_page, // This won't crash now
+          coverUrl: bookData.coverUrl, // URL from client upload
+          pdfUrl: bookData.pdfUrl, // URL from client upload
+          totalPages: chapterList[chapterList.length - 1].end_page,
         })
-        .select()
-        .single();
-      if (bErr) throw bErr;
+        .returning();
 
-      // 5. Create Club
-      const { data: club, error: cErr } = await supabase
-        .from("clubs")
-        .insert({
+      // 2. Create Club
+      const [newClub] = await tx
+        .insert(clubs)
+        .values({
           name: clubData.name,
           description: clubData.description,
-          start_date: clubData.startDate,
-          end_date: clubData.endDate,
-          default_start_date: clubData.startDate,
-          default_end_date: clubData.endDate,
+          startDate: new Date(clubData.startDate),
+          endDate: new Date(clubData.endDate),
           visibility: clubData.visibility,
-          book_id: book.id,
-          owner_id: userId,
+          bookId: newBook.id,
+          ownerId: userId,
         })
-        .select()
-        .single();
-      if (cErr) throw cErr;
+        .returning();
 
-      // 6. Create Chapters, Chat Rooms, and Reading Progress
-      for (const [index, ch] of chapters.entries()) {
-        const { data: chapter } = await supabase
-          .from("chapters")
-          .insert({
-            club_id: club.id,
+      // 3. Create Chapters, Chats, and Initial Progress
+      for (const [index, ch] of chapterList.entries()) {
+        const [chapter] = await tx
+          .insert(chapters)
+          .values({
+            clubId: newClub.id,
             title: ch.title,
-            chapter_number: index + 1,
-            start_page: ch.start_page,
-            end_page: ch.end_page,
+            chapterNumber: index + 1,
+            startPage: ch.start_page,
+            endPage: ch.end_page,
           })
-          .select()
-          .single();
+          .returning();
 
         // Chapter Chat Room
-        await supabase.from("chat_rooms").insert({
-          club_id: club.id,
-          chapter_id: chapter.id,
+        await tx.insert(chatRooms).values({
+          clubId: newClub.id,
+          chapterId: chapter.id,
           type: "CHAPTER",
           title: `📖 ${ch.title}`,
         });
 
-        // Reading Progress
-        await supabase.from("reading_progress").insert({
-          user_id: userId,
-          club_id: club.id,
-          chapter_id: chapter.id,
+        // Reading Progress for the Owner
+        await tx.insert(readingProgress).values({
+          userId: userId,
+          clubId: newClub.id,
+          chapterId: chapter.id,
           status: index === 0 ? "IN_PROGRESS" : "NOT_STARTED",
-          current_page: index === 0 ? ch.start_page : null,
+          currentPage: index === 0 ? ch.start_page : null,
         });
       }
 
-      // 7. Global Chat Rooms
-      await supabase.from("chat_rooms").insert([
-        { club_id: club.id, type: "GENERAL", title: "💬 General Discussion" },
-        { club_id: club.id, type: "SPOILER", title: "🚨 Spoiler Room" },
+      // 4. Global Chat Rooms
+      await tx.insert(chatRooms).values([
+        { clubId: newClub.id, type: "GENERAL", title: "💬 General Discussion" },
+        { clubId: newClub.id, type: "SPOILER", title: "🚨 Spoiler Room" },
       ]);
 
-      // 8. Membership
-      await supabase.from("club_members").insert({
-        club_id: club.id,
-        user_id: userId,
+      // 5. Membership
+      await tx.insert(clubMembers).values({
+        clubId: newClub.id,
+        userId: userId,
         role: "OWNER",
       });
 
-      // 9. Announcement Post
+      // 6. Announcement Post
       if (clubData.makePost && clubData.visibility === "PUBLIC") {
-        await supabase.from("posts").insert({
-          user_id: userId,
-          club_id: club.id,
+        await tx.insert(posts).values({
+          userId: userId,
+          clubId: newClub.id,
           content: `Founded a new circle: ${clubData.name}! Reading ${bookData.title}.`,
-          post_type: "CLUB_ANNOUNCEMENT",
+          postType: "CLUB_ANNOUNCEMENT",
         });
       }
 
-      // 10. Invite Link
+      // 7. Invite Link
       const token = Math.random().toString(36).substring(2, 15);
-      await supabase.from("club_invites").insert({
-        club_id: club.id,
+      await tx.insert(clubInvites).values({
+        clubId: newClub.id,
         token,
-        created_by: userId,
+        createdBy: userId,
       });
 
       return {
-        club,
-        inviteLink: `${window.location.origin}/join/${token}`,
+        club: newClub,
+        inviteLink: token,
       };
-    } catch (error) {
-      console.error("Create Club Failed:", error);
-      throw error;
-    }
-  },
-  async getClubFullData(clubId: string) {
-    const { data, error } = await supabase
-      .from("clubs")
-      .select(
-        `
-        *,
-        books (*),
-        club_members (
-          id, 
-          user_id, 
-          role, 
-          is_suspended, 
-          profiles (name, email, image)
-        ),
-        club_invites (token)
-      `,
-      )
-      .eq("id", clubId)
-      .single();
+    });
+  } catch (error) {
+    console.error("Create Club Transaction Failed:", error);
+    throw error;
+  }
+}
 
-    if (error) throw error;
+// 4. Fetch Full Club Data for Settings/Dashboard
+export async function getClubFullData(clubId: string) {
+  try {
+    const data = await db.query.clubs.findFirst({
+      where: eq(clubs.id, clubId),
+      with: {
+        book: true,
+        members: {
+          with: {
+            profile: true,
+          },
+        },
+        invites: true,
+      },
+    });
 
-    // IMPORTANT FIX: Supabase returns joined tables as an array [ {} ]
-    // We flatten it so the UI state works correctly with 'club.books.description'
-    if (data && Array.isArray(data.books)) {
-      data.books = data.books[0];
-    }
+    if (!data) throw new Error("Club not found");
 
-    return data;
-  },
+    // Flatten/Map to match original Supabase object structure for UI compatibility
+    return {
+      ...data,
+      books: data.book,
+      club_members: data.members.map((m) => ({
+        id: m.id,
+        user_id: m.userId,
+        role: m.role,
+        is_suspended: m.isSuspended,
+        profiles: m.profile,
+      })),
+      club_invites: data.invites,
+    };
+  } catch (error) {
+    console.error("Drizzle Fetch Error:", error);
+    throw error;
+  }
+}
 
-  async updateClub(clubId: string, updates: any) {
-    const { data, error } = await supabase
-      .from("clubs")
-      .update({
+// 5. Update Club Settings
+export async function updateClub(clubId: string, updates: any) {
+  try {
+    return await db
+      .update(clubs)
+      .set({
         name: updates.name,
         description: updates.description,
-        start_date: updates.start_date,
-        end_date: updates.end_date,
+        startDate: new Date(updates.start_date),
+        endDate: new Date(updates.end_date),
         visibility: updates.visibility,
       })
-      .eq("id", clubId)
-      .select();
+      .where(eq(clubs.id, clubId))
+      .returning();
+  } catch (error) {
+    console.error("Drizzle Club Update Error:", error);
+    throw error;
+  }
+}
 
-    if (error) throw error;
-    return data;
-  },
-
-  async updateBook(bookId: string, updates: any, pdfFile?: File) {
-    let pdfUrl = updates.pdf_url;
-
-    if (pdfFile) {
-      const pdfPath = `pdfs/${crypto.randomUUID()}`;
-      await supabase.storage.from("books").upload(pdfPath, pdfFile);
-      pdfUrl = supabase.storage.from("books").getPublicUrl(pdfPath)
-        .data.publicUrl;
-    }
-
-    const { data, error } = await supabase
-      .from("books")
-      .update({
+// 6. Update Book Info
+export async function updateBook(
+  bookId: string,
+  updates: any,
+  pdfUrl?: string,
+) {
+  try {
+    return await db
+      .update(books)
+      .set({
         title: updates.title,
         author: updates.author,
         description: updates.description,
         category: updates.category,
-        pdf_url: pdfUrl,
+        pdfUrl: pdfUrl || updates.pdf_url,
       })
-      .eq("id", bookId)
-      .select();
+      .where(eq(books.id, bookId))
+      .returning();
+  } catch (error) {
+    console.error("Drizzle Book Update Error:", error);
+    throw error;
+  }
+}
 
-    if (error) throw error;
-    return data;
-  },
-
-  async updateMemberStatus(
-    clubId: string,
-    userId: string,
-    action: "REMOVE" | "BAN" | "UNBAN",
-  ) {
+// 7. Manage Member Status
+export async function updateMemberStatus(
+  clubId: string,
+  userId: string,
+  action: "REMOVE" | "BAN" | "UNBAN",
+) {
+  try {
     if (action === "REMOVE") {
-      return await supabase
-        .from("club_members")
-        .delete()
-        .eq("club_id", clubId)
-        .eq("user_id", userId);
+      return await db
+        .delete(clubMembers)
+        .where(
+          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+        );
     } else {
-      return await supabase
-        .from("club_members")
-        .update({ is_suspended: action === "BAN" })
-        .eq("club_id", clubId)
-        .eq("user_id", userId);
+      return await db
+        .update(clubMembers)
+        .set({ isSuspended: action === "BAN" })
+        .where(
+          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+        );
     }
-  },
+  } catch (error) {
+    console.error("Drizzle Member Status Error:", error);
+    throw error;
+  }
+}
 
-  async deleteClub(clubId: string) {
-    // 1. Fetch club to get book_id
-    const { data: club } = await supabase
-      .from("clubs")
-      .select("book_id")
-      .eq("id", clubId)
-      .single();
+// 8. Delete Club and associated Book
+export async function deleteClub(clubId: string) {
+  try {
+    const club = await db.query.clubs.findFirst({
+      where: eq(clubs.id, clubId),
+    });
 
-    // 2. Delete Club (Tables linked via FK will cascade if set, otherwise handle manually)
-    const { error: clubErr } = await supabase
-      .from("clubs")
-      .delete()
-      .eq("id", clubId);
-    if (clubErr) throw clubErr;
+    await db.delete(clubs).where(eq(clubs.id, clubId));
 
-    // 3. Delete Book
-    if (club?.book_id) {
-      await supabase.from("books").delete().eq("id", club.book_id);
+    if (club?.bookId) {
+      await db.delete(books).where(eq(books.id, club.bookId));
     }
     return true;
-  },
-};
+  } catch (error) {
+    console.error("Drizzle Delete Error:", error);
+    throw error;
+  }
+}

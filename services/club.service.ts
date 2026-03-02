@@ -10,8 +10,9 @@ import {
   clubMembers,
   clubInvites,
   posts,
+  notifications,
 } from "@/lib/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, sql, count } from "drizzle-orm";
 
 export async function createFullClub(
   userId: string,
@@ -118,9 +119,9 @@ export async function createFullClub(
     throw error;
   }
 }
-export async function getExploreClubs() {
+
+export async function getExploreClubs(userId?: string) {
   try {
-    // SWITCH TO MANUAL JOINS (Much faster and more stable on Supabase Pooler)
     const data = await db
       .select({
         id: clubs.id,
@@ -128,10 +129,17 @@ export async function getExploreClubs() {
         description: clubs.description,
         startDate: clubs.startDate,
         endDate: clubs.endDate,
+        ownerId: clubs.ownerId, // Needed for notification logic
         bookTitle: books.title,
         author: books.author,
         coverUrl: books.coverUrl,
         category: books.category,
+        // SQL count of members for this specific club
+        readerCount: sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id})`,
+        // Check if current user is in this club
+        isMember: userId
+          ? sql<boolean>`EXISTS(SELECT 1 FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id} AND ${clubMembers.userId} = ${userId})`
+          : sql<boolean>`false`,
       })
       .from(clubs)
       .leftJoin(books, eq(clubs.bookId, books.id))
@@ -140,23 +148,23 @@ export async function getExploreClubs() {
     return data.map((c) => ({
       id: c.id,
       title: c.name,
-      bookTitle: c.bookTitle || "Unknown Book",
-      author: c.author || "Unknown Author",
+      bookTitle: c.bookTitle || "Unknown",
+      author: c.author || "Unknown",
       category: c.category || "General",
-      desc: c.description || "No description provided.",
+      desc: c.description,
       cover: c.coverUrl,
-      readers: 1,
+      readers: Number(c.readerCount), // Real count from DB
+      isMember: c.isMember, // Boolean status
+      ownerId: c.ownerId,
       dateRange: c.startDate
         ? `${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate!).toLocaleDateString()}`
         : "TBD",
-      color: "bg-primary",
     }));
   } catch (error) {
-    console.error("Drizzle Explore Error:", error);
+    console.error("Explore Error:", error);
     return [];
   }
 }
-
 export async function getCategories() {
   try {
     // Simple flat query
@@ -294,5 +302,54 @@ export async function deleteClub(clubId: string) {
   } catch (error) {
     console.error("Drizzle Delete Error:", error);
     throw error;
+  }
+}
+export async function joinClub(
+  userId: string,
+  clubId: string,
+  ownerId: string,
+  clubName: string,
+  userName: string,
+) {
+  try {
+    // 1. Double-check if the user is already a member
+    // This handles cases where the UI hasn't refreshed yet
+    const existing = await db
+      .select()
+      .from(clubMembers)
+      .where(
+        and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: true, message: "Already a member" };
+    }
+
+    // 2. Perform the join
+    await db.insert(clubMembers).values({
+      clubId,
+      userId,
+      role: "MEMBER",
+    });
+
+    // 3. Send Notification to Owner
+    // We only do this if they actually joined for the first time
+    await db.insert(notifications).values({
+      userId: ownerId,
+      type: "NEW_MEMBER",
+      title: "New Fellowship Member",
+      message: `${userName} has joined your circle: ${clubName}`,
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    // Handle the specific Postgres unique constraint error just in case of a race condition
+    if (error.code === "23505") {
+      return { success: true, message: "Already joined" };
+    }
+
+    console.error("Join Error:", error);
+    throw new Error("Failed to join circle.");
   }
 }

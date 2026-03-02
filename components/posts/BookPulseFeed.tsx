@@ -16,7 +16,7 @@ import {
 const BookPulsePage = () => {
   return (
     /* flex container to hold Middle and Right columns */
-    <div className="flex gap-12 h-full">
+    <div className="flex gap-12 h-full justify-center">
       {/* --- MIDDLE COLUMN: THE STICKY NOTE FEED (SCROLLABLE) --- */}
       <main className="flex-1 max-w-2xl space-y-10 overflow-y-auto h-full pr-4 pb-20 custom-scrollbar">
         {/* Create Post "Scrap Paper" */}

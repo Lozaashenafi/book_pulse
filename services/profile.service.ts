@@ -158,14 +158,13 @@ export async function getProfile(userId: string) {
   }
 }
 
-// Update getMyClubs as well to be safe
 export async function getMyClubs(userId: string) {
   if (!userId) return [];
 
   try {
     const data = await db
       .select({
-        role: clubMembers.role,
+        role: clubMembers.role, // This will be 'OWNER', 'ADMIN', or 'MEMBER'
         club: clubs,
         book: books,
       })
@@ -180,13 +179,14 @@ export async function getMyClubs(userId: string) {
       bookTitle: item.book.title,
       author: item.book.author,
       category: item.role === "OWNER" ? "My Circle" : "Member",
+      role: item.role, // ADD THIS LINE so the UI knows the role
       desc: item.club.description,
       cover: item.book.coverUrl,
       readers: 1,
       dateRange: `${new Date(item.club.startDate).toLocaleDateString()} - ${new Date(item.club.endDate).toLocaleDateString()}`,
     }));
-  } catch (err) {
-    console.error("Manual Join Error (MyClubs):", err);
+  } catch (error) {
+    console.error("Error in getMyClubs:", error);
     return [];
   }
 }

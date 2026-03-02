@@ -38,6 +38,14 @@ export const clubVisibilityEnum = pgEnum("club_visibility", [
   "PUBLIC",
   "PRIVATE",
 ]);
+// ADDED: Notification Type Enum
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "NEW_MEMBER",
+  "NEW_POST",
+  "READING_REMINDER",
+  "CLUB_INVITE",
+  "ANNOUNCEMENT",
+]);
 
 // --- TABLES ---
 
@@ -54,6 +62,19 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+// ADDED: Notifications Table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata"), // Useful for storing { clubId: "..." }
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 export const books = pgTable("books", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
@@ -214,5 +235,13 @@ export const progressRelations = relations(readingProgress, ({ one }) => ({
   club: one(clubs, {
     fields: [readingProgress.clubId],
     references: [clubs.id],
+  }),
+}));
+
+// ADDED: Notification Relations
+export const notificationRelations = relations(notifications, ({ one }) => ({
+  user: one(profiles, {
+    fields: [notifications.userId],
+    references: [profiles.id],
   }),
 }));

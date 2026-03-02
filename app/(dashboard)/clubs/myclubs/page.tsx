@@ -60,7 +60,6 @@ const MyClubsPage = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-6">
-      {/* Header "Library Index" Style */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-4 border-[#5c4033]/10 pb-6 gap-6">
         <div className="text-left">
           <h1 className="text-5xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
@@ -87,18 +86,19 @@ const MyClubsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {clubs.map((club) => (
             <div key={club.id} className="relative group">
-              {/* "Library Card" Style Action Button */}
-              <div className="absolute -top-3 -right-3 z-20">
-                <button
-                  onClick={() => router.push(`/clubs/settings/${club.id}`)}
-                  className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
-                  title="Modify Ledger"
-                >
-                  <Settings size={18} />
-                </button>
-              </div>
+              {/* CHANGE HERE: Only show Settings button if user is OWNER */}
+              {club.role === "OWNER" && (
+                <div className="absolute -top-3 -right-3 z-20">
+                  <button
+                    onClick={() => router.push(`/clubs/settings/${club.id}`)}
+                    className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
+                    title="Modify Ledger"
+                  >
+                    <Settings size={18} />
+                  </button>
+                </div>
+              )}
 
-              {/* The Club Card Container */}
               <div className="transition-transform hover:-rotate-1 duration-300">
                 <MyClubCard book={club} />
               </div>
@@ -109,7 +109,6 @@ const MyClubsPage = () => {
         <EmptyState />
       )}
 
-      {/* Footer Decoration */}
       <div className="mt-20 border-t border-dashed border-[#5c4033]/20 pt-8 text-center">
         <p className="font-mono text-[10px] uppercase text-[#8b5a2b] opacity-50">
           BookPulse Literary Registry — End of List

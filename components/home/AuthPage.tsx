@@ -57,7 +57,8 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
         );
 
     if (result?.error) {
-      setError(result.error);
+      console.error("Auth Error:", result);
+      setError(result.error || "An unexpected error occurred.");
       setLoading(false);
     } else {
       if (isSignIn) {

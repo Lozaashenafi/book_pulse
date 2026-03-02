@@ -18,6 +18,7 @@ import {
   Paperclip,
 } from "lucide-react";
 import Link from "next/link";
+import { updateProfile, updateProfileImage } from "@/services/profile.service";
 
 const SettingsPage = () => {
   const { profile, user, syncSession } = useAuthStore();
@@ -54,28 +55,30 @@ const SettingsPage = () => {
     newPassword: "",
     confirmPassword: "",
   });
-
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setPreviewUrl(URL.createObjectURL(file));
+
     try {
       setUploading(true);
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `user_avatars/${fileName}`;
+
+      // A. Upload to Supabase Storage (This stays the same)
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file);
       if (uploadError) throw uploadError;
+
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const { error: dbError } = await supabase
-        .from("profiles")
-        .update({ image: publicUrl })
-        .eq("id", user.id);
-      if (dbError) throw dbError;
+
+      // B. CHANGE: Update the image URL in NEON via Server Action
+      await updateProfileImage(user.id, publicUrl);
+
       await syncSession();
       setMessage({ type: "success", text: "Profile picture updated!" });
     } catch (error: any) {
@@ -87,21 +90,20 @@ const SettingsPage = () => {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+
     setLoading(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        name: formData.name,
-        location: formData.location,
-        bio: formData.bio,
-      })
-      .eq("id", user?.id);
-    if (error) setMessage({ type: "error", text: error.message });
-    else {
+    try {
+      // CHANGE: Call the Drizzle-powered function instead of Supabase
+      await updateProfile(user.id, formData);
+
       await syncSession();
       setMessage({ type: "success", text: "Profile updated successfully!" });
+    } catch (error: any) {
+      setMessage({ type: "error", text: error.message });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {

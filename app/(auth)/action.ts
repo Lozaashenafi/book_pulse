@@ -2,19 +2,17 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
+import { db } from "@/lib/db"; // Import your Neon/Drizzle instance
+import { profiles } from "@/lib/db/schema"; // Import your schema
+import { eq } from "drizzle-orm";
 
-/**
- * Helper to get the site URL from environment or headers
- */
 const getURL = async () => {
   let url =
     process.env.NEXT_PUBLIC_SITE_URL ?? // Use env variable if set
     (await headers()).get("origin") ?? // Fallback to header
     "http://localhost:3000"; // Absolute fallback
 
-  // Ensure the URL doesn't have a trailing slash
   url = url.replace(/\/$/, "");
-  // Append our callback route (ignoring the (auth) group folder)
   return `${url}/callback`;
 };
 
@@ -38,7 +36,8 @@ export async function signUpAction(
   const supabase = await createClient();
   const redirectTo = await getURL();
 
-  const { error } = await supabase.auth.signUp({
+  // 1. Create the user in Supabase Auth
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -51,6 +50,24 @@ export async function signUpAction(
   });
 
   if (error) return { error: error.message };
+  // 2. IMPORTANT: Sync the new user to your Neon Database
+  if (data.user) {
+    try {
+      await db.insert(profiles).values({
+        id: data.user.id, // Links Supabase Auth ID to Neon Profile ID
+        name: username,
+        email: email,
+        username: username.toLowerCase().replace(/\s/g, "_"),
+        role: "user",
+        // image, bio, location will be null/default by default
+      });
+    } catch (dbError) {
+      console.error("Neon Profile Sync Error:", dbError);
+      // We don't necessarily want to block the user if the profile insert fails
+      // (they can try to fix it in settings later), but you can return an error if you want.
+    }
+  }
+
   return { error: null };
 }
 

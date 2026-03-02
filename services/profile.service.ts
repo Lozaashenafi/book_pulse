@@ -7,6 +7,7 @@ import {
   chatMessages,
   clubs,
   books,
+  profiles,
 } from "@/lib/db/schema";
 import { eq, count, and } from "drizzle-orm";
 
@@ -46,6 +47,42 @@ export async function getStats(userId: string) {
   } catch (error) {
     console.error("Global stats error:", error);
     return { circles: 0, booksRead: 0, discussions: 0 };
+  }
+}
+export async function updateProfile(
+  userId: string,
+  data: { name: string; location: string; bio: string },
+) {
+  try {
+    await db
+      .update(profiles)
+      .set({
+        name: data.name,
+        location: data.location,
+        bio: data.bio,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, userId));
+    return { success: true };
+  } catch (error) {
+    console.error("Neon Update Error:", error);
+    throw new Error("Failed to update profile in database");
+  }
+}
+
+export async function updateProfileImage(userId: string, imageUrl: string) {
+  try {
+    await db
+      .update(profiles)
+      .set({
+        image: imageUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, userId));
+    return { success: true };
+  } catch (error) {
+    console.error("Neon Image Update Error:", error);
+    throw new Error("Failed to update image link in database");
   }
 }
 export async function getCurrentReads(userId: string) {
@@ -105,6 +142,19 @@ export async function getActiveCircles(userId: string) {
   } catch (err) {
     console.error("Manual Join Error (ActiveCircles):", err);
     return [];
+  }
+}
+export async function getProfile(userId: string) {
+  try {
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.id, userId))
+      .limit(1);
+    return profile || null;
+  } catch (error) {
+    console.error("Error fetching profile from Neon:", error);
+    return null;
   }
 }
 

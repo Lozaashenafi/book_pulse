@@ -1,4 +1,4 @@
-"use server";
+"use server"; // MUST be line 1, no parentheses, no imports above it.
 
 import { db } from "@/lib/db";
 import {
@@ -10,9 +10,114 @@ import {
   clubMembers,
   clubInvites,
   posts,
-  profiles,
 } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
+
+export async function createFullClub(
+  userId: string,
+  { bookData, clubData, chapters: chapterList }: any,
+) {
+  if (!chapterList || chapterList.length === 0) {
+    throw new Error("At least one chapter is required.");
+  }
+
+  try {
+    // 1. Create Book
+    const [newBook] = await db
+      .insert(books)
+      .values({
+        title: bookData.title,
+        author: bookData.author,
+        description: bookData.description,
+        category: bookData.category,
+        coverUrl: bookData.coverUrl, // Passed from client storage upload
+        pdfUrl: bookData.pdfUrl,
+        totalPages: chapterList[chapterList.length - 1].end_page,
+      })
+      .returning();
+
+    // 2. Create Club
+    const [newClub] = await db
+      .insert(clubs)
+      .values({
+        name: clubData.name,
+        description: clubData.description,
+        startDate: new Date(clubData.startDate),
+        endDate: new Date(clubData.endDate),
+        bookId: newBook.id,
+        ownerId: userId,
+        visibility: clubData.visibility,
+      })
+      .returning();
+
+    // 3. Create Chapters, Chats, and Initial Progress
+    for (const [index, ch] of chapterList.entries()) {
+      const [insertedChapter] = await db
+        .insert(chapters)
+        .values({
+          clubId: newClub.id,
+          title: ch.title,
+          chapterNumber: index + 1,
+          startPage: ch.start_page,
+          endPage: ch.end_page,
+        })
+        .returning();
+
+      // Chapter Chat Room
+      await db.insert(chatRooms).values({
+        clubId: newClub.id,
+        chapterId: insertedChapter.id,
+        type: "CHAPTER",
+        title: `📖 ${ch.title}`,
+      });
+
+      // Reading Progress for the Owner
+      await db.insert(readingProgress).values({
+        userId: userId,
+        clubId: newClub.id,
+        chapterId: insertedChapter.id,
+        status: index === 0 ? "IN_PROGRESS" : "NOT_STARTED",
+        currentPage: index === 0 ? ch.start_page : null,
+      });
+    }
+
+    // 4. Global Chat Rooms
+    await db.insert(chatRooms).values([
+      { clubId: newClub.id, type: "GENERAL", title: "💬 General Discussion" },
+      { clubId: newClub.id, type: "SPOILER", title: "🚨 Spoiler Room" },
+    ]);
+
+    // 5. Membership
+    await db.insert(clubMembers).values({
+      clubId: newClub.id,
+      userId: userId,
+      role: "OWNER",
+    });
+
+    // 6. Optional Announcement Post
+    if (clubData.makePost && clubData.visibility === "PUBLIC") {
+      await db.insert(posts).values({
+        userId: userId,
+        clubId: newClub.id,
+        content: `Founded a new circle: ${clubData.name}! Reading ${bookData.title}.`,
+        postType: "CLUB_ANNOUNCEMENT",
+      });
+    }
+
+    // 7. Generate Invite Link Token
+    const token = Math.random().toString(36).substring(2, 15);
+    await db.insert(clubInvites).values({
+      clubId: newClub.id,
+      token,
+      createdBy: userId,
+    });
+
+    return { id: newClub.id, inviteLink: token };
+  } catch (error) {
+    console.error("Create Club Failed:", error);
+    throw error;
+  }
+}
 export async function getExploreClubs() {
   try {
     // SWITCH TO MANUAL JOINS (Much faster and more stable on Supabase Pooler)
@@ -62,118 +167,6 @@ export async function getCategories() {
     return ["Fiction", "Non-Fiction", "Sci-Fi", "Fantasy", "Mystery"];
   }
 }
-// 3. The Mega-Function: Create everything (Book, Club, Chapters, Chats, Progress, Invites)
-// NOTE: bookData.coverUrl and bookData.pdfUrl must be pre-uploaded via the client storage helper
-export async function createFullClub(
-  userId: string,
-  { bookData, clubData, chapters: chapterList }: any,
-) {
-  if (!chapterList || chapterList.length === 0) {
-    throw new Error("At least one chapter is required.");
-  }
-
-  try {
-    return await db.transaction(async (tx) => {
-      // 1. Create Book
-      const [newBook] = await tx
-        .insert(books)
-        .values({
-          title: bookData.title,
-          author: bookData.author,
-          description: bookData.description,
-          category: bookData.category,
-          coverUrl: bookData.coverUrl, // URL from client upload
-          pdfUrl: bookData.pdfUrl, // URL from client upload
-          totalPages: chapterList[chapterList.length - 1].end_page,
-        })
-        .returning();
-
-      // 2. Create Club
-      const [newClub] = await tx
-        .insert(clubs)
-        .values({
-          name: clubData.name,
-          description: clubData.description,
-          startDate: new Date(clubData.startDate),
-          endDate: new Date(clubData.endDate),
-          visibility: clubData.visibility,
-          bookId: newBook.id,
-          ownerId: userId,
-        })
-        .returning();
-
-      // 3. Create Chapters, Chats, and Initial Progress
-      for (const [index, ch] of chapterList.entries()) {
-        const [chapter] = await tx
-          .insert(chapters)
-          .values({
-            clubId: newClub.id,
-            title: ch.title,
-            chapterNumber: index + 1,
-            startPage: ch.start_page,
-            endPage: ch.end_page,
-          })
-          .returning();
-
-        // Chapter Chat Room
-        await tx.insert(chatRooms).values({
-          clubId: newClub.id,
-          chapterId: chapter.id,
-          type: "CHAPTER",
-          title: `📖 ${ch.title}`,
-        });
-
-        // Reading Progress for the Owner
-        await tx.insert(readingProgress).values({
-          userId: userId,
-          clubId: newClub.id,
-          chapterId: chapter.id,
-          status: index === 0 ? "IN_PROGRESS" : "NOT_STARTED",
-          currentPage: index === 0 ? ch.start_page : null,
-        });
-      }
-
-      // 4. Global Chat Rooms
-      await tx.insert(chatRooms).values([
-        { clubId: newClub.id, type: "GENERAL", title: "💬 General Discussion" },
-        { clubId: newClub.id, type: "SPOILER", title: "🚨 Spoiler Room" },
-      ]);
-
-      // 5. Membership
-      await tx.insert(clubMembers).values({
-        clubId: newClub.id,
-        userId: userId,
-        role: "OWNER",
-      });
-
-      // 6. Announcement Post
-      if (clubData.makePost && clubData.visibility === "PUBLIC") {
-        await tx.insert(posts).values({
-          userId: userId,
-          clubId: newClub.id,
-          content: `Founded a new circle: ${clubData.name}! Reading ${bookData.title}.`,
-          postType: "CLUB_ANNOUNCEMENT",
-        });
-      }
-
-      // 7. Invite Link
-      const token = Math.random().toString(36).substring(2, 15);
-      await tx.insert(clubInvites).values({
-        clubId: newClub.id,
-        token,
-        createdBy: userId,
-      });
-
-      return {
-        club: newClub,
-        inviteLink: token,
-      };
-    });
-  } catch (error) {
-    console.error("Create Club Transaction Failed:", error);
-    throw error;
-  }
-}
 
 // 4. Fetch Full Club Data for Settings/Dashboard
 export async function getClubFullData(clubId: string) {
@@ -213,6 +206,7 @@ export async function getClubFullData(clubId: string) {
 }
 
 // 5. Update Club Settings
+
 export async function updateClub(clubId: string, updates: any) {
   try {
     return await db
@@ -220,8 +214,9 @@ export async function updateClub(clubId: string, updates: any) {
       .set({
         name: updates.name,
         description: updates.description,
-        startDate: new Date(updates.start_date),
-        endDate: new Date(updates.end_date),
+        // Update these to use the names coming from the UI
+        startDate: new Date(updates.startDate),
+        endDate: new Date(updates.endDate),
         visibility: updates.visibility,
       })
       .where(eq(clubs.id, clubId))

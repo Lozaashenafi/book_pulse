@@ -1,27 +1,8 @@
-import "server-only";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
-const connectionString =
-  process.env.NEXT_PUBLIC_SUPABASE_URL_CONNECTION_STRING!;
+const sql = neon(process.env.DATABASE_URL!);
 
-const globalForDb = global as unknown as {
-  pool: Pool | undefined;
-};
-
-const pool =
-  globalForDb.pool ??
-  new Pool({
-    connectionString,
-    max: 1,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-    // This helps resolve the "ENOTFOUND" on some local networks
-    connectionTimeoutMillis: 30000,
-  });
-
-if (process.env.NODE_ENV !== "production") globalForDb.pool = pool;
-
-export const db = drizzle(pool, { schema });
+// This is the most stable database connection you can have in Next.js
+export const db = drizzle(sql, { schema });

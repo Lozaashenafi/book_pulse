@@ -241,15 +241,23 @@ const ClubSettingsPage = () => {
                   <ClubInput
                     label="Opening Date"
                     type="date"
-                    value={club.start_date.split("T")[0]}
+                    value={
+                      club.startDate
+                        ? new Date(club.startDate).toISOString().split("T")[0]
+                        : ""
+                    }
                     onChange={(v: string) =>
-                      setData({ ...data, club: { ...club, start_date: v } })
+                      setData({ ...data, club: { ...club, startDate: v } })
                     }
                   />
                   <ClubInput
                     label="Closing Date"
                     type="date"
-                    value={club.end_date.split("T")[0]}
+                    value={
+                      club.endDate
+                        ? new Date(club.endDate).toISOString().split("T")[0]
+                        : ""
+                    }
                     onChange={(v: string) =>
                       setData({ ...data, club: { ...club, end_date: v } })
                     }

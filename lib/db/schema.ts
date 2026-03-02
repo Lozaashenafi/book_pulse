@@ -42,11 +42,14 @@ export const clubVisibilityEnum = pgEnum("club_visibility", [
 // --- TABLES ---
 
 export const profiles = pgTable("profiles", {
-  id: uuid("id").primaryKey().notNull(), // Links to auth.users
+  id: uuid("id").primaryKey().notNull(),
   name: text("name"),
   email: text("email").unique(),
   image: text("image"),
   role: text("role").default("user"),
+  username: text("username"),
+  location: text("location"),
+  bio: text("bio"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
@@ -177,12 +180,19 @@ export const clubInvites = pgTable("club_invites", {
 });
 
 // --- RELATIONS ---
+// 1. Club Relations (Already mostly correct, but needs books backlink)
 export const clubRelations = relations(clubs, ({ one, many }) => ({
   book: one(books, { fields: [clubs.bookId], references: [books.id] }),
   members: many(clubMembers),
   invites: many(clubInvites),
 }));
 
+// 2. Book Relations (NEW: Helps Drizzle map the connection)
+export const bookRelations = relations(books, ({ many }) => ({
+  clubs: many(clubs),
+}));
+
+// 3. Member Relations (Correct)
 export const memberRelations = relations(clubMembers, ({ one }) => ({
   profile: one(profiles, {
     fields: [clubMembers.userId],
@@ -191,6 +201,15 @@ export const memberRelations = relations(clubMembers, ({ one }) => ({
   club: one(clubs, { fields: [clubMembers.clubId], references: [clubs.id] }),
 }));
 
+// 4. Invite Relations (CRITICAL NEW PIECE: This is what fixes your error)
+export const clubInviteRelations = relations(clubInvites, ({ one }) => ({
+  club: one(clubs, {
+    fields: [clubInvites.clubId],
+    references: [clubs.id],
+  }),
+}));
+
+// 5. Progress Relations (Correct)
 export const progressRelations = relations(readingProgress, ({ one }) => ({
   club: one(clubs, {
     fields: [readingProgress.clubId],

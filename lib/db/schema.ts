@@ -199,6 +199,39 @@ export const clubInvites = pgTable("club_invites", {
     .references(() => profiles.id)
     .notNull(),
 });
+export const notes = pgTable("notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+
+  userId: uuid("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+
+  title: text("title"),
+  content: text("content").notNull(),
+
+  tags: jsonb("tags").$type<string[]>().default([]),
+
+  isPinned: boolean("is_pinned").default(false),
+
+  color: text("color").default("bg-[#f4ebd0]"),
+
+  //
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// --- RELATIONS ---
+
+export const noteRelations = relations(notes, ({ one }) => ({
+  user: one(profiles, {
+    fields: [notes.userId],
+    references: [profiles.id],
+  }),
+}));
+
+export const profileNoteRelations = relations(profiles, ({ many }) => ({
+  notes: many(notes),
+}));
 
 // --- RELATIONS ---
 // 1. Club Relations (Already mostly correct, but needs books backlink)

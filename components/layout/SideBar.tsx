@@ -78,10 +78,10 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                 active={pathname === "/clubs"}
               />
               <NavItem
-                href="/my-notes"
+                href="/note"
                 icon={<PenTool size={20} />}
                 label="Brain Dumps"
-                active={pathname === "/my-notes"}
+                active={pathname === "/note"}
               />
               <NavItem
                 href="/notices"

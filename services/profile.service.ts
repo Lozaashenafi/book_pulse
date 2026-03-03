@@ -9,7 +9,7 @@ import {
   books,
   profiles,
 } from "@/lib/db/schema";
-import { eq, count, and } from "drizzle-orm";
+import { eq, count, and, sql } from "drizzle-orm";
 
 export async function getStats(userId: string) {
   if (!userId) return { circles: 0, booksRead: 0, discussions: 0 };
@@ -164,9 +164,11 @@ export async function getMyClubs(userId: string) {
   try {
     const data = await db
       .select({
-        role: clubMembers.role, // This will be 'OWNER', 'ADMIN', or 'MEMBER'
+        role: clubMembers.role,
         club: clubs,
         book: books,
+        // DYNAMIC COUNT: This is the missing piece for MyClubCard
+        readerCount: sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id})`,
       })
       .from(clubMembers)
       .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
@@ -179,10 +181,11 @@ export async function getMyClubs(userId: string) {
       bookTitle: item.book.title,
       author: item.book.author,
       category: item.role === "OWNER" ? "My Circle" : "Member",
-      role: item.role, // ADD THIS LINE so the UI knows the role
+      role: item.role,
       desc: item.club.description,
       cover: item.book.coverUrl,
-      readers: 1,
+      // Map the reader count here
+      readers: Number(item.readerCount),
       dateRange: `${new Date(item.club.startDate).toLocaleDateString()} - ${new Date(item.club.endDate).toLocaleDateString()}`,
     }));
   } catch (error) {

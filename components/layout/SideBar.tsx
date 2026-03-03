@@ -39,14 +39,17 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         <div className="flex gap-12 py-8 h-full">
           {/* --- LEFT SIDEBAR: FIXED --- */}
           <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 h-full">
-            <div className="mb-10 px-4 rotate-[-1deg]">
-              <h1 className="text-3xl font-serif font-black text-[#5c4033] dark:text-[#d4a373] border-b-4 border-[#5c4033]">
-                BookPulse
-              </h1>
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1 text-[#8b5a2b]">
-                {user ? "Welcome back, Reader" : "Chill & Read"}
-              </p>
-            </div>
+            {/* Logo wrapped in Link to navigate to root */}
+            <Link href="/" className="group cursor-pointer">
+              <div className="mb-10 px-4 rotate-[-1deg] transition-transform group-hover:rotate-0">
+                <h1 className="text-3xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] border-b-4 border-[#1a3f22] dark:border-[#d4a373]">
+                  BookPulse
+                </h1>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1 text-[#8b5a2b]">
+                  {user ? "Welcome back, Reader" : "Chill & Read"}
+                </p>
+              </div>
+            </Link>
 
             <nav className="space-y-4 flex-1">
               <NavItem
@@ -96,11 +99,11 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
 
             {/* Profile "Library Card" */}
             {user ? (
-              <div className="mt-auto p-4 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-[#5c4033] shadow-[5px_5px_0px_#bcab79] dark:shadow-[5px_5px_0px_#1a1614] rotate-1">
+              <div className="mt-auto p-4 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-[#1a3f22] shadow-[5px_5px_0px_#bcab79] dark:shadow-[5px_5px_0px_#111] rotate-1">
                 <div className="flex items-center space-x-3">
                   <Link
                     href="/profile"
-                    className="w-10 h-10 bg-[#5c4033] dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden"
+                    className="w-10 h-10 bg-[#1a3f22] dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden"
                   >
                     {profile?.image ? (
                       <img
@@ -115,7 +118,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                     )}
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-mono uppercase text-[#8b5a2b] dark:text-[#d4a373]/70">
+                    <p className="text-[9px] font-mono uppercase text-[#1a3f22] dark:text-[#d4a373]/70">
                       ID: {profile?.id?.slice(0, 5) || "402"}
                     </p>
                     <p className="text-sm font-bold text-[#5c4033] dark:text-gray-100 truncate">
@@ -131,9 +134,10 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
             ) : (
+              /* Join the Circle now uses the Tertiary Green */
               <Link
                 href="/login"
-                className="mt-auto p-4 bg-[#5c4033] text-[#f4ebd0] text-center font-serif italic hover:bg-[#3e2b22] transition-all rotate-1"
+                className="mt-auto p-4 bg-[#1a3f22] text-[#f4ebd0] text-center font-serif italic hover:bg-[#132f19] transition-all rotate-1 shadow-[4px_4px_0px_#00000020]"
               >
                 Join the Circle
               </Link>
@@ -155,11 +159,16 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(92, 64, 51, 0.2);
+          background: rgba(
+            26,
+            63,
+            34,
+            0.2
+          ); /* Subtle green tint in scrollbar */
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(92, 64, 51, 0.4);
+          background: rgba(26, 63, 34, 0.4);
         }
       `}</style>
     </div>
@@ -172,11 +181,12 @@ const NavItem = ({ icon, label, active = false, badge, href }: any) => (
     <div
       className={`flex items-center justify-between px-4 py-2 cursor-pointer transition-all mb-2 ${
         active
-          ? "bg-[#5c4033] text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#3e2b22] dark:shadow-[-4px_4px_0px_#8b5a2b]"
-          : "text-[#5c4033] dark:text-gray-400 hover:bg-[#5c4033]/5 dark:hover:bg-white/5 border-b border-transparent hover:border-[#5c4033] dark:hover:border-[#d4a373]"
+          ? "bg-[#1a3f22] text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19] dark:shadow-[-4px_4px_0px_#8b5a2b]"
+          : "text-[#5c4033] dark:text-gray-400 hover:bg-[#1a3f22]/5 dark:hover:bg-white/5 border-b border-transparent hover:border-[#1a3f22] dark:hover:border-[#d4a373]"
       }`}
     >
       <div className="flex items-center space-x-3">
+        {/* Active icons now pulse with green energy */}
         <span className={active ? "animate-pulse" : ""}>{icon}</span>
         <span
           className={`font-serif font-bold text-sm tracking-tight ${active ? "" : ""}`}
@@ -185,7 +195,12 @@ const NavItem = ({ icon, label, active = false, badge, href }: any) => (
         </span>
       </div>
       {badge && (
-        <span className="text-[10px] bg-red-700 text-white px-1.5 py-0.5 rounded-full font-mono">
+        /* Badge changed to green if not active, or kept distinct */
+        <span
+          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+            active ? "bg-white text-[#1a3f22]" : "bg-[#1a3f22] text-white"
+          }`}
+        >
           {badge}
         </span>
       )}

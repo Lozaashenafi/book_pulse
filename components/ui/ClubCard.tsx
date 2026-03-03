@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   ChevronRight,
@@ -9,13 +9,13 @@ import {
   CheckCircle2,
   Loader2,
   ArrowRight,
+  Bookmark,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { joinClub } from "@/services/club.service";
 import { toast } from "sonner";
 
-// Updated Interface to include DB fields
 export interface Book {
   id: string;
   title: string;
@@ -27,8 +27,8 @@ export interface Book {
   readers: number;
   dateRange: string;
   cover?: string;
-  isMember?: boolean; // New
-  ownerId?: string; // New
+  isMember?: boolean;
+  ownerId?: string;
 }
 
 const ClubCard = ({ book }: { book: Book }) => {
@@ -37,16 +37,27 @@ const ClubCard = ({ book }: { book: Book }) => {
   const { user, profile } = useAuthStore();
   const router = useRouter();
 
-  // Determine if the user should see the join button
-  const isMemberOrOwner = book.isMember || (user && user.id === book.ownerId);
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (showDetails) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showDetails]);
+
+  const isMemberOrOwner =
+    Boolean(book.isMember) || (user && user.id === book.ownerId);
+
   const handleJoin = async () => {
     if (!user) {
       toast.error("Please sign in to join this circle");
       return router.push("/login");
     }
-
-    // Prevent multiple clicks
-    if (isJoining || book.isMember) return;
+    if (isJoining || isMemberOrOwner) return;
 
     setIsJoining(true);
     try {
@@ -61,7 +72,6 @@ const ClubCard = ({ book }: { book: Book }) => {
       if (result.success) {
         toast.success(`Welcome to ${book.title}!`);
         setShowDetails(false);
-        // Force a router refresh to update the 'isMember' status on the Explore page
         router.refresh();
         router.push(`/clubs/myclubs`);
       }
@@ -71,149 +81,174 @@ const ClubCard = ({ book }: { book: Book }) => {
       setIsJoining(false);
     }
   };
+
   return (
     <>
-      {/* MINI CARD VIEW - No UI changes here */}
-      <div className="group bg-white dark:bg-[#1E1E1E] rounded-xl overflow-hidden border border-[#9E6752]/10 dark:border-white/5 shadow-sm transition-all hover:shadow-md flex flex-col md:flex-row">
-        <div
-          className={`w-full md:w-[6px] h-[5px] md:h-auto ${book.color || "bg-primary"}`}
-        />
-        <div className="w-full md:w-32 h-48 md:h-auto shrink-0 bg-gray-200 dark:bg-white/5 overflow-hidden">
+      {/* MINI CARD VIEW - Move transition-transform here */}
+      <div className="group bg-white dark:bg-[#252525] border-2 border-[#1a3f22]/10 dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(26,63,34,0.05)] transition-all hover:shadow-none hover:translate-x-1 hover:translate-y-1 flex flex-col sm:flex-row overflow-hidden h-full">
+        <div className={`w-full sm:w-[8px] h-[6px] sm:h-auto bg-[#1a3f22]`} />
+
+        <div className="w-full sm:w-28 h-40 sm:h-auto shrink-0 bg-[#f4ebd0] dark:bg-black/20 flex items-center justify-center overflow-hidden">
           {book.cover ? (
             <img
               src={book.cover}
               alt={book.title}
-              className="w-full h-full object-cover transition-transform group-hover:scale-110"
+              className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#9E6752]/20">
-              <BookIcon size={40} />
-            </div>
+            <BookIcon size={32} className="text-[#1a3f22]/20" />
           )}
         </div>
-        <div className="p-6 flex flex-col flex-1 min-w-0">
-          <span className="w-fit bg-[#FED7A5]/50 text-[#9E6752] px-2.5 py-1 rounded text-[10px] font-bold uppercase mb-4">
-            {book.category}
-          </span>
-          <h3 className="text-xl font-serif font-bold text-[#9E6752] dark:text-[#E8D5C4] truncate">
+
+        <div className="p-5 flex flex-col flex-1 min-w-0 relative">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-[9px] font-mono font-black text-[#8b5a2b] uppercase tracking-widest bg-[#f4ebd0] px-2 py-0.5">
+              {book.category}
+            </span>
+            <div className="flex items-center gap-1 text-[#1a3f22]/40">
+              <Users size={12} />
+              <span className="text-[10px] font-mono font-bold">
+                {book.readers}
+              </span>
+            </div>
+          </div>
+
+          <h3 className="text-lg font-serif font-black text-[#1a3f22] dark:text-[#E8D5C4] truncate leading-tight">
             {book.title}
           </h3>
-          <p className="text-[#7A7A7A] italic text-sm mb-4">
+          <p className="text-[#8b5a2b] italic text-xs mb-4 font-serif">
             Reading: {book.bookTitle}
           </p>
-          <div className="mt-auto pt-4 border-t border-[#9E6752]/10 flex items-center justify-between">
-            <div className="flex gap-4 text-[#7A7A7A]">
-              <div className="flex items-center gap-1">
-                <Users size={14} />{" "}
-                <span className="text-xs">{book.readers}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowDetails(true)}
-              className="text-sm font-bold text-[#9E6752] flex items-center gap-1 hover:underline"
-            >
-              Details <ChevronRight size={16} />
-            </button>
-          </div>
+
+          <button
+            onClick={() => setShowDetails(true)}
+            className="mt-auto self-end text-[10px] font-mono font-black uppercase tracking-widest text-[#1a3f22] dark:text-[#d4a373] flex items-center gap-1 hover:underline"
+          >
+            Open File <ArrowRight size={12} />
+          </button>
         </div>
       </div>
 
       {/* FULL DETAILS MODAL */}
       {showDetails && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-[#FDF8F1] dark:bg-[#1a1a1a] w-full max-w-2xl rounded-[2rem] overflow-hidden shadow-2xl relative border border-[#9E6752]/20">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 bg-[#1a3f22]/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-[#fdfcf8] dark:bg-[#1a1614] w-full max-w-4xl border-2 border-[#1a3f22] shadow-[15px_15px_0px_#d4a373] relative overflow-hidden flex flex-col md:flex-row max-h-[95vh] min-h-[500px]">
+            {/* Close Button */}
             <button
               onClick={() => setShowDetails(false)}
-              className="absolute top-6 right-6 p-2 rounded-full bg-black/5 hover:bg-black/10 z-10"
+              className="absolute top-4 right-4 p-2 text-[#1a3f22] hover:rotate-90 transition-transform z-[100] bg-white border border-[#1a3f22]/20"
             >
               <X size={20} />
             </button>
-            <div className="flex flex-col md:flex-row h-full">
-              <div className="w-full md:w-2/5 bg-[#9E6752]/10 p-8 flex flex-col items-center justify-center border-r border-[#9E6752]/10">
-                <div className="w-40 h-56 shadow-2xl rounded-lg overflow-hidden rotate-2 mb-6">
+
+            {/* Left Page (The Cover) */}
+            <div className="w-full md:w-[40%] bg-[#f4ebd0] dark:bg-[#252525] p-10 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r-2 md:border-dashed md:border-[#1a3f22]/20 shrink-0">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-[#1a3f22]/10 translate-x-3 translate-y-3" />
+                <div className="w-48 h-64 bg-white shadow-xl relative z-10 overflow-hidden border border-[#1a3f22]/10">
                   {book.cover ? (
                     <img
                       src={book.cover}
                       className="w-full h-full object-cover"
+                      alt="cover"
                     />
                   ) : (
-                    <BookIcon
-                      size={60}
-                      className="m-auto mt-20 text-[#9E6752]/20"
-                    />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <BookIcon size={48} className="text-[#1a3f22]/10" />
+                    </div>
                   )}
-                </div>
-                <div className="text-center">
-                  <p className="font-serif font-bold text-[#9E6752]">
-                    {book.bookTitle}
-                  </p>
-                  <p className="text-xs text-[#7A7A7A]">by {book.author}</p>
                 </div>
               </div>
-              <div className="w-full md:w-3/5 p-8 flex flex-col">
-                <div className="mb-6">
-                  <span className="text-[10px] font-bold text-[#9E6752] uppercase tracking-[0.2em]">
-                    The Circle
-                  </span>
-                  <h2 className="text-3xl font-serif font-black text-[#2D2D2D] dark:text-white mt-1">
-                    {book.title}
-                  </h2>
-                </div>
-                <div className="space-y-4 flex-1">
-                  <p className="text-sm text-[#5A5A5A] dark:text-gray-400 italic leading-relaxed">
-                    "{book.desc}"
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 pt-4">
-                    <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-[#9E6752]/10">
-                      <p className="text-[9px] font-bold text-[#7A7A7A] uppercase">
-                        Timeline
-                      </p>
-                      <p className="text-xs font-bold text-[#9E6752]">
-                        {book.dateRange}
-                      </p>
-                    </div>
-                    <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-[#9E6752]/10">
-                      <p className="text-[9px] font-bold text-[#7A7A7A] uppercase">
-                        Current Readers
-                      </p>
-                      <p className="text-xs font-bold text-[#9E6752]">
-                        {book.readers} Fellow Readers
-                      </p>
-                    </div>
+              <div className="mt-8 text-center space-y-1">
+                <p className="font-serif font-black text-xl text-[#1a3f22] dark:text-[#d4a373]">
+                  {book.bookTitle}
+                </p>
+                <p className="text-xs font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                  Authored by {book.author}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Page (The Record) */}
+            <div className="flex-1 p-10 flex flex-col overflow-y-auto custom-scrollbar">
+              <div className="mb-8 relative">
+                <Bookmark
+                  className="absolute -top-10 -left-6 text-[#1a3f22]/10 rotate-12"
+                  size={60}
+                />
+                <span className="text-[10px] font-mono font-black text-[#d4a373] uppercase tracking-[0.4em]">
+                  Circle Dossier
+                </span>
+                <h2 className="text-4xl font-serif font-black text-[#1a3f22] dark:text-white mt-2 leading-tight">
+                  {book.title}
+                </h2>
+                <div className="h-1 w-20 bg-[#1a3f22] mt-4" />
+              </div>
+
+              <div className="space-y-6 flex-1">
+                <p className="text-sm md:text-base text-[#1a3f22] dark:text-gray-300 font-serif italic leading-relaxed border-l-4 border-[#d4a373]/30 pl-4 py-2 bg-[#1a3f22]/5">
+                  "{book.desc}"
+                </p>
+
+                <div className="grid grid-cols-2 gap-6 pt-4 font-mono">
+                  <div className="border-t-2 border-[#1a3f22]/10 pt-2">
+                    <p className="text-[9px] font-black text-[#8b5a2b] uppercase">
+                      Timeline
+                    </p>
+                    <p className="text-xs font-bold text-[#1a3f22] dark:text-[#d4a373]">
+                      {book.dateRange}
+                    </p>
+                  </div>
+                  <div className="border-t-2 border-[#1a3f22]/10 pt-2">
+                    <p className="text-[9px] font-black text-[#8b5a2b] uppercase">
+                      Active Readers
+                    </p>
+                    <p className="text-xs font-bold text-[#1a3f22] dark:text-[#d4a373]">
+                      {book.readers} Curators
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-10 space-y-3">
-                  {/* LOGIC: Change button based on membership status */}
-                  {isMemberOrOwner ? (
-                    <div className="w-full bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-400 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 border border-green-200 dark:border-green-800">
-                      <CheckCircle2 size={20} /> Already a Fellow
-                    </div>
-                  ) : (
-                    <button
-                      disabled={isJoining}
-                      onClick={handleJoin}
-                      className="w-full bg-[#9E6752] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#865644] transition-all shadow-lg shadow-[#9E6752]/20 active:scale-[0.98]"
-                    >
-                      {isJoining ? (
-                        <Loader2 className="animate-spin" size={20} />
-                      ) : (
-                        <>
-                          {!user ? "Login to Join" : "Join this Fellowship"}{" "}
-                          <ArrowRight size={18} />
-                        </>
-                      )}
-                    </button>
-                  )}
-                  <p className="text-[10px] text-center text-[#7A7A7A]">
-                    Discussion starts as soon as you enter the circle.
-                  </p>
-                </div>
+              {/* Action Area */}
+              <div className="mt-12 space-y-4">
+                {isMemberOrOwner ? (
+                  <div className="w-full bg-[#1a3f22] text-[#f4ebd0] py-4 font-serif italic font-bold flex items-center justify-center gap-3 border-2 border-[#1a3f22]">
+                    <CheckCircle2 size={20} /> Record Found: Member
+                  </div>
+                ) : (
+                  <button
+                    disabled={isJoining}
+                    onClick={handleJoin}
+                    className="w-full bg-[#1a3f22] text-[#f4ebd0] py-5 shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all font-serif font-black italic text-lg flex items-center justify-center gap-3"
+                  >
+                    {isJoining ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                      <>
+                        {!user ? "Login to Access" : "Join this Fellowship"}
+                        <ArrowRight size={20} />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #1a3f2220;
+          border-radius: 10px;
+        }
+      `}</style>
     </>
   );
 };

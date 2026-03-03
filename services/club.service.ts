@@ -129,17 +129,17 @@ export async function getExploreClubs(userId?: string) {
         description: clubs.description,
         startDate: clubs.startDate,
         endDate: clubs.endDate,
-        ownerId: clubs.ownerId, // Needed for notification logic
+        ownerId: clubs.ownerId,
         bookTitle: books.title,
         author: books.author,
         coverUrl: books.coverUrl,
         category: books.category,
-        // SQL count of members for this specific club
+        // Count total readers
         readerCount: sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id})`,
-        // Check if current user is in this club
-        isMember: userId
-          ? sql<boolean>`EXISTS(SELECT 1 FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id} AND ${clubMembers.userId} = ${userId})`
-          : sql<boolean>`false`,
+        // Count if THIS specific user is in the club (will be 1 or 0)
+        userMembershipCount: userId
+          ? sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id} AND ${clubMembers.userId} = ${userId})`
+          : sql<number>`0`,
       })
       .from(clubs)
       .leftJoin(books, eq(clubs.bookId, books.id))
@@ -153,8 +153,9 @@ export async function getExploreClubs(userId?: string) {
       category: c.category || "General",
       desc: c.description,
       cover: c.coverUrl,
-      readers: Number(c.readerCount), // Real count from DB
-      isMember: c.isMember, // Boolean status
+      readers: Number(c.readerCount),
+      // FIX: If the count for this user is greater than 0, they are a member
+      isMember: Number(c.userMembershipCount) > 0,
       ownerId: c.ownerId,
       dateRange: c.startDate
         ? `${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate!).toLocaleDateString()}`

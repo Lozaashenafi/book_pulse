@@ -1,12 +1,19 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Search, BookX, SlidersHorizontal, Loader2 } from "lucide-react";
+import {
+  Search,
+  BookX,
+  SlidersHorizontal,
+  Loader2,
+  Bookmark,
+  Paperclip,
+} from "lucide-react";
 import ClubCard from "../ui/ClubCard";
 import { useExploreClubs } from "@/hooks/useExploreClubs";
-import { getCategories } from "@/services/club.service"; // Import the API function to fetch categories
-
-// 2. Define Props Interfaces
+import { getCategories } from "@/services/club.service";
+import { useAuthStore } from "@/store/useAuthStore";
+// --- Types (Unchanged) ---
 interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
@@ -15,50 +22,57 @@ interface SearchBarProps {
 interface CategoryFilterProps {
   activeCategory: string;
   setActiveCategory: (val: string) => void;
-  categories: string[]; // Added categories as a prop
+  categories: string[];
 }
 
-// 3. Define the SearchBar Component
 const SearchBar = ({ searchQuery, setSearchQuery }: SearchBarProps) => (
   <div className="relative group w-full mb-8">
+    <div className="absolute -top-3 left-6 z-10">
+      <span className="bg-[#d4a373] text-[#1a1614] text-[9px] font-mono font-bold px-2 py-0.5 uppercase tracking-tighter">
+        Query Field
+      </span>
+    </div>
     <input
       type="text"
-      placeholder="Search by title or author..."
+      placeholder="Search title, author, or keyword..."
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full pl-14 pr-6 py-5 bg-white dark:bg-[#1E1E1E] border border-[#9E6752]/20 dark:border-white/10 rounded-[40px_10px_40px_10px] shadow-sm outline-none focus:ring-2 focus:ring-[#9E6752]/20 transition-all text-[#2D2D2D] dark:text-[#F3F4F6] group-hover:shadow-md placeholder:text-[#7A7A7A]/60"
+      className="w-full pl-12 pr-6 py-4 bg-white dark:bg-[#252525] border-2 border-[#1a3f22]/10 dark:border-white/5 rounded-none shadow-[4px_4px_0px_rgba(26,63,34,0.05)] outline-none focus:border-[#1a3f22] transition-all text-[#1a3f22] dark:text-[#F3F4F6] font-serif italic placeholder:text-gray-300"
     />
     <Search
-      className="absolute left-5 top-1/2 -translate-y-1/2 text-[#9E6752] dark:text-[#FED7A5]"
-      size={22}
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1a3f22] dark:text-[#d4a373]"
+      size={18}
     />
   </div>
 );
 
-// 4. Define the CategoryFilter Component
 const CategoryFilter = ({
   activeCategory,
   setActiveCategory,
-  categories, // Use the dynamic list here
+  categories,
 }: CategoryFilterProps) => (
-  <div className="bg-white dark:bg-[#1E1E1E] p-6 rounded-2xl border border-[#9E6752]/10 dark:border-white/5 shadow-sm">
-    <div className="flex items-center space-x-2 mb-6 text-[#9E6752] dark:text-[#FED7A5]">
-      <SlidersHorizontal size={18} />
-      <span className="font-bold uppercase tracking-widest text-[10px]">
-        Categories
+  <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1] dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(92,64,51,0.1)] relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-12 h-12 bg-[#1a3f22]/5 -rotate-45 translate-x-6 -translate-y-6" />
+
+    <div className="flex items-center space-x-2 mb-6 border-b border-[#d6c7a1] pb-2">
+      <SlidersHorizontal
+        size={16}
+        className="text-[#1a3f22] dark:text-[#d4a373]"
+      />
+      <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-[#8b5a2b] dark:text-[#d4a373]">
+        Index Ledger
       </span>
     </div>
 
     <div className="flex flex-wrap gap-2">
-      {/* Always include 'All' manually, then map dynamic ones */}
       {["All", ...categories.filter((c) => c !== "All")].map((cat) => (
         <button
           key={cat}
           onClick={() => setActiveCategory(cat)}
-          className={`px-4 py-2 rounded-md border text-sm font-serif transition-all duration-200 ${
+          className={`px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-tighter transition-all border ${
             activeCategory === cat
-              ? "bg-[#9E6752] text-[#FDF8F1] border-[#9E6752] shadow-sm"
-              : "bg-[#FDF8F1] dark:bg-[#2A2A2A] text-[#9E6752] dark:text-[#D1BFA7] border-[#D1BFA7] dark:border-white/10 hover:border-[#9E6752]"
+              ? "bg-[#1a3f22] text-[#f4ebd0] border-[#1a3f22] shadow-[2px_2px_0px_#d4a373]"
+              : "bg-white/50 dark:bg-black/20 text-[#1a3f22] dark:text-[#d4a373] border-[#d6c7a1] dark:border-white/5 hover:bg-white"
           }`}
         >
           {cat}
@@ -68,16 +82,15 @@ const CategoryFilter = ({
   </div>
 );
 
-// 5. Main ExplorePage Component
 const ExplorePage = () => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]); // New state for dynamic categories
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
+  // Inside ExplorePage.tsx
+  const { user } = useAuthStore();
+  // Ensure user?.id is passed here!
+  const { clubs, isLoading } = useExploreClubs(user?.id);
 
-  // Real dynamic data from your hook
-  const { clubs, isLoading } = useExploreClubs();
-
-  // Fetch dynamic categories on mount
   useEffect(() => {
     const fetchCats = async () => {
       try {
@@ -103,59 +116,83 @@ const ExplorePage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdf8f1] dark:bg-[#121212]">
-        <Loader2 className="animate-spin text-[#9E6752]" size={40} />
+      <div className="h-full w-full flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#1a3f22]" size={40} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fdf8f1] dark:bg-[#121212] pt-32 pb-20 transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-6">
-        <header className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-[#2D2D2D] dark:text-[#F3F4F6]">
-            Explore{" "}
-            <span className="text-[#9E6752] dark:text-[#FED7A5]">
-              Book Circles
-            </span>
+    /* Increased pt-40 to ensure the fixed header never covers the archives title */
+    <div className="pt-40 pb-20 transition-colors duration-500 min-h-screen">
+      <div className="max-w-6xl mx-auto px-6">
+        <header className="mb-12 border-b-2 border-[#1a3f22]/10 pb-8 relative">
+          <div className="inline-block bg-[#1a3f22] text-[#f4ebd0] px-3 py-0.5 text-[10px] font-mono font-bold uppercase tracking-[0.3em] mb-4">
+            Curated Collections
+          </div>
+          <h1 className="text-5xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] tracking-tighter">
+            The Global <span className="italic">Archives</span>
           </h1>
-          <p className="text-[#5A5A5A] dark:text-[#A0A0A0] mt-4 max-w-xl mx-auto italic">
-            Discover community-led reading circles and dive into your next
-            story.
+          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg max-w-xl leading-snug">
+            "Discover community-led reading circles and dive into your next
+            story."
           </p>
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-10">
-          <aside className="lg:w-1/4">
-            <div className="lg:sticky lg:top-32 space-y-6">
-              <SearchBar
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* ASIDE */}
+          <aside className="lg:col-span-4 lg:sticky lg:top-32 space-y-8 z-10">
+            <SearchBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+            <div className="relative">
+              <Paperclip
+                className="absolute -top-6 right-4 text-gray-300 z-20"
+                size={32}
               />
               <CategoryFilter
                 activeCategory={activeCategory}
                 setActiveCategory={setActiveCategory}
-                categories={dynamicCategories} // Pass dynamic list
+                categories={dynamicCategories}
               />
+            </div>
+            {/* Decorative "Library Rules" Note */}
+            <div className="p-6 bg-white dark:bg-[#252525] border border-dashed border-[#d6c7a1] hidden lg:block">
+              <h4 className="font-serif font-bold text-[#1a3f22] text-sm mb-2">
+                Member Note:
+              </h4>
+              <p className="text-[11px] text-[#8b5a2b] font-serif italic leading-relaxed">
+                Can't find your specific niche? Start your own circle from the
+                dashboard and invite your squad.
+              </p>
             </div>
           </aside>
 
-          <main className="lg:w-3/4">
+          {/* MAIN */}
+          <main className="lg:col-span-8">
             {filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              /* Grid container: No transforms here */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {filteredBooks.map((book) => (
                   <ClubCard key={book.id} book={book} />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white/50 dark:bg-[#1E1E1E]/50 rounded-3xl border-2 border-dashed border-[#9E6752]/20">
-                <BookX size={48} className="text-[#9E6752] opacity-50 mb-4" />
-                <h3 className="text-xl font-serif font-bold dark:text-white">
-                  No circles found
+              <div className="flex flex-col items-center justify-center py-32 text-center bg-white dark:bg-[#252525] border-2 border-dashed border-[#d6c7a1] dark:border-[#3e2b22]">
+                <BookX size={60} className="text-[#1a3f22] opacity-20 mb-6" />
+                <h3 className="text-2xl font-serif font-black text-[#1a3f22] dark:text-white">
+                  No records found
                 </h3>
-                <p className="text-[#7A7A7A] mt-2">
-                  Try a different search or category.
-                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveCategory("All");
+                  }}
+                  className="mt-6 font-mono text-[10px] font-bold uppercase tracking-widest text-[#1a3f22] underline decoration-dotted underline-offset-4"
+                >
+                  Reset Archives
+                </button>
               </div>
             )}
           </main>

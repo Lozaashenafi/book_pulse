@@ -22,9 +22,7 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Auth Store
   const { user, profile, isLoading, signOut } = useAuthStore();
-
   const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -57,21 +55,21 @@ const Header = () => {
     return (
       <Link
         href={href}
-        className={`relative group px-1 py-1 transition-all duration-300 ${
+        className={`relative group px-1 py-1 transition-all duration-300 font-serif font-bold text-sm tracking-tight ${
           active
-            ? "text-primary dark:text-[#d4a373]"
-            : "text-[#7a7a7a] hover:text-primary dark:text-gray-400 dark:hover:text-[#d4a373]"
+            ? "text-[#1a3f22] dark:text-[#d4a373]"
+            : "text-[#8b5a2b] hover:text-[#1a3f22] dark:text-gray-400 dark:hover:text-[#d4a373]"
         }`}
       >
-        <span className="relative z-10 font-medium">{children}</span>
+        <span className="relative z-10">{children}</span>
 
         {active ? (
           <>
-            <span className="absolute bottom-0 left-0 w-full h-[3px] bg-primary dark:bg-[#d4a373] rounded-full animate-in fade-in zoom-in duration-500" />
-            <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary dark:bg-[#d4a373] rounded-full" />
+            <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-[#d4a373] animate-in fade-in slide-in-from-left-2 duration-500" />
+            <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#1a3f22] dark:bg-[#d4a373] rounded-full" />
           </>
         ) : (
-          <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-primary/30 dark:bg-[#d4a373]/30 transition-all duration-300 group-hover:w-full" />
+          <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#d4a373]/30 transition-all duration-300 group-hover:w-full" />
         )}
       </Link>
     );
@@ -80,7 +78,7 @@ const Header = () => {
   return (
     <header className="fixed top-6 left-0 right-0 z-50 px-6">
       <div className="max-w-6xl mx-auto relative">
-        {/* Decorative Tree Branch */}
+        {/* Decorative Tree Branch - UNTOUCHED */}
         <div className="absolute -top-2 left-36 z-20 pointer-events-none select-none opacity-100 dark:opacity-80">
           <svg
             width="160"
@@ -127,36 +125,46 @@ const Header = () => {
           </svg>
         </div>
 
-        <nav className="bg-[#fdf8f1] dark:bg-[#1a1a1a] border border-primary/20 dark:border-white/10 rounded-xl px-6 py-3 shadow-md flex items-center justify-between backdrop-blur-sm bg-opacity-95 dark:bg-opacity-90">
+        {/* Updated Nav Container with Tactile Library Style */}
+        <nav className="bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-[#1a3f22]/10 dark:border-[#3e2b22] rounded-none px-6 py-3 shadow-[6px_6px_0px_rgba(26,63,34,0.1)] flex items-center justify-between backdrop-blur-sm relative overflow-hidden">
+          {/* Subtle line background like a library card */}
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, #1a3f22, #1a3f22 1px, transparent 1px, transparent 40px)",
+            }}
+          />
+
           {/* Logo Section */}
           <Link
             href="/"
-            className="flex items-center space-x-3 hover:opacity-90 transition-opacity"
+            className="flex items-center space-x-3 hover:opacity-90 transition-opacity relative z-10"
           >
-            <div className="bg-primary dark:bg-[#d4a373] p-2 rounded-lg rotate-3 shadow-sm group-hover:rotate-0 transition-transform">
+            <div className="bg-[#1a3f22] dark:bg-[#d4a373] p-2 rounded-none rotate-3 shadow-[3px_3px_0px_#d4a373] transition-transform">
               <BookOpen
-                className="text-[#fdf8f1] dark:text-[#1a1a1a]"
+                className="text-[#fdfcf8] dark:text-[#1a1614]"
                 size={20}
               />
             </div>
-            <span className="text-2xl font-serif font-bold text-[#2d2d2d] dark:text-gray-100 tracking-tight">
+            <span className="text-2xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] tracking-tighter">
               BookPulse
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-10">
+          <div className="hidden md:flex items-center space-x-10 relative z-10">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/explore">Explore</NavLink>
-            {user && <NavLink href="/posts">Posts</NavLink>}
-            <NavLink href="/clubs/myclubs">My Clubs</NavLink>
+            {user && <NavLink href="/posts">Daily Scribbles</NavLink>}
+            <NavLink href="/clubs/myclubs">My Squads</NavLink>
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 relative z-10">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-primary dark:text-[#d4a373] hover:bg-secondary/30 dark:hover:bg-white/5 transition-all outline-none"
+              className="p-2 text-[#1a3f22] dark:text-[#d4a373] hover:bg-[#1a3f22]/5 transition-all outline-none"
               aria-label="Toggle Theme"
             >
               {resolvedTheme === "dark" ? (
@@ -166,47 +174,44 @@ const Header = () => {
               )}
             </button>
 
-            {/* Auth Dependent Actions */}
             {!isLoading && (
               <div className="hidden sm:flex items-center space-x-3 ml-2">
                 {user ? (
                   <div className="flex items-center space-x-4">
-                    {/* Admin Dashboard Link */}
                     {profile?.role === "admin" && (
                       <Link
                         href="/admin"
-                        className="flex items-center space-x-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-80 transition-opacity"
+                        className="flex items-center space-x-1 bg-red-50 text-red-700 px-3 py-1.5 border border-red-200 text-[10px] font-mono font-black uppercase tracking-tighter hover:bg-red-100 transition-colors"
                       >
                         <LayoutDashboard size={14} />
                         <span>Admin</span>
                       </Link>
                     )}
 
-                    {/* User Profile Info */}
-                    <div className="flex items-center space-x-3   pl-2 pr-1 py-1 rounded-full shadow-sm">
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-200 hidden lg:block">
-                        {profile?.name?.split(" ")[0] || "Reader"}
+                    <div className="flex items-center space-x-3 pl-2 pr-1 py-1">
+                      <span className="text-[10px] font-mono font-black text-[#8b5a2b] uppercase tracking-widest hidden lg:block">
+                        ID: {profile?.id?.slice(0, 4) || "000"}
                       </span>
                       <Link
                         href="/profile"
-                        className="h-8 w-8 rounded-full bg-secondary dark:bg-[#d4a373]/20 flex items-center justify-center overflow-hidden border border-primary/10 transition-transform hover:scale-105"
+                        className="h-9 w-9 bg-[#f4ebd0] dark:bg-[#d4a373]/20 flex items-center justify-center overflow-hidden border-2 border-[#1a3f22]/10 transition-transform hover:rotate-3 shadow-sm"
                       >
                         {profile?.image ? (
                           <img
                             src={profile.image}
                             alt="Profile"
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover grayscale-[30%] hover:grayscale-0"
                           />
                         ) : (
                           <UserIcon
-                            size={16}
-                            className="text-primary dark:text-[#d4a373]"
+                            size={18}
+                            className="text-[#1a3f22] dark:text-[#d4a373]"
                           />
                         )}
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 rounded-full transition-all"
+                        className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
                         title="Sign Out"
                       >
                         <LogOut size={16} />
@@ -217,24 +222,23 @@ const Header = () => {
                   <>
                     <Link
                       href="/login"
-                      className="text-primary dark:text-[#d4a373] px-4 py-2 rounded-lg font-bold text-sm hover:bg-secondary/30 dark:hover:bg-white/5 transition-all"
+                      className="text-[#1a3f22] dark:text-[#d4a373] px-4 py-2 font-serif italic font-bold text-sm hover:underline transition-all"
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/register"
-                      className="bg-primary dark:bg-[#d4a373] text-white dark:text-[#1a1a1a] px-5 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-[#8a5a48] dark:hover:bg-[#e9c46a] hover:-translate-y-0.5 transition-all"
+                      className="bg-[#1a3f22] dark:bg-[#d4a373] text-[#f4ebd0] dark:text-[#1a1614] px-5 py-2 rounded-none font-serif italic font-bold text-sm shadow-[4px_4px_0px_#d4a373] dark:shadow-[4px_4px_0px_#1a3f22] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                     >
-                      Get Started
+                      Join the Circle
                     </Link>
                   </>
                 )}
               </div>
             )}
 
-            {/* Mobile Menu Button */}
             <button
-              className="md:hidden text-primary dark:text-[#d4a373] p-2"
+              className="md:hidden text-[#1a3f22] dark:text-[#d4a373] p-2"
               onClick={() => setIsOpen(!isOpen)}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -242,9 +246,9 @@ const Header = () => {
           </div>
         </nav>
 
-        {/* Mobile Dropdown */}
+        {/* Mobile Dropdown - Matching the new vibe */}
         {isOpen && (
-          <div className="absolute top-full mt-3 left-0 right-0 bg-[#fdf8f1] dark:bg-[#262626] border border-primary/20 dark:border-white/10 rounded-xl p-6 flex flex-col space-y-4 shadow-2xl md:hidden animate-in slide-in-from-top-2 duration-300">
+          <div className="absolute top-full mt-3 left-0 right-0 bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-[#1a3f22]/20 dark:border-[#3e2b22] p-6 flex flex-col space-y-4 shadow-2xl md:hidden animate-in slide-in-from-top-2 duration-300">
             {["/", "/explore", "/posts", "/clubs/myclubs"].map((path) => {
               if (path === "/clubs/myclubs" && !user) return null;
 
@@ -253,73 +257,57 @@ const Header = () => {
                   key={path}
                   href={path}
                   onClick={closeMenu}
-                  className={`text-lg font-medium px-4 py-2 rounded-lg transition-all ${
+                  className={`text-lg font-serif font-black px-4 py-2 transition-all ${
                     isActive(path)
-                      ? "bg-secondary dark:bg-[#d4a373] text-primary dark:text-[#1a1a1a] border-l-4 border-primary dark:border-white/20"
-                      : "text-[#7a7a7a] dark:text-gray-400"
+                      ? "bg-[#1a3f22] text-[#f4ebd0] shadow-[4px_4px_0px_#d4a373]"
+                      : "text-[#8b5a2b] dark:text-gray-400"
                   }`}
                 >
                   {path === "/"
                     ? "Home"
-                    : path.replace("/", "").replace("-", " ")}
+                    : path.replace("/", "").replace("-", " ").toUpperCase()}
                 </Link>
               );
             })}
 
-            {/* Mobile Admin Link */}
             {user && profile?.role === "admin" && (
               <Link
                 href="/admin"
                 onClick={closeMenu}
-                className="flex items-center space-x-2 text-red-600 dark:text-red-400 font-bold px-4 py-2"
+                className="flex items-center space-x-2 text-red-700 font-mono font-black text-xs px-4 py-2"
               >
                 <LayoutDashboard size={20} />
-                <span>Admin Dashboard</span>
+                <span>ADMIN PANEL</span>
               </Link>
             )}
 
-            <hr className="border-primary/10 dark:border-white/5" />
-
-            {/* Mobile Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="flex items-center justify-between px-4 py-2 text-primary dark:text-[#d4a373] font-medium"
-            >
-              <span>
-                Switch to {resolvedTheme === "dark" ? "Light" : "Dark"} Mode
-              </span>
-              {resolvedTheme === "dark" ? (
-                <Sun size={20} />
-              ) : (
-                <Moon size={20} />
-              )}
-            </button>
+            <hr className="border-[#1a3f22]/10 dark:border-white/5" />
 
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="flex items-center justify-center space-x-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 py-3 rounded-lg font-bold"
+                className="flex items-center justify-center space-x-2 bg-red-50 text-red-700 py-3 font-serif italic font-bold"
               >
                 <LogOut size={18} />
-                <span>Sign Out</span>
+                <span>Leave Library</span>
               </button>
             ) : (
-              <>
+              <div className="flex flex-col gap-3">
                 <Link
                   href="/login"
                   onClick={closeMenu}
-                  className="text-primary dark:text-[#d4a373] font-bold text-center py-2"
+                  className="text-[#1a3f22] font-serif italic font-bold text-center py-2"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={closeMenu}
-                  className="bg-primary dark:bg-[#d4a373] text-white dark:text-[#1a1a1a] py-3 rounded-lg font-bold text-center shadow-lg"
+                  className="bg-[#1a3f22] text-[#f4ebd0] py-3 font-serif italic font-bold text-center shadow-[4px_4px_0px_#d4a373]"
                 >
-                  Get Started
+                  Join the Circle
                 </Link>
-              </>
+              </div>
             )}
           </div>
         )}

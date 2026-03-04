@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Plus, Settings, LibraryBig, Loader2, Paperclip } from "lucide-react";
 import MyClubCard from "../../../../components/ui/MyClubCard";
 import { useRouter } from "next/navigation";
@@ -44,6 +44,11 @@ const MyClubsPage = () => {
   const { user, isLoading: authLoading } = useAuthStore();
   const { clubs, isLoading: dataLoading } = useMyClubs(user?.id);
 
+  // LOGIC: Filter only clubs where the user is the OWNER
+  const ownedClubs = useMemo(() => {
+    return clubs.filter((club) => club.role === "OWNER");
+  }, [clubs]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -60,6 +65,7 @@ const MyClubsPage = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-6">
+      {/* Header "Library Index" Style */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-4 border-[#5c4033]/10 pb-6 gap-6">
         <div className="text-left">
           <h1 className="text-5xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
@@ -69,7 +75,7 @@ const MyClubsPage = () => {
             </span>
           </h1>
           <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-            Personal Registry // {clubs.length} Active Fellowships
+            Owner Registry // {ownedClubs.length} Created Fellowships
           </p>
         </div>
 
@@ -82,22 +88,21 @@ const MyClubsPage = () => {
         </button>
       </header>
 
-      {clubs.length > 0 ? (
+      {/* Show only filtered owned clubs */}
+      {ownedClubs.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {clubs.map((club) => (
+          {ownedClubs.map((club) => (
             <div key={club.id} className="relative group">
-              {/* CHANGE HERE: Only show Settings button if user is OWNER */}
-              {club.role === "OWNER" && (
-                <div className="absolute -top-3 -right-3 z-20">
-                  <button
-                    onClick={() => router.push(`/clubs/settings/${club.id}`)}
-                    className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
-                    title="Modify Ledger"
-                  >
-                    <Settings size={18} />
-                  </button>
-                </div>
-              )}
+              {/* Settings button - always visible here because we filtered for owners */}
+              <div className="absolute -top-3 -right-3 z-20">
+                <button
+                  onClick={() => router.push(`/clubs/settings/${club.id}`)}
+                  className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
+                  title="Modify Ledger"
+                >
+                  <Settings size={18} />
+                </button>
+              </div>
 
               <div className="transition-transform hover:-rotate-1 duration-300">
                 <MyClubCard book={club} />
@@ -109,6 +114,7 @@ const MyClubsPage = () => {
         <EmptyState />
       )}
 
+      {/* Footer Decoration */}
       <div className="mt-20 border-t border-dashed border-[#5c4033]/20 pt-8 text-center">
         <p className="font-mono text-[10px] uppercase text-[#8b5a2b] opacity-50">
           BookPulse Literary Registry — End of List

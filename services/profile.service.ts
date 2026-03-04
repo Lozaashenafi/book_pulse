@@ -193,3 +193,29 @@ export async function getMyClubs(userId: string) {
     return [];
   }
 }
+
+export async function getSidebarClubs(userId: string) {
+  if (!userId) return { owned: [], all: [] };
+
+  try {
+    const data = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+        role: clubMembers.role,
+      })
+      .from(clubMembers)
+      .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
+      .where(eq(clubMembers.userId, userId));
+
+    return {
+      // Clubs user created
+      owned: data.filter((c) => c.role === "OWNER"),
+      // Every club the user is in (including owned ones)
+      all: data,
+    };
+  } catch (error) {
+    console.error("Error fetching sidebar clubs:", error);
+    return { owned: [], all: [] };
+  }
+}

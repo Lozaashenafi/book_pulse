@@ -13,6 +13,7 @@ import ClubCard from "../ui/ClubCard";
 import { useExploreClubs } from "@/hooks/useExploreClubs";
 import { getCategories } from "@/services/club.service";
 import { useAuthStore } from "@/store/useAuthStore";
+import CuratorLoader from "../ui/CuratorLoader";
 // --- Types (Unchanged) ---
 interface SearchBarProps {
   searchQuery: string;
@@ -116,8 +117,8 @@ const ExplorePage = () => {
 
   if (isLoading) {
     return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+        <CuratorLoader />
       </div>
     );
   }

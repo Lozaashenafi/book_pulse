@@ -49,7 +49,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 h-full">
             <Link href="/" className="group cursor-pointer">
               <div className="mb-10 px-4 rotate-[-1deg] transition-transform group-hover:rotate-0">
-                <h1 className="text-3xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] border-b-4 border-[#1a3f22]">
+                <h1 className="text-3xl font-serif font-black text-tertiary dark:text-[#d4a373] border-b-4 border-tertiary">
                   BookPulse
                 </h1>
                 <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1 text-[#8b5a2b]">
@@ -89,9 +89,9 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
               <div className="space-y-1">
                 <button
                   onClick={() => setIsBrowseOpen(!isBrowseOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2 cursor-pointer transition-all hover:bg-[#1a3f22]/5 dark:hover:bg-white/5 border-b border-transparent hover:border-[#1a3f22] group`}
+                  className={`w-full flex items-center justify-between px-4 py-2 cursor-pointer transition-all hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary group`}
                 >
-                  <div className="flex items-center space-x-3 text-[#5c4033] dark:text-gray-400 group-hover:text-[#1a3f22] dark:group-hover:text-[#d4a373]">
+                  <div className="flex items-center space-x-3 text-[#5c4033] dark:text-gray-400 group-hover:text-tertiary dark:group-hover:text-[#d4a373]">
                     <MessageCircle size={18} />
                     <span className="font-serif font-bold text-sm tracking-tight">
                       Enter Circles
@@ -110,7 +110,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                         <Link
                           key={club.id}
                           href={`/club/${club.id}/chat`} // Updated to go to discussion/chat
-                          className="block px-4 py-1.5 text-sm font-bold font-serif italic text-[#8b5a2b] hover:text-[#1a3f22] dark:hover:text-[#d4a373] border-l border-[#1a3f22]/20 hover:border-[#1a3f22] transition-all"
+                          className="block px-4 py-1.5 text-sm font-bold font-serif italic text-[#8b5a2b] hover:text-tertiary dark:hover:text-[#d4a373] border-l border-tertiary/20 hover:border-tertiary transition-all"
                         >
                           # {club.name}
                         </Link>
@@ -146,11 +146,11 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
 
             {/* Profile Card */}
             {user ? (
-              <div className="mt-auto p-4 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-[#1a3f22] shadow-[5px_5px_0px_#bcab79] rotate-1">
+              <div className="mt-auto p-4 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-tertiary shadow-[5px_5px_0px_#bcab79] rotate-1">
                 <div className="flex items-center space-x-3">
                   <Link
                     href="/profile"
-                    className="w-10 h-10 bg-[#1a3f22] dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden"
+                    className="w-10 h-10 bg-tertiary dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden"
                   >
                     {profile?.image ? (
                       <img
@@ -165,7 +165,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                     )}
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-mono uppercase text-[#1a3f22] dark:text-[#d4a373]/70">
+                    <p className="text-[9px] font-mono uppercase text-tertiary dark:text-[#d4a373]/70">
                       ID: {profile?.id?.slice(0, 5) || "402"}
                     </p>
                     <p className="text-sm font-bold text-[#5c4033] dark:text-gray-100 truncate">
@@ -183,7 +183,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 href="/login"
-                className="mt-auto p-4 bg-[#1a3f22] text-[#f4ebd0] text-center font-serif italic hover:bg-[#132f19] transition-all rotate-1"
+                className="mt-auto p-4 bg-tertiary text-[#f4ebd0] text-center font-serif italic hover:bg-[#132f19] transition-all rotate-1"
               >
                 Join the Circle
               </Link>
@@ -204,8 +204,8 @@ const NavItem = ({ icon, label, active = false, badge, href }: any) => (
     <div
       className={`flex items-center justify-between px-4 py-2 cursor-pointer transition-all mb-1 ${
         active
-          ? "bg-[#1a3f22] text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
-          : "text-[#5c4033] dark:text-gray-400 hover:bg-[#1a3f22]/5 dark:hover:bg-white/5 border-b border-transparent hover:border-[#1a3f22]"
+          ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
+          : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"
       }`}
     >
       <div className="flex items-center space-x-3">
@@ -216,7 +216,7 @@ const NavItem = ({ icon, label, active = false, badge, href }: any) => (
       </div>
       {badge && (
         <span
-          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${active ? "bg-white text-[#1a3f22]" : "bg-[#1a3f22] text-white"}`}
+          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${active ? "bg-white text-tertiary" : "bg-tertiary text-white"}`}
         >
           {badge}
         </span>

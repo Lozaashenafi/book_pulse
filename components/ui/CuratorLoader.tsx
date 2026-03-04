@@ -11,19 +11,19 @@ const CuratorLoader = () => {
         <div className="absolute inset-0 border-4 border-dashed border-[#d4a373] rounded-full animate-[spin_8s_linear_infinite] opacity-30"></div>
 
         {/* The Inner Rotating Ring */}
-        <div className="absolute inset-2 border-2 border-[#1a3f22] border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-2 border-2 border-tertiary border-t-transparent rounded-full animate-spin"></div>
 
         {/* The Pulsing Book Icon (The Pulse of the story) */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="animate-bounce">
-            <BookOpen size={32} className="text-[#1a3f22] fill-[#1a3f22]/5" />
+            <BookOpen size={32} className="text-tertiary fill-tertiary/5" />
           </div>
         </div>
       </div>
 
       {/* Narrative Loading Text */}
       <div className="flex flex-col items-center">
-        <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-[#1a3f22] animate-pulse">
+        <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-tertiary animate-pulse">
           Consulting Archives
         </span>
         <div className="flex gap-1 mt-1">

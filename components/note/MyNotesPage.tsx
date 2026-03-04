@@ -46,7 +46,7 @@ const MOCK_NOTES = [
     tags: ["To-Buy"],
     isPinned: false,
     createdAt: "Oct 15, 2024",
-    color: "bg-[#1a3f22]/5", // Subtle Green Tint
+    color: "bg-tertiary/5", // Subtle Green Tint
   },
 ];
 
@@ -58,12 +58,12 @@ const MyNotesPage = () => {
     <div className="pb-20 transition-colors duration-500 min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
         {/* HEADER: Archive Header */}
-        <header className="mb-12 border-b-2 border-[#1a3f22]/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <header className="mb-12 border-b-2 border-tertiary/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <div className="inline-block bg-[#1a3f22] text-[#f4ebd0] px-3 py-0.5 text-[10px] font-mono font-black uppercase tracking-[0.3em] mb-4">
+            <div className="inline-block bg-tertiary text-[#f4ebd0] px-3 py-0.5 text-[10px] font-mono font-black uppercase tracking-[0.3em] mb-4">
               Private Ledger
             </div>
-            <h1 className="text-5xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] tracking-tighter leading-none">
+            <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               Brain <span className="italic">Dumps</span>
             </h1>
             <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
@@ -77,7 +77,7 @@ const MyNotesPage = () => {
               <input
                 type="text"
                 placeholder="Search notes..."
-                className="pl-10 pr-4 py-2 bg-white dark:bg-[#252525] border border-[#d6c7a1] font-serif italic text-sm outline-none focus:border-[#1a3f22]"
+                className="pl-10 pr-4 py-2 bg-white dark:bg-[#252525] border border-[#d6c7a1] font-serif italic text-sm outline-none focus:border-tertiary"
               />
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b5a2b]"
@@ -86,7 +86,7 @@ const MyNotesPage = () => {
             </div>
             <button
               onClick={() => setIsCreating(true)}
-              className="bg-[#1a3f22] text-[#f4ebd0] p-3 shadow-[4px_4px_0px_#d4a373] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+              className="bg-tertiary text-[#f4ebd0] p-3 shadow-[4px_4px_0px_#d4a373] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
             >
               <Plus size={24} />
             </button>
@@ -96,12 +96,12 @@ const MyNotesPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* LEFT: Scratchpad Area */}
           <aside className="lg:col-span-4 space-y-8">
-            <div className="relative bg-white dark:bg-[#252525] p-8 border-t-[10px] border-[#1a3f22] shadow-[8px_8px_0px_rgba(26,63,34,0.05)]">
+            <div className="relative bg-white dark:bg-[#252525] p-8 border-t-[10px] border-tertiary shadow-[8px_8px_0px_rgba(26,63,34,0.05)]">
               <Paperclip
                 className="absolute -top-4 right-6 text-gray-300 -rotate-12"
                 size={32}
               />
-              <h3 className="font-serif font-black text-[#1a3f22] mb-4 flex items-center gap-2">
+              <h3 className="font-serif font-black text-tertiary mb-4 flex items-center gap-2">
                 <PenTool size={18} /> Quick Scribble
               </h3>
               <textarea
@@ -117,7 +117,7 @@ const MyNotesPage = () => {
                     <Tag size={16} />
                   </button>
                 </div>
-                <button className="bg-[#1a3f22] text-[#f4ebd0] px-4 py-1.5 font-mono text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_#d4a373] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                <button className="bg-tertiary text-[#f4ebd0] px-4 py-1.5 font-mono text-[10px] font-black uppercase tracking-widest shadow-[3px_3px_0px_#d4a373] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
                   File Away
                 </button>
               </div>
@@ -133,7 +133,7 @@ const MyNotesPage = () => {
                   (tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-1 bg-white/50 border border-[#d6c7a1] text-[10px] font-mono text-[#5c4033] cursor-pointer hover:bg-[#1a3f22] hover:text-white transition-colors"
+                      className="px-2 py-1 bg-white/50 border border-[#d6c7a1] text-[10px] font-mono text-[#5c4033] cursor-pointer hover:bg-tertiary hover:text-white transition-colors"
                     >
                       #{tag}
                     </span>
@@ -149,11 +149,11 @@ const MyNotesPage = () => {
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className={`group relative p-8 border-2 border-[#1a3f22]/10 shadow-sm transition-all hover:shadow-[8px_8px_0px_rgba(26,63,34,0.05)] flex flex-col h-64 ${note.color} dark:bg-[#252525]`}
+                  className={`group relative p-8 border-2 border-tertiary/10 shadow-sm transition-all hover:shadow-[8px_8px_0px_rgba(26,63,34,0.05)] flex flex-col h-64 ${note.color} dark:bg-[#252525]`}
                 >
                   {/* Pin Icon */}
                   <button
-                    className={`absolute top-4 right-4 ${note.isPinned ? "text-[#1a3f22]" : "text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"}`}
+                    className={`absolute top-4 right-4 ${note.isPinned ? "text-tertiary" : "text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"}`}
                   >
                     <Pin
                       size={16}
@@ -168,7 +168,7 @@ const MyNotesPage = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] mb-3 leading-tight">
+                  <h3 className="text-xl font-serif font-black text-tertiary dark:text-[#d4a373] mb-3 leading-tight">
                     {note.title}
                   </h3>
 
@@ -181,7 +181,7 @@ const MyNotesPage = () => {
                       {note.tags.map((t) => (
                         <span
                           key={t}
-                          className="text-[8px] font-mono font-black uppercase text-[#8b5a2b] bg-[#1a3f22]/5 px-1"
+                          className="text-[8px] font-mono font-black uppercase text-[#8b5a2b] bg-tertiary/5 px-1"
                         >
                           {t}
                         </span>
@@ -193,7 +193,7 @@ const MyNotesPage = () => {
                   </div>
 
                   {/* Visual "Index Card" Lines */}
-                  <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#1a3f22]/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-tertiary/10 to-transparent" />
                 </div>
               ))}
             </div>

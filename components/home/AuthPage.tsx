@@ -82,26 +82,26 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
   if (isEmailSent) {
     return (
       <div className="h-svh w-screen bg-[#eaddcf] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-[#f4ebd0] p-12 border-2 border-[#1a3f22]/20 shadow-[10px_10px_0px_#1a3f22] text-center space-y-6 animate-in fade-in zoom-in duration-500 relative">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-[#1a3f22] rounded-full shadow-lg border-4 border-[#eaddcf] flex items-center justify-center">
+        <div className="max-w-md w-full bg-[#f4ebd0] p-12 border-2 border-tertiary/20 shadow-[10px_10px_0px_#1a3f22] text-center space-y-6 animate-in fade-in zoom-in duration-500 relative">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-tertiary rounded-full shadow-lg border-4 border-[#eaddcf] flex items-center justify-center">
             <div className="w-2 h-2 rounded-full bg-white/20" />
           </div>
-          <div className="text-[#1a3f22] flex justify-center">
+          <div className="text-tertiary flex justify-center">
             <Mail size={48} />
           </div>
-          <h2 className="text-3xl font-serif font-black text-[#1a3f22]">
+          <h2 className="text-3xl font-serif font-black text-tertiary">
             Check your mail
           </h2>
-          <p className="text-[#1a3f22]/70 font-serif italic leading-relaxed">
+          <p className="text-tertiary/70 font-serif italic leading-relaxed">
             A verification link is flying to <br />
-            <span className="font-bold not-italic underline decoration-dashed text-[#1a3f22]">
+            <span className="font-bold not-italic underline decoration-dashed text-tertiary">
               {formData.email}
             </span>
             .
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="text-[#1a3f22] font-mono font-bold uppercase tracking-widest hover:underline text-xs"
+            className="text-tertiary font-mono font-bold uppercase tracking-widest hover:underline text-xs"
           >
             ← Return to Shelf
           </button>
@@ -112,9 +112,9 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
 
   return (
     <div className="h-svh w-screen bg-[#eaddcf] dark:bg-[#1a1614] flex items-center justify-center p-4 overflow-hidden transition-colors duration-500">
-      <div className="max-w-5xl w-full flex flex-col lg:flex-row bg-[#fdfcf8] dark:bg-[#252525] shadow-[20px_20px_0px_rgba(26,63,34,0.1)] border-2 border-[#1a3f22]/10 dark:border-[#3e2b22] max-h-[95vh] overflow-hidden">
+      <div className="max-w-5xl w-full flex flex-col lg:flex-row bg-[#fdfcf8] dark:bg-[#252525] shadow-[20px_20px_0px_rgba(26,63,34,0.1)] border-2 border-tertiary/10 dark:border-[#3e2b22] max-h-[95vh] overflow-hidden">
         {/* LEFT COLUMN: The "Leather Bound Book Cover" */}
-        <div className="hidden lg:flex w-1/2 bg-[#1a3f22] relative overflow-hidden flex-col justify-center p-12">
+        <div className="hidden lg:flex w-1/2 bg-tertiary relative overflow-hidden flex-col justify-center p-12">
           {/* Gold Foil Texture Overlay */}
           <div
             className="absolute inset-0 opacity-10"
@@ -126,7 +126,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
 
           <div className="relative z-10 space-y-8">
             {/* Gold Foil Stamp */}
-            <div className="inline-block border-2 border-[#d4a373] p-4 rotate-[-2deg] bg-[#1a3f22] shadow-xl">
+            <div className="inline-block border-2 border-[#d4a373] p-4 rotate-[-2deg] bg-tertiary shadow-xl">
               <div className="text-[#d4a373] text-[10px] font-mono font-black uppercase tracking-[0.3em]">
                 First Edition Access
               </div>
@@ -159,15 +159,15 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-12 overflow-y-auto custom-scrollbar">
           <div className="max-w-sm w-full space-y-8 relative">
             <Paperclip
-              className="absolute -top-10 -right-4 text-[#1a3f22]/20 -rotate-12"
+              className="absolute -top-10 -right-4 text-tertiary/20 -rotate-12"
               size={40}
             />
 
-            <div className="space-y-2 border-b-2 border-[#1a3f22]/10 pb-4">
-              <h2 className="text-4xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373]">
+            <div className="space-y-2 border-b-2 border-tertiary/10 pb-4">
+              <h2 className="text-4xl font-serif font-black text-tertiary dark:text-[#d4a373]">
                 {isSignIn ? "Member Log" : "New Entry"}
               </h2>
-              <p className="text-[#1a3f22]/60 font-mono text-[10px] uppercase tracking-widest font-bold">
+              <p className="text-tertiary/60 font-mono text-[10px] uppercase tracking-widest font-bold">
                 Archive: {new Date().getFullYear()} /{" "}
                 {new Date().getMonth() + 1}
               </p>
@@ -183,28 +183,28 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center space-x-3 bg-[#f4ebd0] border-2 border-[#1a3f22]/10 py-3 shadow-[4px_4px_0px_#1a3f22]/10 hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all group"
+              className="w-full flex items-center justify-center space-x-3 bg-[#f4ebd0] border-2 border-tertiary/10 py-3 shadow-[4px_4px_0px_#1a3f22]/10 hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all group"
             >
               <GoogleIcon />
-              <span className="font-serif font-bold text-[#1a3f22] text-sm">
+              <span className="font-serif font-bold text-tertiary text-sm">
                 Pass with Google
               </span>
             </button>
 
             <div className="relative flex justify-center">
-              <span className="bg-[#fdfcf8] dark:bg-[#252525] px-4 font-mono text-[9px] text-[#1a3f22]/40 uppercase tracking-widest z-10">
+              <span className="bg-[#fdfcf8] dark:bg-[#252525] px-4 font-mono text-[9px] text-tertiary/40 uppercase tracking-widest z-10">
                 Written Entry
               </span>
-              <div className="absolute top-1/2 w-full border-t border-dashed border-[#1a3f22]/10" />
+              <div className="absolute top-1/2 w-full border-t border-dashed border-tertiary/10" />
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               {!isSignIn && (
                 <div className="space-y-1 group">
-                  <label className="text-[10px] font-mono font-black text-[#1a3f22]/50 uppercase tracking-tighter ml-1">
+                  <label className="text-[10px] font-mono font-black text-tertiary/50 uppercase tracking-tighter ml-1">
                     01. Curator Name
                   </label>
-                  <div className="relative border-b-2 border-[#1a3f22]/10 group-focus-within:border-[#1a3f22] transition-colors">
+                  <div className="relative border-b-2 border-tertiary/10 group-focus-within:border-tertiary transition-colors">
                     <input
                       name="username"
                       required
@@ -215,7 +215,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
                       placeholder="e.g. Leo Tolstoy"
                     />
                     <User
-                      className="absolute left-2 top-1/2 -translate-y-1/2 text-[#1a3f22]/30"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 text-tertiary/30"
                       size={16}
                     />
                   </div>
@@ -223,10 +223,10 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
               )}
 
               <div className="space-y-1 group">
-                <label className="text-[10px] font-mono font-black text-[#1a3f22]/50 uppercase tracking-tighter ml-1">
+                <label className="text-[10px] font-mono font-black text-tertiary/50 uppercase tracking-tighter ml-1">
                   {isSignIn ? "01. Email Address" : "02. Contact Email"}
                 </label>
-                <div className="relative border-b-2 border-[#1a3f22]/10 group-focus-within:border-[#1a3f22] transition-colors">
+                <div className="relative border-b-2 border-tertiary/10 group-focus-within:border-tertiary transition-colors">
                   <input
                     name="email"
                     required
@@ -237,17 +237,17 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
                     placeholder="reader@bookpulse.com"
                   />
                   <Mail
-                    className="absolute left-2 top-1/2 -translate-y-1/2 text-[#1a3f22]/30"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-tertiary/30"
                     size={16}
                   />
                 </div>
               </div>
 
               <div className="space-y-1 group">
-                <label className="text-[10px] font-mono font-black text-[#1a3f22]/50 uppercase tracking-tighter ml-1">
+                <label className="text-[10px] font-mono font-black text-tertiary/50 uppercase tracking-tighter ml-1">
                   {isSignIn ? "02. Password" : "03. Security Key"}
                 </label>
-                <div className="relative border-b-2 border-[#1a3f22]/10 group-focus-within:border-[#1a3f22] transition-colors">
+                <div className="relative border-b-2 border-tertiary/10 group-focus-within:border-tertiary transition-colors">
                   <input
                     name="password"
                     required
@@ -258,7 +258,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
                     placeholder="••••••••"
                   />
                   <Lock
-                    className="absolute left-2 top-1/2 -translate-y-1/2 text-[#1a3f22]/30"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-tertiary/30"
                     size={16}
                   />
                 </div>
@@ -267,7 +267,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#1a3f22] text-[#f4ebd0] py-4 shadow-[6px_6px_0px_rgba(26,63,34,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center space-x-2 active:scale-95 font-serif font-black italic"
+                className="w-full bg-tertiary text-[#f4ebd0] py-4 shadow-[6px_6px_0px_rgba(26,63,34,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center space-x-2 active:scale-95 font-serif font-black italic"
               >
                 {loading ? (
                   <Loader2 className="animate-spin" size={20} />
@@ -283,7 +283,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
             <div className="text-center">
               <Link
                 href={isSignIn ? "/register" : "/login"}
-                className="font-mono text-[10px] uppercase font-black text-[#1a3f22]/60 hover:text-[#1a3f22] tracking-[0.2em] underline decoration-dotted underline-offset-4"
+                className="font-mono text-[10px] uppercase font-black text-tertiary/60 hover:text-tertiary tracking-[0.2em] underline decoration-dotted underline-offset-4"
               >
                 {isSignIn
                   ? "Apply for new membership"

@@ -120,7 +120,7 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
                   }
                   className={`w-full flex items-center justify-between px-3 py-2 text-xs font-serif font-bold transition-all border-b border-transparent hover:bg-white/50 ${
                     activeRoom.id === ch.id
-                      ? "bg-[#1a3f22] text-[#f4ebd0]"
+                      ? "bg-tertiary text-[#f4ebd0]"
                       : "text-[#5c4033]"
                   } ${isLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 >
@@ -148,19 +148,19 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
       </aside>
 
       {/* --- MAIN CHAT AREA: THE LEDGER --- */}
-      <main className="flex-1 bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-[#1a3f22]/10 shadow-[8px_8px_0px_rgba(26,63,34,0.05)] flex flex-col relative overflow-hidden">
+      <main className="flex-1 bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-tertiary/10 shadow-[8px_8px_0px_rgba(26,63,34,0.05)] flex flex-col relative overflow-hidden">
         {/* Chat Header */}
-        <header className="px-6 py-4 border-b-2 border-dashed border-[#1a3f22]/10 flex items-center justify-between bg-white dark:bg-[#252525]">
+        <header className="px-6 py-4 border-b-2 border-dashed border-tertiary/10 flex items-center justify-between bg-white dark:bg-[#252525]">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2 ${activeRoom.type === "SPOILER" ? "bg-red-50 text-red-600" : "bg-[#1a3f22]/5 text-[#1a3f22]"}`}
+              className={`p-2 ${activeRoom.type === "SPOILER" ? "bg-red-50 text-red-600" : "bg-tertiary/5 text-tertiary"}`}
             >
               {activeRoom.type === "GENERAL" && <MessageSquare size={20} />}
               {activeRoom.type === "SPOILER" && <AlertTriangle size={20} />}
               {activeRoom.type === "CHAPTER" && <BookOpen size={20} />}
             </div>
             <div>
-              <h2 className="text-xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373]">
+              <h2 className="text-xl font-serif font-black text-tertiary dark:text-[#d4a373]">
                 {activeRoom.title}
               </h2>
               <p className="text-[9px] font-mono text-[#8b5a2b] uppercase font-bold tracking-widest">
@@ -205,7 +205,7 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
                 key={msg.id}
                 className={`flex gap-4 ${msg.userId === user?.id ? "flex-row-reverse" : ""}`}
               >
-                <div className="w-8 h-8 shrink-0 bg-[#f4ebd0] border border-[#d6c7a1] flex items-center justify-center font-serif font-black text-[#1a3f22] text-xs">
+                <div className="w-8 h-8 shrink-0 bg-[#f4ebd0] border border-[#d6c7a1] flex items-center justify-center font-serif font-black text-tertiary text-xs">
                   {msg.userName[0]}
                 </div>
                 <div
@@ -225,8 +225,8 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
                   <div
                     className={`p-4 font-serif text-sm shadow-sm ${
                       msg.userId === user?.id
-                        ? "bg-[#1a3f22] text-[#f4ebd0] rounded-tl-2xl rounded-tr-none rounded-br-2xl rounded-bl-2xl"
-                        : "bg-white dark:bg-[#252525] text-[#1a3f22] dark:text-gray-200 border border-[#d6c7a1] rounded-tr-2xl rounded-tl-none rounded-br-2xl rounded-bl-2xl"
+                        ? "bg-tertiary text-[#f4ebd0] rounded-tl-2xl rounded-tr-none rounded-br-2xl rounded-bl-2xl"
+                        : "bg-white dark:bg-[#252525] text-tertiary dark:text-gray-200 border border-[#d6c7a1] rounded-tr-2xl rounded-tl-none rounded-br-2xl rounded-bl-2xl"
                     }`}
                   >
                     {msg.content}
@@ -238,7 +238,7 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
         </div>
 
         {/* Input Area: Library Slip Style */}
-        <div className="p-6 bg-white dark:bg-[#252525] border-t-2 border-[#1a3f22]/10">
+        <div className="p-6 bg-white dark:bg-[#252525] border-t-2 border-tertiary/10">
           <form onSubmit={handleSendMessage} className="flex gap-4 items-end">
             <div className="flex-1 relative group">
               <div className="absolute -top-3 left-4 z-10">
@@ -250,7 +250,7 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Inscribe your thoughts..."
-                className="w-full bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-[#1a3f22]/10 focus:border-[#1a3f22] p-4 pt-6 outline-none font-serif italic text-sm resize-none custom-scrollbar min-h-[80px]"
+                className="w-full bg-[#fdfcf8] dark:bg-[#1a1614] border-2 border-tertiary/10 focus:border-tertiary p-4 pt-6 outline-none font-serif italic text-sm resize-none custom-scrollbar min-h-[80px]"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -262,7 +262,7 @@ const ClubDiscussion = ({ params }: { params: { id: string } }) => {
               </button>
               <button
                 type="submit"
-                className="bg-[#1a3f22] text-[#f4ebd0] p-4 shadow-[4px_4px_0px_#d4a373] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                className="bg-tertiary text-[#f4ebd0] p-4 shadow-[4px_4px_0px_#d4a373] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
               >
                 <Send size={20} />
               </button>
@@ -280,14 +280,14 @@ const RoomButton = ({
   label,
   active,
   onClick,
-  color = "text-[#1a3f22]",
+  color = "text-tertiary",
 }: any) => (
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-serif font-black italic transition-all border-l-4 ${
       active
-        ? `bg-[#1a3f22] text-[#f4ebd0] border-[#d4a373] shadow-md`
-        : `bg-white dark:bg-[#252525] ${color} border-transparent hover:border-[#1a3f22]/30`
+        ? `bg-tertiary text-[#f4ebd0] border-[#d4a373] shadow-md`
+        : `bg-white dark:bg-[#252525] ${color} border-transparent hover:border-tertiary/30`
     }`}
   >
     {icon}

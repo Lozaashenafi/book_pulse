@@ -228,6 +228,26 @@ export const noteRelations = relations(notes, ({ one }) => ({
     references: [profiles.id],
   }),
 }));
+export const chatRoomRelations = relations(chatRooms, ({ one }) => ({
+  chapter: one(chapters, {
+    fields: [chatRooms.chapterId],
+    references: [chapters.id],
+  }),
+  club: one(clubs, {
+    fields: [chatRooms.clubId],
+    references: [clubs.id],
+  }),
+}));
+
+// 2. Chapter Relations
+export const chapterRelations = relations(chapters, ({ one, many }) => ({
+  club: one(clubs, {
+    fields: [chapters.clubId],
+    references: [clubs.id],
+  }),
+  chatRooms: many(chatRooms),
+  progress: many(readingProgress),
+}));
 
 export const profileNoteRelations = relations(profiles, ({ many }) => ({
   notes: many(notes),

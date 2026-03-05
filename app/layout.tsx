@@ -42,7 +42,25 @@ export default function RootLayout({
         >
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
-        <Toaster position="top-center" richColors />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            unstyled: true,
+            classNames: {
+              // Added a custom linear-gradient to the end of the string to act as the "vein"
+              toast:
+                "group w-full flex items-center gap-4 p-5 bg-[#fdfcf8] dark:bg-[#1a1c1a] border-2 border-[#1a3f22]  shadow-[8px_8px_20px_rgba(26,63,34,0.15)] relative overflow-hidden bg-[linear-gradient(135deg,transparent_49.5%,rgba(26,63,34,0.05)_50%,transparent_50.5%)] dark:bg-[linear-gradient(135deg,transparent_49.5%,rgba(212,163,115,0.05)_50%,transparent_50.5%)]",
+              title:
+                "font-serif font-black text-[#1a3f22] dark:text-[#d4a373] text-base leading-tight",
+              description:
+                "font-serif italic text-xs text-[#8b5a2b] dark:text-gray-400 mt-1",
+              success:
+                "bg-gradient-to-br from-[#fdfcf8] to-[#f0f7f1] !border-[#1a3f22]",
+              error:
+                "bg-gradient-to-br from-[#fdfcf8] to-[#fff5f5] !border-red-900",
+            },
+          }}
+        />
       </body>
     </html>
   );

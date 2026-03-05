@@ -1,12 +1,18 @@
 import ClubDiscussion from "@/components/clubs/ClubDiscussion";
-import React from "react";
 
-function page() {
+// 1. Mark the component as async
+// 2. Define params as a Promise
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // 3. Await the params before using them
+  const resolvedParams = await params;
+
   return (
-    <>
-      <ClubDiscussion params={{ id: "123" }} />
-    </>
+    <div className="p-6 h-full">
+      <ClubDiscussion clubId={resolvedParams.id} />
+    </div>
   );
 }
-
-export default page;

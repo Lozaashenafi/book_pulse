@@ -189,9 +189,6 @@ const Header = () => {
                     )}
 
                     <div className="flex items-center space-x-3 pl-2 pr-1 py-1">
-                      <span className="text-[10px] font-mono font-black text-[#8b5a2b] uppercase tracking-widest hidden lg:block">
-                        ID: {profile?.id?.slice(0, 4) || "000"}
-                      </span>
                       <Link
                         href="/profile"
                         className="h-9 w-9 bg-[#f4ebd0] dark:bg-[#d4a373]/20 flex items-center justify-center overflow-hidden border-2 border-tertiary/10 transition-transform hover:rotate-3 shadow-sm"

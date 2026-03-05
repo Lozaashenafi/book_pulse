@@ -70,6 +70,11 @@ const ClubSettingsPage = () => {
   const [activeTab, setActiveTab] = useState<"general" | "book" | "members">(
     "general",
   );
+  const [memberActionModal, setMemberActionModal] = useState<{
+    userId: string;
+    userName: string;
+    action: "REMOVE" | "BAN" | "UNBAN";
+  } | null>(null);
   const [copied, setCopied] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newPdf, setNewPdf] = useState<File | null>(null);
@@ -122,19 +127,31 @@ const ClubSettingsPage = () => {
     }
   };
 
-  const handleMemberAction = async (
+  const handleMemberAction = (
     targetUserId: string,
+    userName: string,
     action: "REMOVE" | "BAN" | "UNBAN",
   ) => {
-    if (!confirm("Are you sure?")) return;
+    setMemberActionModal({ userId: targetUserId, userName, action });
+  };
+
+  // This performs the actual database update
+  const executeMemberAction = async () => {
+    if (!memberActionModal) return;
+
     try {
-      await updateMemberStatus(club.id, targetUserId, action);
+      await updateMemberStatus(
+        club.id,
+        memberActionModal.userId,
+        memberActionModal.action,
+      );
+      toast.success(`Registry updated for ${memberActionModal.userName}`);
+      setMemberActionModal(null);
       refresh();
     } catch (err: any) {
       toast.error(err.message);
     }
   };
-
   const handleDeleteClub = async () => {
     setSaving(true);
     try {
@@ -443,6 +460,7 @@ const ClubSettingsPage = () => {
                             onClick={() =>
                               handleMemberAction(
                                 m.user_id,
+                                m.profiles.name, // Pass name here
                                 m.is_suspended ? "UNBAN" : "BAN",
                               )
                             }
@@ -456,8 +474,12 @@ const ClubSettingsPage = () => {
                           </button>
                           <button
                             onClick={() =>
-                              handleMemberAction(m.user_id, "REMOVE")
-                            }
+                              handleMemberAction(
+                                m.user_id,
+                                m.profiles.name,
+                                "REMOVE",
+                              )
+                            } // Pass name here
                             className="p-2 bg-red-50 text-red-600 shadow-sm"
                           >
                             <UserMinus size={16} />
@@ -522,6 +544,56 @@ const ClubSettingsPage = () => {
               >
                 Dissolve
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MEMBER ACTION MODAL: Sticky Note Style */}
+      {memberActionModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#feff9c] dark:bg-[#c4c562] p-8 max-w-sm w-full shadow-[10px_10px_0px_rgba(0,0,0,0.1)] transform rotate-1 relative border-2 border-black/5">
+            {/* Pushpin */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-blue-600 shadow-md" />
+
+            <div className="text-center">
+              <div className="mb-4 flex justify-center text-[#2c2c2c]">
+                {memberActionModal.action === "REMOVE" ? (
+                  <UserMinus size={40} />
+                ) : (
+                  <ShieldAlert size={40} />
+                )}
+              </div>
+
+              <h2 className="text-xl font-serif font-black text-[#2c2c2c] mb-2 uppercase tracking-tighter">
+                {memberActionModal.action === "REMOVE"
+                  ? "Dismiss Fellow?"
+                  : memberActionModal.action === "BAN"
+                    ? "Sanction Member?"
+                    : "Lift Sanction?"}
+              </h2>
+
+              <p className="font-serif italic text-[#5c4033] mb-8 text-sm">
+                Are you certain you wish to{" "}
+                {memberActionModal.action.toLowerCase()}{" "}
+                <strong>{memberActionModal.userName}</strong> from this
+                fellowship?
+              </p>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setMemberActionModal(null)}
+                  className="flex-1 font-mono font-bold text-[10px] uppercase tracking-widest text-black/40 hover:text-black transition-colors"
+                >
+                  Stay Hand
+                </button>
+                <button
+                  onClick={executeMemberAction}
+                  className="flex-1 py-3 bg-tertiary text-[#f4ebd0] font-mono font-bold text-[10px] uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,0.1)] active:translate-y-0.5 active:shadow-none transition-all"
+                >
+                  Execute
+                </button>
+              </div>
             </div>
           </div>
         </div>

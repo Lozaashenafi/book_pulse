@@ -184,19 +184,14 @@ export async function getClubFullData(clubId: string) {
       where: eq(clubs.id, clubId),
       with: {
         book: true,
-        members: {
-          with: {
-            profile: true,
-          },
-        },
+        members: { with: { profile: true } },
         invites: true,
       },
     });
 
     if (!data) throw new Error("Club not found");
 
-    // Flatten/Map to match original Supabase object structure for UI compatibility
-    return {
+    const mappedData = {
       ...data,
       books: data.book,
       club_members: data.members.map((m) => ({
@@ -208,6 +203,9 @@ export async function getClubFullData(clubId: string) {
       })),
       club_invites: data.invites,
     };
+
+    // This converts Date objects to strings and removes class prototypes
+    return JSON.parse(JSON.stringify(mappedData));
   } catch (error) {
     console.error("Drizzle Fetch Error:", error);
     throw error;
@@ -215,26 +213,6 @@ export async function getClubFullData(clubId: string) {
 }
 
 // 5. Update Club Settings
-
-export async function updateClub(clubId: string, updates: any) {
-  try {
-    return await db
-      .update(clubs)
-      .set({
-        name: updates.name,
-        description: updates.description,
-        // Update these to use the names coming from the UI
-        startDate: new Date(updates.startDate),
-        endDate: new Date(updates.endDate),
-        visibility: updates.visibility,
-      })
-      .where(eq(clubs.id, clubId))
-      .returning();
-  } catch (error) {
-    console.error("Drizzle Club Update Error:", error);
-    throw error;
-  }
-}
 
 // 6. Update Book Info
 export async function updateBook(
@@ -256,33 +234,6 @@ export async function updateBook(
       .returning();
   } catch (error) {
     console.error("Drizzle Book Update Error:", error);
-    throw error;
-  }
-}
-
-// 7. Manage Member Status
-export async function updateMemberStatus(
-  clubId: string,
-  userId: string,
-  action: "REMOVE" | "BAN" | "UNBAN",
-) {
-  try {
-    if (action === "REMOVE") {
-      return await db
-        .delete(clubMembers)
-        .where(
-          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
-        );
-    } else {
-      return await db
-        .update(clubMembers)
-        .set({ isSuspended: action === "BAN" })
-        .where(
-          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
-        );
-    }
-  } catch (error) {
-    console.error("Drizzle Member Status Error:", error);
     throw error;
   }
 }
@@ -352,5 +303,52 @@ export async function joinClub(
 
     console.error("Join Error:", error);
     throw new Error("Failed to join circle.");
+  }
+}
+export async function updateClub(clubId: string, updates: any) {
+  try {
+    await db
+      .update(clubs)
+      .set({
+        name: updates.name,
+        description: updates.description,
+        startDate: new Date(updates.startDate),
+        endDate: new Date(updates.endDate),
+        visibility: updates.visibility,
+      })
+      .where(eq(clubs.id, clubId));
+
+    // CRITICAL: Return a PLAIN object, not the DB result
+    return { success: true };
+  } catch (error) {
+    console.error("Drizzle Club Update Error:", error);
+    throw new Error("Failed to update ledger");
+  }
+}
+
+export async function updateMemberStatus(
+  clubId: string,
+  userId: string,
+  action: "REMOVE" | "BAN" | "UNBAN",
+) {
+  try {
+    if (action === "REMOVE") {
+      await db
+        .delete(clubMembers)
+        .where(
+          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+        );
+    } else {
+      await db
+        .update(clubMembers)
+        .set({ isSuspended: action === "BAN" })
+        .where(
+          and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+        );
+    }
+    return { success: true }; // PLAIN object
+  } catch (error) {
+    console.error("Drizzle Member Status Error:", error);
+    throw new Error("Failed to update fellowship member");
   }
 }

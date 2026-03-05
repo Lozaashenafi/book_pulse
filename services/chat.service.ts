@@ -8,6 +8,9 @@ import {
   readingProgress,
   profiles,
   clubs,
+  clubMembers,
+  books,
+  notifications,
 } from "@/lib/db/schema";
 import { eq, and, asc, desc } from "drizzle-orm";
 
@@ -239,4 +242,88 @@ export async function getClubPdfUrl(clubId: string) {
     console.error("Error fetching PDF URL:", error);
     return null;
   }
+}
+export async function getClubMembers(clubId: string) {
+  const data = await db
+    .select({
+      id: profiles.id,
+      name: profiles.name,
+      image: profiles.image,
+      role: clubMembers.role,
+      bio: profiles.bio,
+      location: profiles.location,
+    })
+    .from(clubMembers)
+    .innerJoin(profiles, eq(clubMembers.userId, profiles.id))
+    .where(eq(clubMembers.clubId, clubId));
+
+  return JSON.parse(JSON.stringify(data));
+}
+
+export async function getPublicProfileData(userId: string) {
+  try {
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.id, userId),
+    });
+
+    const userClubs = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+        role: clubMembers.role,
+        bookTitle: books.title,
+      })
+      .from(clubMembers)
+      .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
+      .innerJoin(books, eq(clubs.bookId, books.id))
+      .where(eq(clubMembers.userId, userId));
+
+    return JSON.parse(
+      JSON.stringify({
+        ...profile,
+        ownedClubs: userClubs.filter((c) => c.role === "OWNER"),
+        joinedClubs: userClubs.filter((c) => c.role === "MEMBER"),
+      }),
+    );
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+/**
+ * Enhanced Leave: Notifies Owner
+ */
+export async function leaveClubRecord(
+  userId: string,
+  clubId: string,
+  userName: string,
+) {
+  const club = await db.query.clubs.findFirst({
+    where: eq(clubs.id, clubId),
+    columns: { ownerId: true, name: true },
+  });
+
+  const [membership] = await db
+    .select()
+    .from(clubMembers)
+    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
+
+  if (membership?.role === "OWNER")
+    throw new Error("Owners must dissolve in settings.");
+
+  await db
+    .delete(clubMembers)
+    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
+
+  if (club) {
+    await db.insert(notifications).values({
+      userId: club.ownerId,
+      type: "NEW_MEMBER", // Re-using NEW_MEMBER or you can add MEMBER_LEFT to enum
+      title: "Fellowship Departure",
+      message: `${userName} has left the circle: ${club.name}`,
+    });
+  }
+
+  return { success: true };
 }

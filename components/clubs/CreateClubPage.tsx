@@ -26,13 +26,13 @@ const CreateClubPage = () => {
 
   // Re-styled Tailwind constants to match the Sidebar/Desk aesthetic
   const inputClass =
-    "w-full bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 p-4 font-serif outline-none focus:border-[#5c4033] transition-colors dark:text-white shadow-inner";
+    "w-full bg-white dark:bg-[#252525] border-2 border-primary-dark/10 p-4 font-serif outline-none focus:border-primary-dark transition-colors dark:text-white shadow-inner";
 
   const btnPrimary =
-    "w-full bg-[#5c4033] text-[#f4ebd0] py-4 font-serif italic text-lg shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50";
+    "w-full bg-primary-dark text-[#f4ebd0] py-4 font-serif italic text-lg shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-2 disabled:opacity-50";
 
   const btnOutline =
-    "flex-1 px-6 py-4 border-2 border-[#5c4033] text-[#5c4033] dark:text-[#d4a373] dark:border-[#d4a373] font-serif italic font-bold hover:bg-[#5c4033] hover:text-[#f4ebd0] transition-all shadow-[4px_4px_0px_rgba(92,64,51,0.1)]";
+    "flex-1 px-6 py-4 border-2 border-primary-dark text-primary-dark dark:text-[#d4a373] dark:border-[#d4a373] font-serif italic font-bold hover:bg-primary-dark hover:text-[#f4ebd0] transition-all shadow-[4px_4px_0px_rgba(92,64,51,0.1)]";
 
   const prevStep = () => {
     if (h.step === 1) router.back();
@@ -42,10 +42,10 @@ const CreateClubPage = () => {
   return (
     <div className="max-w-4xl mx-auto py-4 px-2">
       {/* Top Navigation */}
-      <nav className="mb-8 flex items-center justify-between border-b-2 border-[#5c4033]/10 pb-4">
+      <nav className="mb-8 flex items-center justify-between border-b-2 border-primary-dark/10 pb-4">
         <button
           onClick={prevStep}
-          className="flex items-center space-x-2 text-[#8b5a2b] hover:text-[#5c4033] transition-colors font-mono text-xs uppercase font-bold tracking-widest"
+          className="flex items-center space-x-2 text-[#8b5a2b] hover:text-primary-dark transition-colors font-mono text-xs uppercase font-bold tracking-widest"
         >
           <ArrowLeft size={16} />
           <span>{h.step === 1 ? "Discard Ledger" : "Back Step"}</span>
@@ -62,7 +62,7 @@ const CreateClubPage = () => {
             <div
               key={i}
               className={`h-1.5 flex-1 transition-all duration-700 ${
-                h.step >= i ? "bg-[#5c4033] shadow-sm" : "bg-[#5c4033]/10"
+                h.step >= i ? "bg-primary-dark shadow-sm" : "bg-primary-dark/10"
               }`}
             />
           ))}
@@ -76,7 +76,7 @@ const CreateClubPage = () => {
               size={32}
             />
             <header className="mb-8">
-              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+              <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Manuscript
               </h1>
               <p className="font-serif italic text-[#8b5a2b]">
@@ -134,7 +134,7 @@ const CreateClubPage = () => {
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                <label className="relative flex flex-col items-center justify-center h-56 border-2 border-dashed border-[#5c4033]/20 bg-[#fdfdfd] dark:bg-black/10 cursor-pointer overflow-hidden group hover:border-[#5c4033] transition-all">
+                <label className="relative flex flex-col items-center justify-center h-56 border-2 border-dashed border-primary-dark/20 bg-[#fdfdfd] dark:bg-black/10 cursor-pointer overflow-hidden group hover:border-primary-dark transition-all">
                   {h.imagePreview ? (
                     <img
                       src={h.imagePreview}
@@ -162,7 +162,7 @@ const CreateClubPage = () => {
                 </label>
 
                 <label
-                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed transition-all cursor-pointer ${h.bookData.pdfFile ? "border-green-600 bg-green-50/10" : "border-[#5c4033]/20 text-[#8b5a2b] bg-[#fdfdfd] dark:bg-black/10"}`}
+                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed transition-all cursor-pointer ${h.bookData.pdfFile ? "border-green-600 bg-green-50/10" : "border-primary-dark/20 text-[#8b5a2b] bg-[#fdfdfd] dark:bg-black/10"}`}
                 >
                   {h.bookData.pdfFile ? (
                     <CheckCircle2 size={32} className="text-green-600" />
@@ -202,8 +202,8 @@ const CreateClubPage = () => {
         {/* STEP 2: BREAKDOWN (Ledger Style) */}
         {h.step === 2 && (
           <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-8 border-2 border-[#d6c7a1] shadow-inner animate-in fade-in slide-in-from-right-4">
-            <header className="mb-8 border-b-2 border-[#5c4033]/10 pb-4">
-              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+            <header className="mb-8 border-b-2 border-primary-dark/10 pb-4">
+              <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Breakdown
               </h1>
               <p className="font-mono text-[10px] uppercase font-bold text-[#8b5a2b]">
@@ -219,14 +219,14 @@ const CreateClubPage = () => {
                 return (
                   <div
                     key={i}
-                    className="flex gap-4 items-center bg-white/50 dark:bg-black/20 p-4 border-b border-[#5c4033]/10"
+                    className="flex gap-4 items-center bg-white/50 dark:bg-black/20 p-4 border-b border-primary-dark/10"
                   >
-                    <div className="w-8 h-8 bg-[#5c4033] text-[#f4ebd0] flex items-center justify-center font-serif italic shrink-0 shadow-sm">
+                    <div className="w-8 h-8 bg-primary-dark text-[#f4ebd0] flex items-center justify-center font-serif italic shrink-0 shadow-sm">
                       {i + 1}
                     </div>
 
                     <input
-                      className="flex-1 bg-transparent border-b border-dotted border-[#5c4033]/30 p-1 font-serif text-[#5c4033] dark:text-gray-100 outline-none placeholder:text-[#8b5a2b]/40"
+                      className="flex-1 bg-transparent border-b border-dotted border-primary-dark/30 p-1 font-serif text-primary-dark dark:text-gray-100 outline-none placeholder:text-[#8b5a2b]/40"
                       placeholder="Chapter Title or Goal"
                       value={ch.title}
                       onChange={(e) => {
@@ -236,7 +236,7 @@ const CreateClubPage = () => {
                       }}
                     />
 
-                    <div className="flex items-center gap-3 bg-white dark:bg-[#1a1614] px-4 py-2 border border-[#5c4033]/10 shadow-sm">
+                    <div className="flex items-center gap-3 bg-white dark:bg-[#1a1614] px-4 py-2 border border-primary-dark/10 shadow-sm">
                       <div className="flex flex-col items-center">
                         <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
                           START
@@ -248,14 +248,14 @@ const CreateClubPage = () => {
                           readOnly
                         />
                       </div>
-                      <div className="h-4 w-[1px] bg-[#5c4033]/20" />
+                      <div className="h-4 w-[1px] bg-primary-dark/20" />
                       <div className="flex flex-col items-center">
                         <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
                           END
                         </span>
                         <input
                           type="number"
-                          className="w-10 bg-transparent text-center font-bold text-xs text-[#5c4033] dark:text-[#d4a373]"
+                          className="w-10 bg-transparent text-center font-bold text-xs text-primary-dark dark:text-[#d4a373]"
                           value={ch.end_page}
                           onChange={(e) =>
                             h.handleChapterEndChange(i, e.target.value)
@@ -282,7 +282,7 @@ const CreateClubPage = () => {
 
               <button
                 onClick={h.addChapter}
-                className="w-full py-4 border-2 border-dashed border-[#5c4033]/20 text-[#5c4033] dark:text-[#d4a373] font-serif italic font-bold flex items-center justify-center gap-2 hover:bg-[#5c4033]/5 transition-all"
+                className="w-full py-4 border-2 border-dashed border-primary-dark/20 text-primary-dark dark:text-[#d4a373] font-serif italic font-bold flex items-center justify-center gap-2 hover:bg-primary-dark/5 transition-all"
               >
                 <Plus size={18} /> Append Next Milestone
               </button>
@@ -301,9 +301,9 @@ const CreateClubPage = () => {
 
         {/* STEP 3: CLUB (The Fellowship) */}
         {h.step === 3 && (
-          <div className="bg-white dark:bg-[#252525] p-8 shadow-md border-l-[12px] border-[#5c4033]/10 animate-in fade-in slide-in-from-right-4">
+          <div className="bg-white dark:bg-[#252525] p-8 shadow-md border-l-[12px] border-primary-dark/10 animate-in fade-in slide-in-from-right-4">
             <header className="mb-10">
-              <h1 className="text-4xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+              <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Fellowship
               </h1>
               <p className="font-serif italic text-[#8b5a2b]">
@@ -375,13 +375,13 @@ const CreateClubPage = () => {
                 </div>
               </div>
 
-              <div className="flex p-1 bg-[#5c4033]/5 border border-[#5c4033]/10 w-fit">
+              <div className="flex p-1 bg-primary-dark/5 border border-primary-dark/10 w-fit">
                 <button
                   type="button"
                   onClick={() =>
                     h.setClubData({ ...h.clubData, visibility: "PUBLIC" })
                   }
-                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PUBLIC" ? "bg-[#5c4033] text-[#f4ebd0] shadow-md" : "text-[#5c4033]/60"}`}
+                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PUBLIC" ? "bg-primary-dark text-[#f4ebd0] shadow-md" : "text-primary-dark/60"}`}
                 >
                   Public Circle
                 </button>
@@ -390,7 +390,7 @@ const CreateClubPage = () => {
                   onClick={() =>
                     h.setClubData({ ...h.clubData, visibility: "PRIVATE" })
                   }
-                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PRIVATE" ? "bg-[#5c4033] text-[#f4ebd0] shadow-md" : "text-[#5c4033]/60"}`}
+                  className={`px-8 py-2 font-serif italic transition-all ${h.clubData.visibility === "PRIVATE" ? "bg-primary-dark text-[#f4ebd0] shadow-md" : "text-primary-dark/60"}`}
                 >
                   Invitation Only
                 </button>
@@ -408,11 +408,11 @@ const CreateClubPage = () => {
                         makePost: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 accent-[#5c4033] cursor-pointer"
+                    className="w-5 h-5 accent-primary-dark cursor-pointer"
                   />
                   <label
                     htmlFor="post"
-                    className="text-sm font-serif italic text-[#5c4033] cursor-pointer"
+                    className="text-sm font-serif italic text-primary-dark cursor-pointer"
                   >
                     Announce our founding to the Daily Scribbles feed
                   </label>
@@ -446,7 +446,10 @@ const CreateClubPage = () => {
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 shadow-md" />
 
             <div className="text-center">
-              <CheckCircle2 size={50} className="mx-auto text-[#5c4033] mb-4" />
+              <CheckCircle2
+                size={50}
+                className="mx-auto text-primary-dark mb-4"
+              />
               <h1 className="text-4xl font-serif font-black text-[#2c2c2c] mb-2">
                 Circle Founded!
               </h1>
@@ -463,7 +466,7 @@ const CreateClubPage = () => {
                     navigator.clipboard.writeText(h.inviteLink);
                     toast.success("Link copied!");
                   }}
-                  className="bg-[#5c4033] text-[#f4ebd0] p-2 hover:scale-105 transition-transform"
+                  className="bg-primary-dark text-[#f4ebd0] p-2 hover:scale-105 transition-transform"
                 >
                   <LinkIcon size={18} />
                 </button>

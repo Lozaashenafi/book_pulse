@@ -133,7 +133,7 @@ const MyNotesPage = () => {
                   (tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-1 bg-white/50 border border-[#d6c7a1] text-[10px] font-mono text-[#5c4033] cursor-pointer hover:bg-tertiary hover:text-white transition-colors"
+                      className="px-2 py-1 bg-white/50 border border-[#d6c7a1] text-[10px] font-mono text-primary-dark cursor-pointer hover:bg-tertiary hover:text-white transition-colors"
                     >
                       #{tag}
                     </span>
@@ -172,7 +172,7 @@ const MyNotesPage = () => {
                     {note.title}
                   </h3>
 
-                  <p className="text-sm font-serif italic text-[#5c4033] dark:text-gray-300 line-clamp-4 leading-relaxed mb-4">
+                  <p className="text-sm font-serif italic text-primary-dark dark:text-gray-300 line-clamp-4 leading-relaxed mb-4">
                     {note.content}
                   </p>
 

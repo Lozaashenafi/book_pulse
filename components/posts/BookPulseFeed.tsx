@@ -38,7 +38,7 @@ const BookPulsePage = () => {
                 <Quote size={14} /> Add Quote
               </button>
             </div>
-            <button className="bg-[#5c4033] text-[#f4ebd0] px-6 py-1 font-serif italic hover:bg-[#3e2b22] transition-colors shadow-md">
+            <button className="bg-primary-dark text-[#f4ebd0] px-6 py-1 font-serif italic hover:bg-[#3e2b22] transition-colors shadow-md">
               Pin to Board
             </button>
           </div>
@@ -109,8 +109,8 @@ const BookPulsePage = () => {
       <aside className="hidden xl:flex flex-col w-80 flex-shrink-0 h-full space-y-8">
         {/* Currently Reading: Book Look */}
         <div className="bg-[#fdfdfd] mt-3 dark:bg-[#252525] rounded-r-3xl rounded-l-md p-6 border-y-2 border-r-4 border-gray-200 shadow-xl relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#5c4033]" />
-          <h3 className="font-serif font-bold text-lg mb-6 text-[#5c4033] dark:text-gray-100 flex items-center gap-2">
+          <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary-dark" />
+          <h3 className="font-serif font-bold text-lg mb-6 text-primary-dark dark:text-gray-100 flex items-center gap-2">
             <BookOpen size={18} /> In Progress
           </h3>
 

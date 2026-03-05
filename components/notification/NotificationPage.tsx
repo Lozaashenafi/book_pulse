@@ -128,7 +128,7 @@ const NotificationPage = () => {
                     >
                       {n.title}
                     </h3>
-                    <p className="text-sm font-serif italic text-[#5c4033] dark:text-gray-400 leading-relaxed mt-1">
+                    <p className="text-sm font-serif italic text-primary-dark dark:text-gray-400 leading-relaxed mt-1">
                       {n.message}
                     </p>
                   </div>

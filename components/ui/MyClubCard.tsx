@@ -26,14 +26,14 @@ interface BookCardProps {
 
 const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
   return (
-    <div className="group relative bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 shadow-[4px_4px_0px_rgba(92,64,51,0.1)] transition-all hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(92,64,51,0.15)] flex flex-col md:flex-row overflow-hidden">
+    <div className="group relative bg-white dark:bg-[#252525] border-2 border-primary-dark/10 shadow-[4px_4px_0px_rgba(92,64,51,0.1)] transition-all hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(92,64,51,0.15)] flex flex-col md:flex-row overflow-hidden">
       {/* Accent Spine (Vertical) */}
       <div
         className={`w-full md:w-[8px] h-[6px] md:h-auto shrink-0 ${book.color || "bg-[#8b5a2b]"}`}
       />
 
       {/* Book Cover Section - Styled like a recessed photo slot */}
-      <div className="w-full md:w-36 h-48 md:h-auto shrink-0 bg-[#f4ebd0] dark:bg-black/20 border-r border-[#5c4033]/5 relative overflow-hidden">
+      <div className="w-full md:w-36 h-48 md:h-auto shrink-0 bg-[#f4ebd0] dark:bg-black/20 border-r border-primary-dark/5 relative overflow-hidden">
         {book.cover ? (
           <img
             src={book.cover}
@@ -50,13 +50,13 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-1 min-w-0">
         <div className="flex justify-between items-start mb-3">
-          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border border-[#5c4033]/20 text-[#8b5a2b] dark:text-[#d4a373]">
+          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border border-primary-dark/20 text-[#8b5a2b] dark:text-[#d4a373]">
             {book.category}
           </span>
         </div>
 
         <div className="mb-2">
-          <h3 className="text-xl font-serif font-black text-[#5c4033] dark:text-[#d4a373] leading-tight truncate">
+          <h3 className="text-xl font-serif font-black text-primary-dark dark:text-[#d4a373] leading-tight truncate">
             {book.title}
           </h3>
           <p className="text-[#8b5a2b] dark:text-gray-400 font-serif italic text-sm">

@@ -39,7 +39,7 @@ const ClubInput = ({ label, ...props }: any) => (
     </label>
     <input
       {...props}
-      className="w-full bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 p-3 font-serif outline-none focus:border-[#5c4033] transition-colors dark:text-white shadow-inner"
+      className="w-full bg-white dark:bg-[#252525] border-2 border-primary-dark/10 p-3 font-serif outline-none focus:border-primary-dark transition-colors dark:text-white shadow-inner"
       onChange={(e) => props.onChange(e.target.value)}
     />
   </div>
@@ -52,7 +52,7 @@ const ClubTextArea = ({ label, ...props }: any) => (
     </label>
     <textarea
       {...props}
-      className="w-full bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 p-4 font-serif italic outline-none focus:border-[#5c4033] transition-colors dark:text-white shadow-inner resize-none"
+      className="w-full bg-white dark:bg-[#252525] border-2 border-primary-dark/10 p-4 font-serif italic outline-none focus:border-primary-dark transition-colors dark:text-white shadow-inner resize-none"
       onChange={(e) => props.onChange(e.target.value)}
     />
   </div>
@@ -173,20 +173,20 @@ const ClubSettingsPage = () => {
   if (loading || !club)
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#5c4033]" size={40} />
+        <Loader2 className="animate-spin text-primary-dark" size={40} />
       </div>
     );
 
   return (
     <div className="max-w-5xl mx-auto py-4 px-2">
-      <div className="flex items-center justify-between border-b-2 border-[#5c4033]/10 pb-4 mb-8">
+      <div className="flex items-center justify-between border-b-2 border-primary-dark/10 pb-4 mb-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-[#8b5a2b] font-mono text-xs font-bold uppercase hover:text-[#5c4033]"
+          className="flex items-center gap-2 text-[#8b5a2b] font-mono text-xs font-bold uppercase hover:text-primary-dark"
         >
           <ArrowLeft size={16} /> Back to Registry
         </button>
-        <div className="font-serif italic text-[#5c4033] dark:text-[#d4a373] font-bold">
+        <div className="font-serif italic text-primary-dark dark:text-[#d4a373] font-bold">
           {club.name} / Settings
         </div>
       </div>
@@ -216,8 +216,8 @@ const ClubSettingsPage = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`w-full flex items-center gap-3 px-4 py-3 font-serif font-bold transition-all ${
                 activeTab === tab.id
-                  ? "bg-[#5c4033] text-[#f4ebd0] translate-x-2 shadow-[-4px_4px_0px_#3e2b22]"
-                  : "bg-white/50 dark:bg-black/10 text-[#5c4033] dark:text-gray-400 hover:bg-[#5c4033]/5"
+                  ? "bg-primary-dark text-[#f4ebd0] translate-x-2 shadow-[-4px_4px_0px_#3e2b22]"
+                  : "bg-white/50 dark:bg-black/10 text-primary-dark dark:text-gray-400 hover:bg-primary-dark/5"
               }`}
             >
               {tab.icon}
@@ -237,7 +237,7 @@ const ClubSettingsPage = () => {
             {/* TAB: GENERAL */}
             {activeTab === "general" && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <h2 className="text-3xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                <h2 className="text-3xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                   Circle Details
                 </h2>
                 <ClubInput
@@ -283,7 +283,7 @@ const ClubSettingsPage = () => {
                 <button
                   onClick={handleUpdateClub}
                   disabled={saving}
-                  className="bg-[#5c4033] text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
+                  className="bg-primary-dark text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
                 >
                   {saving ? (
                     <Loader2 className="animate-spin" size={18} />
@@ -298,7 +298,7 @@ const ClubSettingsPage = () => {
             {/* TAB: BOOK & GENRE (Ledger Style) */}
             {activeTab === "book" && (
               <div className="space-y-6 animate-in fade-in duration-500">
-                <h2 className="text-3xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                <h2 className="text-3xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                   Manuscript Setup
                 </h2>
                 <ClubInput
@@ -327,7 +327,7 @@ const ClubSettingsPage = () => {
                       Genre Category
                     </label>
                     <select
-                      className="w-full bg-white dark:bg-[#252525] border-2 border-[#5c4033]/10 p-3 font-serif outline-none focus:border-[#5c4033] dark:text-white"
+                      className="w-full bg-white dark:bg-[#252525] border-2 border-primary-dark/10 p-3 font-serif outline-none focus:border-primary-dark dark:text-white"
                       value={club.books.category}
                       onChange={(e) =>
                         setData({
@@ -361,12 +361,12 @@ const ClubSettingsPage = () => {
                   }
                 />
 
-                <div className="p-6 border-2 border-dashed border-[#5c4033]/20 bg-[#f4ebd0]/20">
+                <div className="p-6 border-2 border-dashed border-primary-dark/20 bg-[#f4ebd0]/20">
                   <label className="flex items-center justify-between cursor-pointer">
                     <div className="flex items-center gap-4">
                       <FileUp className="text-[#8b5a2b]" />
                       <div>
-                        <p className="text-sm font-bold font-serif text-[#5c4033] dark:text-gray-100">
+                        <p className="text-sm font-bold font-serif text-primary-dark dark:text-gray-100">
                           {newPdf ? newPdf.name : "Replace PDF Script"}
                         </p>
                         <p className="text-[10px] font-mono text-[#8b5a2b] uppercase">
@@ -382,7 +382,7 @@ const ClubSettingsPage = () => {
                       accept=".pdf"
                       onChange={(e) => setNewPdf(e.target.files?.[0] || null)}
                     />
-                    <span className="font-mono text-[10px] font-bold bg-[#5c4033] text-[#f4ebd0] px-3 py-1 shadow-sm">
+                    <span className="font-mono text-[10px] font-bold bg-primary-dark text-[#f4ebd0] px-3 py-1 shadow-sm">
                       BROWSE
                     </span>
                   </label>
@@ -391,7 +391,7 @@ const ClubSettingsPage = () => {
                 <button
                   onClick={handleUpdateBook}
                   disabled={saving}
-                  className="bg-[#5c4033] text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
+                  className="bg-primary-dark text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
                 >
                   {saving ? (
                     <Loader2 className="animate-spin" size={18} />
@@ -406,7 +406,7 @@ const ClubSettingsPage = () => {
             {/* TAB: MEMBERS (Library Registry Style) */}
             {activeTab === "members" && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                <h2 className="text-3xl font-serif font-black text-[#5c4033] dark:text-[#d4a373]">
+                <h2 className="text-3xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                   The Fellowship
                 </h2>
 
@@ -415,26 +415,26 @@ const ClubSettingsPage = () => {
                     <span className="text-[8px] font-mono font-bold text-[#8b5a2b] uppercase">
                       Invitation Link
                     </span>
-                    <span className="text-xs font-serif font-bold text-[#5c4033] dark:text-gray-300 truncate max-w-[200px]">
+                    <span className="text-xs font-serif font-bold text-primary-dark dark:text-gray-300 truncate max-w-[200px]">
                       .../join/{club.club_invites[0]?.token}
                     </span>
                   </div>
                   <button
                     onClick={copyInvite}
-                    className="p-2 bg-[#5c4033] text-[#f4ebd0] shadow-sm"
+                    className="p-2 bg-primary-dark text-[#f4ebd0] shadow-sm"
                   >
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>
                 </div>
 
-                <div className="divide-y divide-[#5c4033]/10">
+                <div className="divide-y divide-primary-dark/10">
                   {members.map((m: any) => (
                     <div
                       key={m.id}
                       className="flex items-center justify-between py-4 group"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#5c4033] dark:bg-[#d4a373] text-[#f4ebd0] flex items-center justify-center font-serif italic shadow-sm overflow-hidden">
+                        <div className="w-12 h-12 bg-primary-dark dark:bg-[#d4a373] text-[#f4ebd0] flex items-center justify-center font-serif italic shadow-sm overflow-hidden">
                           {m.profiles.image ? (
                             <img
                               src={m.profiles.image}
@@ -445,7 +445,7 @@ const ClubSettingsPage = () => {
                           )}
                         </div>
                         <div>
-                          <p className="font-serif font-bold text-[#5c4033] dark:text-gray-100">
+                          <p className="font-serif font-bold text-primary-dark dark:text-gray-100">
                             {m.profiles.name}{" "}
                             {m.user_id === user?.id && "(You)"}
                           </p>
@@ -540,7 +540,7 @@ const ClubSettingsPage = () => {
               </button>
               <button
                 onClick={handleDeleteClub}
-                className="flex-1 py-3 bg-[#5c4033] text-[#f4ebd0] font-bold shadow-[4px_4px_0px_rgba(0,0,0,0.2)]"
+                className="flex-1 py-3 bg-primary-dark text-[#f4ebd0] font-bold shadow-[4px_4px_0px_rgba(0,0,0,0.2)]"
               >
                 Dissolve
               </button>
@@ -573,7 +573,7 @@ const ClubSettingsPage = () => {
                     : "Lift Sanction?"}
               </h2>
 
-              <p className="font-serif italic text-[#5c4033] mb-8 text-sm">
+              <p className="font-serif italic text-primary-dark mb-8 text-sm">
                 Are you certain you wish to{" "}
                 {memberActionModal.action.toLowerCase()}{" "}
                 <strong>{memberActionModal.userName}</strong> from this

@@ -1,4 +1,5 @@
 import ClubDiscussion from "@/components/clubs/ClubDiscussion";
+export const dynamic = "force-dynamic";
 
 // 1. Mark the component as async
 // 2. Define params as a Promise

@@ -219,7 +219,48 @@ export const notes = pgTable("notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
+export const postLikes = pgTable(
+  "post_likes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    postId: uuid("post_id")
+      .references(() => posts.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => profiles.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => ({
+    unq: unique().on(t.postId, t.userId), // One like per user per post
+  }),
+);
 
+export const postShares = pgTable("post_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  postId: uuid("post_id")
+    .references(() => posts.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: uuid("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// --- Update RELATIONS section ---
+export const postRelations = relations(posts, ({ one, many }) => ({
+  user: one(profiles, { fields: [posts.userId], references: [profiles.id] }),
+  likes: many(postLikes),
+  shares: many(postShares),
+}));
+
+export const postLikeRelations = relations(postLikes, ({ one }) => ({
+  post: one(posts, { fields: [postLikes.postId], references: [posts.id] }),
+  user: one(profiles, {
+    fields: [postLikes.userId],
+    references: [profiles.id],
+  }),
+}));
 // --- RELATIONS ---
 
 export const noteRelations = relations(notes, ({ one }) => ({

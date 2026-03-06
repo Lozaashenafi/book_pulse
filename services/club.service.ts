@@ -352,3 +352,69 @@ export async function updateMemberStatus(
     throw new Error("Failed to update fellowship member");
   }
 }
+export async function getInviteDetails(token: string) {
+  try {
+    const invite = await db.query.clubInvites.findFirst({
+      where: eq(clubInvites.token, token),
+      with: {
+        club: {
+          with: {
+            book: true,
+          },
+        },
+      },
+    });
+
+    if (!invite) return null;
+
+    // Clean for client
+    return JSON.parse(
+      JSON.stringify({
+        clubId: invite.clubId,
+        clubName: invite.club.name,
+        clubDesc: invite.club.description,
+        bookTitle: invite.club.book.title,
+        cover: invite.club.book.coverUrl,
+        ownerId: invite.club.ownerId,
+      }),
+    );
+  } catch (error) {
+    return null;
+  }
+}
+export async function joinWithToken(
+  userId: string,
+  token: string,
+  userName: string,
+) {
+  const invite = await db.query.clubInvites.findFirst({
+    where: eq(clubInvites.token, token),
+  });
+
+  if (!invite) throw new Error("Link invalid.");
+
+  // Check if member exists
+  const existing = await db.query.clubMembers.findFirst({
+    where: and(
+      eq(clubMembers.clubId, invite.clubId),
+      eq(clubMembers.userId, userId),
+    ),
+  });
+
+  if (!existing) {
+    // Insert Member
+    await db
+      .insert(clubMembers)
+      .values({ clubId: invite.clubId, userId, role: "MEMBER" });
+
+    // Insert Notification
+    await db.insert(notifications).values({
+      userId: invite.createdBy, // Correctly notify the person who made the link
+      type: "CLUB_INVITE",
+      title: "Invite Accepted",
+      message: `${userName} joined your circle via link.`,
+    });
+  }
+
+  return { success: true, clubId: invite.clubId };
+}

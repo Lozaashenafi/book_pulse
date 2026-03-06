@@ -1,12 +1,16 @@
 import AuthPage from "@/components/home/AuthPage";
-import React from "react";
 
-function page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const params = await searchParams; // Important: Await the params
+
   return (
     <>
-      <AuthPage type="register" />
+      {/* Pass the 'next' parameter as nextUrl */}
+      <AuthPage type="register" nextUrl={params.next} />
     </>
   );
 }
-
-export default page;

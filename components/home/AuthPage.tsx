@@ -22,7 +22,13 @@ import {
 } from "@/app/(auth)/action";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
+const AuthPage = ({
+  type,
+  nextUrl,
+}: {
+  type: "sign-in" | "register";
+  nextUrl?: string;
+}) => {
   const isSignIn = type === "sign-in";
   const router = useRouter();
   const { syncSession } = useAuthStore();
@@ -70,7 +76,7 @@ const AuthPage = ({ type }: { type: "sign-in" | "register" }) => {
     } else {
       if (isSignIn) {
         await syncSession();
-        router.push("/");
+        router.push(nextUrl || "/");
         router.refresh();
       } else {
         setIsEmailSent(true);

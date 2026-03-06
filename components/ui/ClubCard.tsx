@@ -132,15 +132,16 @@ const ClubCard = ({ book }: { book: Book }) => {
       {/* FULL DETAILS MODAL */}
       {showDetails && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 bg-tertiary/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-[#fdfcf8] dark:bg-[#1a1614] w-full max-w-4xl border-2 border-tertiary shadow-[15px_15px_0px_#d4a373] relative overflow-hidden flex flex-col md:flex-row max-h-[95vh] min-h-[500px]">
+          <div className="bg-[#f4ebd0] dark:bg-[#2c2420] w-full max-w-4xl  border-2 border-[#d6c7a1] dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(92,64,51,0.1)]  relative overflow-hidden flex flex-col md:flex-row max-h-[95vh] min-h-[500px]">
+            <div className="absolute top-0 right-0 w-12 h-12 bg-tertiary/5 -rotate-45 translate-x-6 -translate-y-6" />
             {/* Close Button */}
+
             <button
               onClick={() => setShowDetails(false)}
               className="absolute top-4 right-4 p-2 text-tertiary hover:rotate-90 transition-transform z-[100] bg-white border border-tertiary/20"
             >
               <X size={20} />
             </button>
-
             {/* Left Page (The Cover) */}
             <div className="w-full md:w-[40%] bg-[#f4ebd0] dark:bg-[#252525] p-10 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r-2 md:border-dashed md:border-tertiary/20 shrink-0">
               <div className="relative group">
@@ -168,7 +169,6 @@ const ClubCard = ({ book }: { book: Book }) => {
                 </p>
               </div>
             </div>
-
             {/* Right Page (The Record) */}
             <div className="flex-1 p-10 flex flex-col overflow-y-auto custom-scrollbar">
               <div className="mb-8 relative">

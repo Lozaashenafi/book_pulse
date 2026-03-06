@@ -36,8 +36,8 @@ export default function RootLayout({
         {/* FIX: Children MUST be inside the ThemeProvider tags */}
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AuthProvider>{children}</AuthProvider>

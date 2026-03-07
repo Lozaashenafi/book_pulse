@@ -83,7 +83,12 @@ export const books = pgTable("books", {
   coverUrl: text("cover_url"),
   totalPages: integer("total_pages"),
   pdfUrl: text("pdf_url"),
-  category: text("category"), // Added based on your service usage
+  categoryId: uuid("category_id").references(() => bookCategories.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+export const bookCategories = pgTable("book_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -303,8 +308,13 @@ export const clubRelations = relations(clubs, ({ one, many }) => ({
 }));
 
 // 2. Book Relations (NEW: Helps Drizzle map the connection)
-export const bookRelations = relations(books, ({ many }) => ({
-  clubs: many(clubs),
+export const bookRelations = relations(books, ({ one, many }) => ({
+  clubs: many(clubs), // Keep your existing clubs link
+  category: one(bookCategories, {
+    // ADD THIS: The link to category table
+    fields: [books.categoryId],
+    references: [bookCategories.id],
+  }),
 }));
 
 // 3. Member Relations (Correct)
@@ -338,4 +348,7 @@ export const notificationRelations = relations(notifications, ({ one }) => ({
     fields: [notifications.userId],
     references: [profiles.id],
   }),
+}));
+export const bookCategoryRelations = relations(bookCategories, ({ many }) => ({
+  books: many(books),
 }));

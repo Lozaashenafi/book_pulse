@@ -96,7 +96,8 @@ const ExplorePage = () => {
     const fetchCats = async () => {
       try {
         const cats = await getCategories();
-        setDynamicCategories(cats);
+        const catNames = cats.map((c: any) => c.name);
+        setDynamicCategories(catNames);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }

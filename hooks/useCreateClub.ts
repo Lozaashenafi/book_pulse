@@ -14,7 +14,7 @@ export function useCreateClub(userId?: string) {
     title: "",
     author: "",
     description: "",
-    category: "General",
+    categoryId: "",
     coverFile: null as File | null,
     pdfFile: null as File | null,
   });

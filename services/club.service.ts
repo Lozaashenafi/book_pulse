@@ -11,6 +11,7 @@ import {
   clubInvites,
   posts,
   notifications,
+  bookCategories,
 } from "@/lib/db/schema";
 import { eq, and, asc, sql, count } from "drizzle-orm";
 
@@ -26,11 +27,12 @@ export async function createFullClub(
     // 1. Create Book
     const [newBook] = await db
       .insert(books)
+
       .values({
         title: bookData.title,
         author: bookData.author,
         description: bookData.description,
-        category: bookData.category,
+        categoryId: bookData.categoryId,
         coverUrl: bookData.coverUrl, // Passed from client storage upload
         pdfUrl: bookData.pdfUrl,
         totalPages: chapterList[chapterList.length - 1].end_page,
@@ -119,7 +121,6 @@ export async function createFullClub(
     throw error;
   }
 }
-
 export async function getExploreClubs(userId?: string) {
   try {
     const data = await db
@@ -133,16 +134,18 @@ export async function getExploreClubs(userId?: string) {
         bookTitle: books.title,
         author: books.author,
         coverUrl: books.coverUrl,
-        category: books.category,
-        // Count total readers
+        category: bookCategories.name, // We are selecting this...
+
         readerCount: sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id})`,
-        // Count if THIS specific user is in the club (will be 1 or 0)
         userMembershipCount: userId
           ? sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id} AND ${clubMembers.userId} = ${userId})`
           : sql<number>`0`,
       })
       .from(clubs)
       .leftJoin(books, eq(clubs.bookId, books.id))
+      // --- ADD THIS JOIN BELOW ---
+      .leftJoin(bookCategories, eq(books.categoryId, bookCategories.id))
+      // ---------------------------
       .where(and(eq(clubs.visibility, "PUBLIC"), eq(clubs.isActive, true)));
 
     return data.map((c) => ({
@@ -150,11 +153,10 @@ export async function getExploreClubs(userId?: string) {
       title: c.name,
       bookTitle: c.bookTitle || "Unknown",
       author: c.author || "Unknown",
-      category: c.category || "General",
-      desc: c.description,
+      category: c.category || "General", // If the join returns null, default to General
+      desc: c.description || "",
       cover: c.coverUrl,
       readers: Number(c.readerCount),
-      // FIX: If the count for this user is greater than 0, they are a member
       isMember: Number(c.userMembershipCount) > 0,
       ownerId: c.ownerId,
       dateRange: c.startDate
@@ -168,22 +170,28 @@ export async function getExploreClubs(userId?: string) {
 }
 export async function getCategories() {
   try {
-    // Simple flat query
-    const data = await db.selectDistinct({ name: books.category }).from(books);
-    return data.map((c) => c.name).filter(Boolean) as string[];
+    // Fetch from the actual categories table
+    const data = await db
+      .select()
+      .from(bookCategories)
+      .orderBy(bookCategories.name);
+    return JSON.parse(JSON.stringify(data)); // Returns array of {id, name}
   } catch (error) {
     console.error("Drizzle Categories Error:", error);
-    return ["Fiction", "Non-Fiction", "Sci-Fi", "Fantasy", "Mystery"];
+    return [];
   }
 }
-
 // 4. Fetch Full Club Data for Settings/Dashboard
 export async function getClubFullData(clubId: string) {
   try {
     const data = await db.query.clubs.findFirst({
       where: eq(clubs.id, clubId),
       with: {
-        book: true,
+        book: {
+          with: {
+            category: true, // Assuming you added category relation in schema.ts
+          },
+        },
         members: { with: { profile: true } },
         invites: true,
       },
@@ -227,7 +235,7 @@ export async function updateBook(
         title: updates.title,
         author: updates.author,
         description: updates.description,
-        category: updates.category,
+        categoryId: updates.categoryId,
         pdfUrl: pdfUrl || updates.pdf_url,
       })
       .where(eq(books.id, bookId))

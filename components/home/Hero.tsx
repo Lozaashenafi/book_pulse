@@ -161,11 +161,7 @@ const FeatureCard = ({
     <p className="text-sm font-serif italic text-[#8b5a2b] dark:text-gray-400">
       {desc}
     </p>
-    <div className="w-full border-t border-dashed border-[#d6c7a1] pt-2 mt-auto">
-      <span className="text-[9px] font-mono text-[#d6c7a1] uppercase">
-        Ref. 402-B
-      </span>
-    </div>
+    <div className="w-full border-t border-dashed border-[#d6c7a1] pt-2 mt-auto"></div>
   </div>
 );
 

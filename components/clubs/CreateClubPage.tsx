@@ -22,6 +22,7 @@ import { toast } from "sonner";
 const CreateClubPage = () => {
   const router = useRouter();
   const { user } = useAuthStore();
+
   const h = useCreateClub(user?.id);
 
   // Re-styled Tailwind constants to match the Sidebar/Desk aesthetic
@@ -107,14 +108,25 @@ const CreateClubPage = () => {
               <div className="relative">
                 <select
                   className={`${inputClass} appearance-none cursor-pointer bg-transparent`}
-                  value={h.bookData.category}
+                  // 1. Ensure you are using categoryId (the UUID)
+                  value={h.bookData.categoryId}
                   onChange={(e) =>
-                    h.setBookData({ ...h.bookData, category: e.target.value })
+                    h.setBookData({ ...h.bookData, categoryId: e.target.value })
                   }
                 >
-                  {h.categories.map((cat) => (
-                    <option key={cat} value={cat} className="dark:bg-[#1a1a1a]">
-                      {cat}
+                  {/* 2. Add a default empty state if needed */}
+                  <option value="" className="dark:bg-[#1a1a1a]">
+                    Select a Category
+                  </option>
+
+                  {/* 3. FIX: Map using .id and .name */}
+                  {h.categories.map((cat: any) => (
+                    <option
+                      key={cat.id}
+                      value={cat.id}
+                      className="dark:bg-[#1a1a1a]"
+                    >
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -123,7 +135,6 @@ const CreateClubPage = () => {
                   size={18}
                 />
               </div>
-
               <textarea
                 className={`${inputClass} h-24 resize-none italic`}
                 placeholder="Briefly describe the story..."

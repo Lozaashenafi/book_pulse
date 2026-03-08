@@ -243,22 +243,6 @@ export async function getClubPdfUrl(clubId: string) {
     return null;
   }
 }
-export async function getClubMembers(clubId: string) {
-  const data = await db
-    .select({
-      id: profiles.id,
-      name: profiles.name,
-      image: profiles.image,
-      role: clubMembers.role,
-      bio: profiles.bio,
-      location: profiles.location,
-    })
-    .from(clubMembers)
-    .innerJoin(profiles, eq(clubMembers.userId, profiles.id))
-    .where(eq(clubMembers.clubId, clubId));
-
-  return JSON.parse(JSON.stringify(data));
-}
 
 export async function getPublicProfileData(userId: string) {
   try {
@@ -326,4 +310,26 @@ export async function leaveClubRecord(
   }
 
   return { success: true };
+}
+export async function getClubMembers(clubId: string) {
+  try {
+    const data = await db
+      .select({
+        id: profiles.id,
+        name: profiles.name,
+        image: profiles.image,
+        username: profiles.username, // <--- CRITICAL: Add this line
+        role: clubMembers.role,
+        bio: profiles.bio,
+        location: profiles.location,
+      })
+      .from(clubMembers)
+      .innerJoin(profiles, eq(clubMembers.userId, profiles.id))
+      .where(eq(clubMembers.clubId, clubId));
+
+    return JSON.parse(JSON.stringify(data));
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    return [];
+  }
 }

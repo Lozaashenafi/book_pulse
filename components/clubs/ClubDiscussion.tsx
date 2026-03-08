@@ -33,9 +33,12 @@ import {
   getPublicProfileData,
 } from "@/services/chat.service";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const ClubDiscussion = ({ clubId }: { clubId: string }) => {
   const { user, profile: myProfile } = useAuthStore();
+  const router = useRouter();
+
   const {
     rooms,
     activeRoom,
@@ -540,24 +543,18 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
 
       {showMembers && (
         <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 md:p-6 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-500">
-          {/* Main Modal Container */}
-          <div className="bg-[#fcf8f1] dark:bg-[#1c1917] w-full max-w-lg relative border border-[#d6c7a1] dark:border-[#3e2b22] shadow-[0_20px_50px_rgba(0,0,0,0.3),_0_0_0_1px_rgba(214,199,161,0.5)] flex flex-col overflow-hidden rounded-sm">
-            {/* Decorative Corner Accents */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#d4a373]/30 m-2" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#d4a373]/30 m-2" />
-
-            {/* Header Section */}
+          <div className="bg-[#fcf8f1] dark:bg-[#1c1917] w-full max-w-lg relative border border-[#d6c7a1] dark:border-[#3e2b22] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden rounded-sm">
+            {/* Header */}
             <div className="p-6 md:p-8 pb-4 flex items-center justify-between border-b border-[#d6c7a1]/30">
               <div>
-                <h2 className="text-2xl md:text-3xl font-serif font-black text-[#5c4033] dark:text-[#d6c7a1] tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-serif font-black text-[#5c4033] dark:text-[#d6c7a1]">
                   The Club Registry
                 </h2>
                 <div className="h-1 w-12 bg-[#d4a373] mt-1" />
               </div>
-
               <button
                 onClick={() => setShowMembers(false)}
-                className="p-2 hover:bg-[#d4a373]/10 rounded-full transition-colors text-[#5c4033] dark:text-[#d6c7a1]"
+                className="p-2 text-[#5c4033] dark:text-[#d6c7a1]"
               >
                 <X size={20} />
               </button>
@@ -569,14 +566,20 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                 {members.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => handleViewMember(m.id)}
+                    // CHANGE: Navigate to the public profile page instead of opening a sub-modal
+                    onClick={() => {
+                      if (m.username) {
+                        router.push(`/profile/${m.username}`);
+                      } else {
+                        toast.error("Profile link not found.");
+                      }
+                    }}
                     className="group w-full text-left flex items-center gap-4 p-4 border border-[#d6c7a1]/20 hover:border-[#d4a373] hover:bg-[#d4a373]/5 transition-all duration-300 relative overflow-hidden"
                   >
-                    {/* Subtle hover effect background */}
                     <div className="absolute inset-0 bg-gradient-to-r from-[#d4a373]/0 to-[#d4a373]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                     {/* Avatar Frame */}
-                    <div className="relative z-10 w-14 h-14 bg-[#f4ebd0] border border-[#d6c7a1] rotate-1 group-hover:rotate-0 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden">
+                    <div className="relative z-10 w-14 h-14 bg-[#f4ebd0] border border-[#d6c7a1] rotate-1 group-hover:rotate-0 transition-transform shrink-0 shadow-sm overflow-hidden">
                       {m.image ? (
                         <img
                           src={m.image}
@@ -590,16 +593,17 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="min-w-0 z-10">
+                    <div className="min-w-0 z-10 flex-1">
                       <p className="font-serif font-bold text-[#5c4033] dark:text-[#e7e5e4] text-base group-hover:text-[#a07855] transition-colors">
                         {m.name}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center justify-between mt-1">
                         <span className="text-[9px] font-mono font-bold uppercase tracking-widest bg-[#5c4033] text-[#fcf8f1] px-2 py-0.5 rounded-sm">
                           {m.role}
                         </span>
-                        <div className="h-[1px] w-4 bg-[#d6c7a1]/50 group-hover:w-8 transition-all" />
+                        <span className="text-[10px] font-serif italic text-[#d4a373] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                          View Dossier <ChevronRight size={12} />
+                        </span>
                       </div>
                     </div>
                   </button>

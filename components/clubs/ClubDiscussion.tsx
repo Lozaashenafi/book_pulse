@@ -51,9 +51,9 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
     pdfUrl,
     viewMode,
     setViewMode,
+    clubName,
   } = useChat(clubId, user?.id);
 
-  // States
   const [input, setInput] = useState("");
   const [pageInput, setPageInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -67,6 +67,26 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleFullscreenChange = () =>
+      setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const handleToggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        toast.error(`Error enabling full-screen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const handleToggleMembers = async () => {
     if (!showMembers) {
@@ -83,7 +103,7 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
   };
 
   const handleLeave = async () => {
-    if (!confirm("Are you certain you wish to leave this fellowship?")) return;
+    if (!confirm("Are you certain you wish to leave this circle?")) return;
     try {
       await leaveClubRecord(user!.id, clubId, myProfile?.name || "A reader");
       toast.success("Departure recorded.");
@@ -130,136 +150,144 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
 
   return (
     <div
-      className={`h-[calc(100vh-80px)] md:h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 pb-4 overflow-hidden relative ${isFullscreen ? "fixed inset-0 z-[10000] bg-white dark:bg-black p-0 h-screen w-screen" : ""}`}
+      ref={containerRef}
+      className={`h-[calc(100vh-80px)] md:h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6 pb-4 overflow-hidden relative ${isFullscreen ? "bg-white dark:bg-black h-screen w-screen p-0" : ""}`}
     >
-      {/* --- MOBILE HEADER --- */}
+      {/* --- SIDEBAR --- */}
       {!isFullscreen && (
-        <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-[#252525] border-2 border-[#1a3f22]/10 shadow-sm">
-          <button
-            onClick={() => setMobileSidebar(true)}
-            className="p-2 text-[#1a3f22]"
+        <>
+          <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-[#252525] border-2 border-tertiary/10 shadow-sm">
+            <button
+              onClick={() => setMobileSidebar(true)}
+              className="p-2 text-tertiary"
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="font-serif font-black text-sm text-tertiary truncate">
+              {activeRoom?.title}
+            </h2>
+            <button onClick={handleToggleMembers} className="p-2 text-tertiary">
+              <Users size={20} />
+            </button>
+          </div>
+
+          <aside
+            className={`fixed inset-0 z-[50] md:relative md:z-0 md:flex w-72 flex-col gap-4 shrink-0 transition-transform duration-300 ${mobileSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"} bg-[#eaddcf] md:bg-transparent p-6 md:p-0`}
           >
-            <Menu size={24} />
-          </button>
-          <h2 className="font-serif font-black text-sm text-[#1a3f22] truncate">
-            {activeRoom?.title}
-          </h2>
-          <button onClick={handleToggleMembers} className="p-2 text-[#1a3f22]">
-            <Users size={20} />
-          </button>
-        </div>
+            <button
+              onClick={() => setMobileSidebar(false)}
+              className="md:hidden absolute top-4 right-4"
+            >
+              <X />
+            </button>
+
+            {/* NEW: CLUB NAME AT TOP OF DESCRIPTION/SIDEBAR */}
+            <div className="mb-2 px-1">
+              <h1 className="text-xl font-serif font-black text-tertiary dark:text-[#d4a373] border-b-2 border-tertiary/10 leading-tight pb-1">
+                {clubName}
+              </h1>
+            </div>
+
+            <div className="bg-tertiary p-5 shadow-lg border-b-4 border-[#132f19]">
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-[10px] font-mono font-bold text-[#d4a373] uppercase tracking-[0.2em]">
+                  Sync Progress
+                </p>
+                <span className="text-[10px] font-mono text-white/50">
+                  Pg {currentPage}
+                </span>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  logProgress(parseInt(pageInput));
+                  setPageInput("");
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="number"
+                  placeholder="Pg #"
+                  value={pageInput}
+                  onChange={(e) => setPageInput(e.target.value)}
+                  className="flex-1 bg-white/10 border border-white/20 rounded px-2 py-1.5 text-white text-xs outline-none"
+                />
+                <button
+                  type="submit"
+                  className="bg-[#d4a373] text-tertiary px-3 py-1.5 rounded text-[10px] font-black uppercase"
+                >
+                  Log
+                </button>
+              </form>
+            </div>
+
+            <div className="bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] p-5 flex-1 overflow-y-auto custom-scrollbar shadow-[4px_4px_0px_#bcab79]">
+              {pdfUrl && (
+                <button
+                  onClick={() => {
+                    setViewMode(viewMode === "pdf" ? "chat" : "pdf");
+                    setMobileSidebar(false);
+                  }}
+                  className={`w-full mb-3 flex items-center gap-3 px-4 py-4 text-xs font-serif font-black italic transition-all border-2 ${viewMode === "pdf" ? "bg-[#d4a373] text-tertiary" : "bg-tertiary text-[#f4ebd0] shadow-md"}`}
+                >
+                  <FileText size={18} />{" "}
+                  <span>
+                    {viewMode === "pdf" ? "Return to Chat" : "Read Manuscript"}
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={handleToggleMembers}
+                className="hidden md:flex w-full mb-6 items-center gap-3 px-4 py-3 text-xs font-serif font-black border-2 border-tertiary/20 hover:bg-tertiary/5 transition-all text-tertiary"
+              >
+                <Users size={18} />
+                <span>Member List</span>
+              </button>
+              <nav className="space-y-2">
+                {rooms.map((room) => (
+                  <button
+                    key={room.id}
+                    disabled={room.isLocked}
+                    onClick={() => {
+                      setActiveRoom(room);
+                      setViewMode("chat");
+                      setMobileSidebar(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 text-xs font-serif font-black italic transition-all relative border-l-4 ${activeRoom?.id === room.id && viewMode === "chat" ? "bg-tertiary text-[#f4ebd0] border-[#d4a373]" : "bg-white dark:bg-[#252525] text-primary-dark border-transparent"} ${room.isLocked ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {room.isLocked ? <Lock size={14} /> : <Hash size={14} />}
+                      <span className="truncate">{room.title}</span>
+                    </div>
+                    {unreadRooms.includes(room.id) && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    )}
+                  </button>
+                ))}
+              </nav>
+              <button
+                onClick={handleLeave}
+                className="w-full mt-10 flex items-center justify-center gap-2 py-3 text-[10px] font-mono font-black uppercase text-red-700 hover:bg-red-50 border-t border-red-100"
+              >
+                <LogOut size={14} /> Leave Circle
+              </button>
+            </div>
+          </aside>
+        </>
       )}
 
-      {/* --- SIDEBAR (Desktop & Mobile Drawer) --- */}
-      <aside
-        className={`
-        fixed inset-0 z-[50] md:relative md:z-0 md:flex w-72 flex-col gap-4 shrink-0 transition-transform duration-300
-        ${mobileSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        bg-[#eaddcf] md:bg-transparent p-6 md:p-0
-      `}
-      >
-        <button
-          onClick={() => setMobileSidebar(false)}
-          className="md:hidden absolute top-4 right-4"
-        >
-          <X />
-        </button>
-
-        {/* PROGRESS */}
-        <div className="bg-[#1a3f22] p-5 shadow-lg border-b-4 border-[#132f19]">
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-[10px] font-mono font-bold text-[#d4a373] uppercase tracking-[0.2em]">
-              Sync Progress
-            </p>
-            <span className="text-[10px] font-mono text-white/50">
-              Pg {currentPage}
-            </span>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              logProgress(parseInt(pageInput));
-              setPageInput("");
-            }}
-            className="flex gap-2"
-          >
-            <input
-              type="number"
-              placeholder="Pg #"
-              value={pageInput}
-              onChange={(e) => setPageInput(e.target.value)}
-              className="flex-1 bg-white/10 border border-white/20 rounded px-2 py-1.5 text-white text-xs outline-none"
-            />
-            <button
-              type="submit"
-              className="bg-[#d4a373] text-[#1a3f22] px-3 py-1.5 rounded text-[10px] font-black uppercase"
-            >
-              Log
-            </button>
-          </form>
-        </div>
-
-        <div className="bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] p-5 flex-1 overflow-y-auto custom-scrollbar shadow-[4px_4px_0px_#bcab79]">
-          {pdfUrl && (
-            <button
-              onClick={() => {
-                setViewMode(viewMode === "pdf" ? "chat" : "pdf");
-                setMobileSidebar(false);
-              }}
-              className={`w-full mb-3 flex items-center gap-3 px-4 py-4 text-xs font-serif font-black italic transition-all border-2 ${viewMode === "pdf" ? "bg-[#d4a373] text-[#1a3f22]" : "bg-[#1a3f22] text-[#f4ebd0] shadow-md"}`}
-            >
-              <FileText size={18} />{" "}
-              <span>
-                {viewMode === "pdf" ? "Return to Chat" : "Read Manuscript"}
-              </span>
-            </button>
-          )}
-
-          <button
-            onClick={handleToggleMembers}
-            className="hidden md:flex w-full mb-6 items-center gap-3 px-4 py-3 text-xs font-serif font-black border-2 border-[#1a3f22]/20 hover:bg-[#1a3f22]/5 transition-all text-[#1a3f22]"
-          >
-            <Users size={18} /> <span>Fellowship List</span>
-          </button>
-
-          <nav className="space-y-2">
-            {rooms.map((room) => (
-              <button
-                key={room.id}
-                disabled={room.isLocked}
-                onClick={() => {
-                  setActiveRoom(room);
-                  setViewMode("chat");
-                  setMobileSidebar(false);
-                }}
-                className={`w-full flex items-center justify-between px-3 py-3 text-xs font-serif font-black italic transition-all relative border-l-4 ${activeRoom?.id === room.id && viewMode === "chat" ? "bg-[#1a3f22] text-[#f4ebd0] border-[#d4a373]" : "bg-white dark:bg-[#252525] text-primary-dark border-transparent"} ${room.isLocked ? "opacity-40" : ""}`}
-              >
-                <div className="flex items-center gap-2">
-                  {room.isLocked ? <Lock size={14} /> : <Hash size={14} />}
-                  <span className="truncate">{room.title}</span>
-                </div>
-                {unreadRooms.includes(room.id) && (
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                )}
-              </button>
-            ))}
-          </nav>
-
-          <button
-            onClick={handleLeave}
-            className="w-full mt-10 flex items-center justify-center gap-2 py-3 text-[10px] font-mono font-black uppercase text-red-700 hover:bg-red-50 border-t border-red-100"
-          >
-            <LogOut size={14} /> Leave Circle
-          </button>
-        </div>
-      </aside>
-
       {/* --- MAIN AREA --- */}
-      <main className="flex-1 bg-[#fdfcf8] dark:bg-[#1a1614] md:border-2 border-tertiary/10 flex flex-col overflow-hidden relative shadow-[8px_8px_0px_rgba(26,63,34,0.05)]">
+      <main
+        className={`flex-1 bg-[#fdfcf8] dark:bg-[#1a1614] md:border-2 border-tertiary/10 flex flex-col overflow-hidden relative ${isFullscreen ? "h-screen border-none" : "shadow-[8px_8px_0px_rgba(26,63,34,0.05)]"}`}
+      >
         {viewMode === "chat" ? (
           <>
             <header className="hidden md:flex px-6 py-4 border-b-2 border-dashed border-tertiary/10 bg-white dark:bg-[#252525]">
               <h2 className="text-xl font-serif font-black text-tertiary dark:text-[#d4a373]">
+                {/* NEW: CLUB NAME IN LEFT CORNER OF CHAT HEADER */}
+                <span className="opacity-30 font-mono text-sm mr-3 font-normal tracking-tighter">
+                  {clubName} /
+                </span>
                 {activeRoom?.title}
               </h2>
             </header>
@@ -274,7 +302,6 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                 const isFile = msg.content.startsWith("FILE: ");
                 const contentUrl =
                   isImage || isFile ? msg.content.split(": ")[1] : "";
-
                 return (
                   <div
                     key={msg.id}
@@ -314,7 +341,7 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                         )}
                       </div>
                       <div
-                        className={`p-3 md:p-4 font-serif text-sm shadow-sm relative ${isMe ? "bg-[#1a3f22] text-[#f4ebd0] rounded-tl-2xl rounded-tr-none rounded-br-2xl rounded-bl-2xl" : "bg-white dark:bg-[#252525] text-[#1a3f22] border border-[#d6c7a1] rounded-tr-2xl rounded-tl-none rounded-br-2xl rounded-bl-2xl"}`}
+                        className={`p-3 md:p-4 font-serif text-sm shadow-sm relative ${isMe ? "bg-tertiary text-[#f4ebd0] rounded-tl-2xl rounded-tr-none rounded-br-2xl rounded-bl-2xl" : "bg-white dark:bg-[#252525] text-tertiary border border-[#d6c7a1] rounded-tr-2xl rounded-tl-none rounded-br-2xl rounded-bl-2xl"}`}
                       >
                         {editingId === msg.id ? (
                           <div className="flex flex-col gap-2 min-w-[200px]">
@@ -346,7 +373,6 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                             <img
                               src={contentUrl}
                               className="max-w-full rounded-lg border-2 border-white/20 shadow-md max-h-64 object-contain"
-                              alt="attachment"
                             />
                             <a
                               href={contentUrl}
@@ -373,7 +399,6 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                 );
               })}
             </div>
-
             <div className="p-4 md:p-6 bg-white dark:bg-[#252525] border-t-2 border-tertiary/10">
               <form
                 onSubmit={(e) => {
@@ -412,7 +437,7 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                     type="button"
                     disabled={isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-2 md:p-3 text-[#1a3f22] hover:bg-[#f4ebd0] rounded"
+                    className="p-2 md:p-3 text-tertiary hover:bg-[#f4ebd0] rounded"
                   >
                     {isUploading ? (
                       <Loader2 className="animate-spin" size={18} />
@@ -422,7 +447,7 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#1a3f22] text-[#f4ebd0] p-3 md:p-4 shadow-[4px_4px_0px_#d4a373] active:translate-y-1"
+                    className="bg-tertiary text-[#f4ebd0] p-3 md:p-4 shadow-[4px_4px_0px_#d4a373] active:translate-y-1"
                   >
                     <Send size={20} />
                   </button>
@@ -432,14 +457,15 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
           </>
         ) : (
           <div className="flex-1 flex flex-col h-full bg-[#525659]">
-            <header className="px-6 py-2 border-b-2 border-[#1a3f22]/10 bg-white dark:bg-[#252525] flex justify-between items-center">
-              <span className="text-[10px] font-mono font-black text-[#1a3f22] uppercase tracking-widest">
+            <header className="px-6 py-2 border-b-2 border-tertiary/10 bg-white dark:bg-[#252525] flex justify-between items-center">
+              <span className="text-[10px] font-mono font-black text-tertiary uppercase tracking-widest">
                 Manuscript.pdf
               </span>
               <div className="flex gap-2">
+                {/* Updated Button to call handleToggleFullscreen */}
                 <button
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="p-2 text-[#1a3f22]"
+                  onClick={handleToggleFullscreen}
+                  className="p-2 text-tertiary hover:bg-tertiary/10 rounded transition-colors"
                 >
                   {isFullscreen ? (
                     <Minimize2 size={20} />
@@ -450,9 +476,9 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                 <button
                   onClick={() => {
                     setViewMode("chat");
-                    setIsFullscreen(false);
+                    if (document.fullscreenElement) document.exitFullscreen();
                   }}
-                  className="p-2 text-red-600"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -466,18 +492,19 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
         )}
       </main>
 
-      {/* --- FELLOWSHIP MODAL --- */}
+      {/* --- MODALS (Fellowship, selectedMember) remain unchanged ... --- */}
       {showMembers && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 md:p-6 bg-[#1a3f22]/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#fdfcf8] border-2 border-[#1a3f22] w-full max-w-md shadow-[15px_15px_0px_#d4a373] p-6 md:p-8 relative">
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 md:p-6 bg-tertiary/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-[#f4ebd0] dark:bg-[#2c2420] w-full max-w-md  p-6 md:p-8 relative border-[#d6c7a1] dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(92,64,51,0.1)]  relative overflow-hidden flex flex-col md:flex-row">
+            <div className="absolute top-0 right-0 w-12 h-12 bg-tertiary/5 -rotate-45 translate-x-6 -translate-y-6" />
             <button
               onClick={() => setShowMembers(false)}
               className="absolute top-4 right-4"
             >
               <X />
             </button>
-            <h2 className="text-xl md:text-2xl font-serif font-black text-[#1a3f22] mb-6">
-              The Fellowship
+            <h2 className="text-xl md:text-2xl font-serif font-black text-tertiary mb-6">
+              The Club Registry
             </h2>
             <div className="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
               {members.map((m) => (
@@ -493,14 +520,14 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <UserCircle size={24} className="text-[#1a3f22]/20" />
+                      <UserCircle size={24} className="text-tertiary/20" />
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-serif font-bold text-[#1a3f22] text-sm truncate">
+                    <p className="font-serif font-bold text-tertiary text-sm truncate">
                       {m.name}
                     </p>
-                    <p className="text-[8px] font-mono uppercase bg-[#1a3f22] text-white px-1 w-fit mt-1">
+                    <p className="text-[8px] font-mono uppercase bg-tertiary text-white px-1 w-fit mt-1">
                       {m.role}
                     </p>
                   </div>
@@ -511,86 +538,71 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
         </div>
       )}
 
-      {/* --- PUBLIC PROFILE VISITOR VIEW MODAL --- */}
-      {selectedMember && (
-        <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in zoom-in duration-300">
-          <div className="bg-[#fdfcf8] border-2 border-[#1a3f22] w-full max-w-lg shadow-[15px_15px_0px_#1a3f22] p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4a373]/10 -rotate-45 translate-x-16 -translate-y-16" />
-            <button
-              onClick={() => setSelectedMember(null)}
-              className="absolute top-4 right-4 z-10"
-            >
-              <X />
-            </button>
+      {showMembers && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 md:p-6 bg-stone-900/40 backdrop-blur-sm animate-in fade-in duration-500">
+          {/* Main Modal Container */}
+          <div className="bg-[#fcf8f1] dark:bg-[#1c1917] w-full max-w-lg relative border border-[#d6c7a1] dark:border-[#3e2b22] shadow-[0_20px_50px_rgba(0,0,0,0.3),_0_0_0_1px_rgba(214,199,161,0.5)] flex flex-col overflow-hidden rounded-sm">
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#d4a373]/30 m-2" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#d4a373]/30 m-2" />
 
-            <div className="flex flex-col items-center text-center mb-8">
-              <div className="w-24 h-24 rounded-full border-4 border-[#d4a373] p-1 mb-4">
-                <div className="w-full h-full rounded-full overflow-hidden bg-gray-100">
-                  {selectedMember.image ? (
-                    <img
-                      src={selectedMember.image}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <UserCircle
-                      size={60}
-                      className="m-auto mt-4 text-gray-300"
-                    />
-                  )}
-                </div>
+            {/* Header Section */}
+            <div className="p-6 md:p-8 pb-4 flex items-center justify-between border-b border-[#d6c7a1]/30">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-serif font-black text-[#5c4033] dark:text-[#d6c7a1] tracking-tight">
+                  The Club Registry
+                </h2>
+                <div className="h-1 w-12 bg-[#d4a373] mt-1" />
               </div>
-              <h3 className="text-2xl font-serif font-black text-[#1a3f22]">
-                {selectedMember.name}
-              </h3>
-              <p className="text-xs font-mono text-[#8b5a2b] uppercase mt-1">
-                Reader since {new Date(selectedMember.createdAt).getFullYear()}
-              </p>
+
+              <button
+                onClick={() => setShowMembers(false)}
+                className="p-2 hover:bg-[#d4a373]/10 rounded-full transition-colors text-[#5c4033] dark:text-[#d6c7a1]"
+              >
+                <X size={20} />
+              </button>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-[#f4ebd0]/30 p-4 border border-[#d4a373]/20">
-                <p className="text-[10px] font-mono font-black uppercase text-[#8b5a2b] mb-2 border-b border-[#d4a373]/20 pb-1">
-                  Literary Bio
-                </p>
-                <p className="font-serif italic text-sm text-[#5c4033] leading-relaxed">
-                  {selectedMember.bio ||
-                    "This fellow reader prefers to keep their archives a mystery."}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 border border-[#1a3f22]/10 bg-white shadow-sm text-center">
-                  <p className="text-[8px] font-mono font-black uppercase text-gray-400">
-                    Founded
-                  </p>
-                  <p className="font-serif font-black text-[#1a3f22] text-xl">
-                    {selectedMember.ownedClubs?.length || 0}
-                  </p>
-                </div>
-                <div className="p-3 border border-[#1a3f22]/10 bg-white shadow-sm text-center">
-                  <p className="text-[8px] font-mono font-black uppercase text-gray-400">
-                    Joined
-                  </p>
-                  <p className="font-serif font-black text-[#1a3f22] text-xl">
-                    {selectedMember.joinedClubs?.length || 0}
-                  </p>
-                </div>
-              </div>
-
-              <div className="max-h-40 overflow-y-auto custom-scrollbar">
-                <p className="text-[10px] font-mono font-black uppercase text-[#8b5a2b] mb-2">
-                  Active Squads
-                </p>
-                {[
-                  ...selectedMember.ownedClubs,
-                  ...selectedMember.joinedClubs,
-                ].map((c: any) => (
-                  <div
-                    key={c.id}
-                    className="text-xs font-serif italic text-[#1a3f22] py-1 border-b border-dashed border-[#1a3f22]/10"
+            {/* Members List */}
+            <div className="p-4 md:p-8 pt-2">
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {members.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleViewMember(m.id)}
+                    className="group w-full text-left flex items-center gap-4 p-4 border border-[#d6c7a1]/20 hover:border-[#d4a373] hover:bg-[#d4a373]/5 transition-all duration-300 relative overflow-hidden"
                   >
-                    # {c.name}
-                  </div>
+                    {/* Subtle hover effect background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#d4a373]/0 to-[#d4a373]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    {/* Avatar Frame */}
+                    <div className="relative z-10 w-14 h-14 bg-[#f4ebd0] border border-[#d6c7a1] rotate-1 group-hover:rotate-0 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden">
+                      {m.image ? (
+                        <img
+                          src={m.image}
+                          alt={m.name}
+                          className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-stone-100">
+                          <UserCircle size={28} className="text-[#d4a373]/40" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="min-w-0 z-10">
+                      <p className="font-serif font-bold text-[#5c4033] dark:text-[#e7e5e4] text-base group-hover:text-[#a07855] transition-colors">
+                        {m.name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[9px] font-mono font-bold uppercase tracking-widest bg-[#5c4033] text-[#fcf8f1] px-2 py-0.5 rounded-sm">
+                          {m.role}
+                        </span>
+                        <div className="h-[1px] w-4 bg-[#d6c7a1]/50 group-hover:w-8 transition-all" />
+                      </div>
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>

@@ -14,6 +14,7 @@ import {
 } from "@/services/chat.service";
 import { toast } from "sonner";
 import { url } from "inspector/promises";
+import { getClubName } from "@/services/club.service";
 
 export function useChat(clubId: string, userId?: string) {
   const [rooms, setRooms] = useState<any[]>([]);
@@ -23,19 +24,22 @@ export function useChat(clubId: string, userId?: string) {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [clubName, setClubName] = useState<string>(""); // New state for club name
   const [viewMode, setViewMode] = useState<"chat" | "pdf">("chat");
 
   // Load Rooms & Initial Progress
   const refreshData = useCallback(async () => {
     if (!userId) return;
-    const [roomData, progress, url] = await Promise.all([
+    const [roomData, progress, url, name] = await Promise.all([
       getClubRooms(clubId, userId),
       getUserClubProgress(userId, clubId),
       getClubPdfUrl(clubId),
+      getClubName(clubId), // 3. Fetch the name
     ]);
     setRooms(roomData);
     setCurrentPage(progress);
     setPdfUrl(url);
+    setClubName(name); // 4. Set the name
 
     if (!activeRoom && roomData.length > 0)
       setActiveRoom(roomData.find((r) => r.type === "GENERAL") || roomData[0]);
@@ -124,5 +128,6 @@ export function useChat(clubId: string, userId?: string) {
     pdfUrl,
     viewMode,
     setViewMode,
+    clubName,
   };
 }

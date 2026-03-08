@@ -207,7 +207,7 @@ const ClubSettingsPage = () => {
             },
             {
               id: "members",
-              label: "The Fellowship",
+              label: "The Club",
               icon: <Users size={18} />,
             },
           ].map((tab) => (
@@ -407,7 +407,7 @@ const ClubSettingsPage = () => {
             {activeTab === "members" && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <h2 className="text-3xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
-                  The Fellowship
+                  The Club Registry
                 </h2>
 
                 <div className="p-4 bg-[#f4ebd0] dark:bg-black/20 border-2 border-[#d6c7a1] flex items-center justify-between">
@@ -510,7 +510,7 @@ const ClubSettingsPage = () => {
                   onClick={() => setShowDeleteModal(true)}
                   className="mt-6 px-8 py-2 bg-red-600 text-white font-serif italic shadow-[4px_4px_0px_#991b1b] hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-30"
                 >
-                  Dissolve Fellowship
+                  Dissolve Club
                 </button>
               </div>
             </div>
@@ -577,7 +577,7 @@ const ClubSettingsPage = () => {
                 Are you certain you wish to{" "}
                 {memberActionModal.action.toLowerCase()}{" "}
                 <strong>{memberActionModal.userName}</strong> from this
-                fellowship?
+                club?
               </p>
 
               <div className="flex gap-4">

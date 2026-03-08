@@ -25,7 +25,7 @@ const EmptyState = () => {
       </h3>
       <p className="text-[#8b5a2b] dark:text-gray-400 mt-3 max-w-sm mx-auto font-serif italic text-lg">
         "A room without books is like a body without a soul." Start your own
-        fellowship today.
+        Club today.
       </p>
 
       <button
@@ -75,7 +75,7 @@ const MyClubsPage = () => {
             </span>
           </h1>
           <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-mono text-xs uppercase tracking-[0.2em] font-bold">
-            Owner Registry // {ownedClubs.length} Created Fellowships
+            Owner Registry // {ownedClubs.length} Created Circles
           </p>
         </div>
 

@@ -8,8 +8,10 @@ import {
   clubs,
   books,
   profiles,
+  posts,
+  postLikes,
 } from "@/lib/db/schema";
-import { eq, count, and, sql } from "drizzle-orm";
+import { eq, count, and, sql, desc } from "drizzle-orm";
 
 export async function getStats(userId: string) {
   if (!userId) return { circles: 0, booksRead: 0, discussions: 0 };
@@ -217,5 +219,53 @@ export async function getSidebarClubs(userId: string) {
   } catch (error) {
     console.error("Error fetching sidebar clubs:", error);
     return { owned: [], all: [] };
+  }
+}
+export async function getPublicProfileByUsername(username: string) {
+  try {
+    // 1. Fetch User Profile
+    const user = await db.query.profiles.findFirst({
+      where: eq(profiles.username, username),
+    });
+
+    if (!user) return null;
+
+    // 2. Fetch User's Posts (Scribbles)
+    const userPosts = await db
+      .select({
+        id: posts.id,
+        content: posts.content,
+        createdAt: posts.createdAt,
+        likeCount: sql<number>`(SELECT count(*) FROM ${postLikes} WHERE ${postLikes.postId} = ${posts.id})`,
+      })
+      .from(posts)
+      .where(eq(posts.userId, user.id))
+      .orderBy(desc(posts.createdAt));
+
+    // 3. Fetch User's Clubs (Joined & Owned)
+    const userClubs = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+        role: clubMembers.role,
+        cover: books.coverUrl,
+        bookTitle: books.title,
+      })
+      .from(clubMembers)
+      .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
+      .innerJoin(books, eq(clubs.bookId, books.id))
+      .where(eq(clubMembers.userId, user.id));
+
+    // Serialize for Client Component
+    return JSON.parse(
+      JSON.stringify({
+        ...user,
+        posts: userPosts,
+        clubs: userClubs,
+      }),
+    );
+  } catch (error) {
+    console.error("Public Profile Fetch Error:", error);
+    return null;
   }
 }

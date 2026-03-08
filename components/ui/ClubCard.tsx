@@ -124,7 +124,7 @@ const ClubCard = ({ book }: { book: Book }) => {
             onClick={() => setShowDetails(true)}
             className="mt-auto self-end text-[10px] font-mono font-black uppercase tracking-widest text-tertiary dark:text-[#d4a373] flex items-center gap-1 hover:underline"
           >
-            Open File <ArrowRight size={12} />
+            Details <ArrowRight size={12} />
           </button>
         </div>
       </div>
@@ -226,7 +226,7 @@ const ClubCard = ({ book }: { book: Book }) => {
                       <Loader2 className="animate-spin" size={20} />
                     ) : (
                       <>
-                        {!user ? "Login to Access" : "Join this Fellowship"}
+                        {!user ? "Login to Access" : "Join this Circle"}
                         <ArrowRight size={20} />
                       </>
                     )}

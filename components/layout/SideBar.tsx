@@ -58,15 +58,15 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-[#eaddcf] dark:bg-[#1a1614] transition-colors duration-500 flex flex-col lg:flex-row">
       {/* --- MOBILE HEADER --- */}
-      <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-[#eaddcf] dark:bg-[#1a1614] border-b border-[#1a3f22]/10 z-50">
+      <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-[#eaddcf] dark:bg-[#1a1614] border-b border-tertiary/10 z-50">
         <Link href="/" className="rotate-[-1deg]">
-          <h1 className="font-serif font-black text-[#1a3f22] dark:text-[#d4a373] text-2xl border-b-2 border-[#1a3f22]">
+          <h1 className="font-serif font-black text-tertiary dark:text-[#d4a373] text-2xl border-b-2 border-tertiary">
             BookPulse
           </h1>
         </Link>
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="p-2 text-[#1a3f22] dark:text-[#d4a373]"
+          className="p-2 text-tertiary dark:text-[#d4a373]"
         >
           <Menu size={28} />
         </button>
@@ -92,7 +92,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         {/* Mobile Close Button */}
         <button
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden absolute top-6 right-6 text-[#1a3f22]"
+          className="lg:hidden absolute top-6 right-6 text-tertiary"
         >
           <X size={24} />
         </button>
@@ -106,7 +106,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             className="rotate-[-1deg] transition-transform hover:rotate-0"
           >
             <h1
-              className={`font-serif font-black text-[#1a3f22] dark:text-[#d4a373] border-b-4 border-[#1a3f22] ${isCollapsed ? "text-xl" : "text-3xl"}`}
+              className={`font-serif font-black text-tertiary dark:text-[#d4a373] border-b-4 border-tertiary ${isCollapsed ? "text-xl" : "text-3xl"}`}
             >
               {isCollapsed ? "BP" : "BookPulse"}
             </h1>
@@ -121,7 +121,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           {!isCollapsed && (
             <button
               onClick={() => setIsCollapsed(true)}
-              className="hidden lg:block text-[#8b5a2b] hover:text-[#1a3f22] dark:hover:text-[#d4a373] transition-colors ml-2"
+              className="hidden lg:block text-[#8b5a2b] hover:text-tertiary dark:hover:text-[#d4a373] transition-colors ml-2"
             >
               <PanelLeftClose size={20} />
             </button>
@@ -177,8 +177,8 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                   : "justify-between px-4 py-2"
               } ${
                 isInsideClub
-                  ? "bg-[#1a3f22] text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
-                  : "text-[#5c4033] dark:text-gray-400 hover:bg-[#1a3f22]/5 border-b border-transparent hover:border-[#1a3f22]"
+                  ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
+                  : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary"
               }`}
               title={isCollapsed ? "Enter Circles" : ""}
             >
@@ -211,8 +211,8 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                       href={`/clubs/${club.id}`}
                       className={`block px-4 py-1.5 text-sm font-bold font-serif italic border-l transition-all ${
                         isCurrentClub
-                          ? "text-[#1a3f22] border-[#1a3f22]"
-                          : "text-[#8b5a2b] border-[#1a3f22]/20 hover:border-[#1a3f22] hover:text-[#1a3f22]"
+                          ? "text-tertiary border-tertiary"
+                          : "text-[#8b5a2b] border-tertiary/20 hover:border-tertiary hover:text-tertiary"
                       }`}
                     >
                       # {club.name}
@@ -249,12 +249,12 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         {/* PROFILE SECTION */}
         {user ? (
           <div
-            className={`mt-auto transition-all duration-300 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-[#1a3f22] shadow-[5px_5px_0px_#bcab79] rotate-1 ${isCollapsed ? "p-2 mx-auto" : "p-4"}`}
+            className={`mt-auto transition-all duration-300 bg-[#f4ebd0] dark:bg-[#2c2420] border-2 border-[#d6c7a1] dark:border-tertiary shadow-[5px_5px_0px_#bcab79] rotate-1 ${isCollapsed ? "p-2 mx-auto" : "p-4"}`}
           >
             <div className="flex items-center gap-3">
               <Link
                 href="/profile"
-                className="w-10 h-10 bg-[#1a3f22] dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden shrink-0"
+                className="w-10 h-10 bg-tertiary dark:bg-[#d4a373] text-white flex items-center justify-center overflow-hidden shrink-0"
               >
                 {profile?.image ? (
                   <img
@@ -287,7 +287,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         ) : (
           <Link
             href="/login"
-            className={`mt-auto bg-[#1a3f22] text-[#f4ebd0] text-center font-serif italic hover:bg-[#132f19] transition-all rotate-1 flex items-center justify-center ${isCollapsed ? "w-12 h-12 mx-auto" : "p-4"}`}
+            className={`mt-auto bg-tertiary text-[#f4ebd0] text-center font-serif italic hover:bg-[#132f19] transition-all rotate-1 flex items-center justify-center ${isCollapsed ? "w-12 h-12 mx-auto" : "p-4"}`}
           >
             {isCollapsed ? <LogOut size={20} /> : "Join the Circle"}
           </Link>
@@ -334,8 +334,8 @@ const NavItem = ({
         isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"
       } ${
         active
-          ? "bg-[#1a3f22] text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
-          : "text-[#5c4033] dark:text-gray-400 hover:bg-[#1a3f22]/5 dark:hover:bg-white/5 border-b border-transparent hover:border-[#1a3f22]"
+          ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
+          : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"
       }`}
     >
       <div className="flex items-center space-x-3">
@@ -348,7 +348,7 @@ const NavItem = ({
       </div>
       {badge && !isCollapsed && (
         <span
-          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${active ? "bg-white text-[#1a3f22]" : "bg-[#1a3f22] text-white"}`}
+          className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${active ? "bg-white text-tertiary" : "bg-tertiary text-white"}`}
         >
           {badge}
         </span>

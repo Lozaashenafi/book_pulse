@@ -320,7 +320,7 @@ export async function leaveClubRecord(
     await db.insert(notifications).values({
       userId: club.ownerId,
       type: "NEW_MEMBER", // Re-using NEW_MEMBER or you can add MEMBER_LEFT to enum
-      title: "Fellowship Departure",
+      title: "Member Departure",
       message: `${userName} has left the circle: ${club.name}`,
     });
   }

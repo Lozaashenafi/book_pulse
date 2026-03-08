@@ -10,8 +10,11 @@ import {
   Paperclip,
   Bookmark,
 } from "lucide-react";
+import { useRouter } from "next/navigation"; // Import the router
 
 const BookPulseHero = () => {
+  const router = useRouter(); // Initialize the router
+
   return (
     <section className="relative min-h-screen bg-[#fdfcf8] dark:bg-[#1a1614] pt-40 pb-20 overflow-hidden flex flex-col items-center transition-colors duration-500">
       {/* Background Decorative Elements: Subtle Grid & Paper Texture */}
@@ -28,7 +31,7 @@ const BookPulseHero = () => {
         <div className="inline-block border-2 border-dashed border-tertiary/30 dark:border-[#d4a373]/30 p-2 rotate-[-2deg] mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="bg-[#f4ebd0] dark:bg-tertiary/20 px-4 py-1">
             <span className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-tertiary dark:text-[#d4a373]">
-              Approved Literary Sanctuary
+              Library Archives
             </span>
           </div>
         </div>
@@ -57,13 +60,16 @@ const BookPulseHero = () => {
 
         {/* Descriptive Text: Marginalia Style */}
         <p className="text-xl md:text-2xl text-[#8b5a2b] dark:text-gray-400 font-serif italic max-w-2xl mx-auto leading-relaxed mb-12">
-          "Stop reading in a vacuum. BookPulse is a sanctuary for thoughtful
-          readers to gather in digital circles and turn pages in unison."
+          “Stop reading in a vacuum. BookPulse is where curious minds gather,
+          build digital book circles, and turn pages together.”
         </p>
 
         {/* CTA Actions: Tactile Block Shadow Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24">
-          <button className="group w-full sm:w-auto bg-tertiary dark:bg-[#d4a373] text-[#f4ebd0] dark:text-[#1a1614] px-10 py-5 rounded-none font-serif font-black italic text-lg shadow-[8px_8px_0px_#d4a373] dark:shadow-[8px_8px_0px_#1a3f22] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center space-x-3">
+          <button
+            onClick={() => router.push("/clubs/myclubs")}
+            className="group w-full sm:w-auto bg-tertiary dark:bg-[#d4a373] text-[#f4ebd0] dark:text-[#1a1614] px-10 py-5 rounded-none font-serif font-black italic text-lg shadow-[8px_8px_0px_#d4a373] dark:shadow-[8px_8px_0px_#1a3f22] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center space-x-3"
+          >
             <span>Start a Reading Circle</span>
             <ArrowRight
               size={20}
@@ -71,7 +77,10 @@ const BookPulseHero = () => {
             />
           </button>
 
-          <button className="w-full sm:w-auto bg-transparent border-2 border-tertiary/20 dark:border-white/10 text-tertiary dark:text-[#d4a373] px-10 py-5 rounded-none font-serif font-bold text-lg hover:bg-tertiary/5 transition-all">
+          <button
+            onClick={() => router.push("/explore")}
+            className="w-full sm:w-auto bg-transparent border-2 border-tertiary/20 dark:border-white/10 text-tertiary dark:text-[#d4a373] px-10 py-5 rounded-none font-serif font-bold text-lg hover:bg-tertiary/5 transition-all"
+          >
             Browse Popular Clubs
           </button>
         </div>

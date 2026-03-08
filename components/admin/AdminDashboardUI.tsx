@@ -71,14 +71,14 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
   if (loading)
     return (
       <div className="h-screen flex items-center justify-center bg-[#fdfcf8]">
-        <Loader2 className="animate-spin text-[#1a3f22]" size={40} />
+        <Loader2 className="animate-spin text-tertiary" size={40} />
       </div>
     );
 
   return (
     <div className="min-h-screen bg-[#fdfcf8] p-4 md:p-10">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-4 border-[#1a3f22] pb-6">
+        <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-4 border-tertiary pb-6">
           <div>
             <div className="flex items-center gap-2 text-[#d4a373] mb-1">
               <ShieldCheck size={18} />
@@ -86,11 +86,11 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                 Master Registry Access
               </span>
             </div>
-            <h1 className="text-5xl font-serif font-black text-[#1a3f22]">
+            <h1 className="text-5xl font-serif font-black text-tertiary">
               Grand Archive <span className="italic">Control</span>
             </h1>
           </div>
-          <nav className="flex bg-[#1a3f22]/5 p-1 border border-[#1a3f22]/10">
+          <nav className="flex bg-tertiary/5 p-1 border border-tertiary/10">
             <TabBtn
               active={activeTab === "stats"}
               label="System Vitals"
@@ -122,7 +122,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
             <StatCard
               label="Active Circles"
               value={stats?.clubs}
-              color="text-[#1a3f22]"
+              color="text-tertiary"
             />
             <StatCard
               label="Manuscripts"
@@ -138,10 +138,10 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
         )}
 
         {activeTab === "users" && (
-          <div className="bg-white border-2 border-[#1a3f22] shadow-[10px_10px_0px_#d4a373] overflow-hidden animate-in slide-in-from-bottom-4">
+          <div className="bg-white border-2 border-tertiary shadow-[10px_10px_0px_#d4a373] overflow-hidden animate-in slide-in-from-bottom-4">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#1a3f22] text-[#f4ebd0] font-mono text-[10px] uppercase tracking-widest">
+                <tr className="bg-tertiary text-[#f4ebd0] font-mono text-[10px] uppercase tracking-widest">
                   <th className="p-4">Identity</th>
                   <th className="p-4">Role</th>
                   <th className="p-4">Registered</th>
@@ -166,7 +166,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                           )}
                         </div>
                         <div>
-                          <p className="font-serif font-bold text-sm text-[#1a3f22]">
+                          <p className="font-serif font-bold text-sm text-tertiary">
                             {u.name}
                           </p>
                           <p className="text-[10px] font-mono text-gray-400">
@@ -193,7 +193,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                           fetchData();
                           toast.success("Role updated");
                         }}
-                        className="p-2 hover:bg-[#1a3f22] hover:text-white transition-all rounded text-[#1a3f22]"
+                        className="p-2 hover:bg-tertiary hover:text-white transition-all rounded text-tertiary"
                       >
                         <UserCog size={16} />
                       </button>
@@ -207,8 +207,8 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
 
         {activeTab === "genres" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-in fade-in duration-500">
-            <div className="bg-white p-8 border-2 border-[#1a3f22] shadow-[8px_8px_0px_#d4a373]">
-              <h3 className="font-serif font-black text-xl text-[#1a3f22] mb-6">
+            <div className="bg-white p-8 border-2 border-tertiary shadow-[8px_8px_0px_#d4a373]">
+              <h3 className="font-serif font-black text-xl text-tertiary mb-6">
                 New Category Entry
               </h3>
               <div className="flex gap-4">
@@ -216,11 +216,11 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                   value={newCat}
                   onChange={(e) => setNewCat(e.target.value)}
                   placeholder="e.g. Victorian Gothic"
-                  className="flex-1 border-b-2 border-[#1a3f22]/20 focus:border-[#1a3f22] outline-none font-serif italic py-2"
+                  className="flex-1 border-b-2 border-tertiary/20 focus:border-tertiary outline-none font-serif italic py-2"
                 />
                 <button
                   onClick={handleAddCategory}
-                  className="bg-[#1a3f22] text-[#f4ebd0] px-6 py-2 font-mono text-xs font-black uppercase shadow-md active:translate-y-1 transition-all"
+                  className="bg-tertiary text-[#f4ebd0] px-6 py-2 font-mono text-xs font-black uppercase shadow-md active:translate-y-1 transition-all"
                 >
                   Add
                 </button>
@@ -234,9 +234,9 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                 {categories.map((c) => (
                   <div
                     key={c.id}
-                    className="flex justify-between items-center bg-white/50 p-3 border border-transparent hover:border-[#1a3f22]/20 transition-all group"
+                    className="flex justify-between items-center bg-white/50 p-3 border border-transparent hover:border-tertiary/20 transition-all group"
                   >
-                    <span className="font-serif font-bold text-[#1a3f22]">
+                    <span className="font-serif font-bold text-tertiary">
                       # {c.name}
                     </span>
                     <button
@@ -259,14 +259,14 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
 const TabBtn = ({ active, label, onClick, icon }: any) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-6 py-2 text-[10px] font-mono font-black uppercase tracking-widest transition-all ${active ? "bg-[#1a3f22] text-[#f4ebd0] shadow-md" : "text-[#1a3f22]/60 hover:bg-[#1a3f22]/5"}`}
+    className={`flex items-center gap-2 px-6 py-2 text-[10px] font-mono font-black uppercase tracking-widest transition-all ${active ? "bg-tertiary text-[#f4ebd0] shadow-md" : "text-tertiary/60 hover:bg-tertiary/5"}`}
   >
     {icon} {label}
   </button>
 );
 
 const StatCard = ({ label, value, color }: any) => (
-  <div className="bg-white p-6 border-2 border-[#1a3f22]/10 shadow-sm relative group hover:border-[#1a3f22] transition-all">
+  <div className="bg-white p-6 border-2 border-tertiary/10 shadow-sm relative group hover:border-tertiary transition-all">
     <div className="absolute top-2 right-4 opacity-5 group-hover:opacity-10 transition-opacity">
       <Database size={40} />
     </div>

@@ -67,7 +67,7 @@ const JoinInvitePage = () => {
   if (authLoading || dataLoading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#fdfcf8] space-y-4">
-        <Loader2 className="animate-spin text-[#1a3f22]" size={40} />
+        <Loader2 className="animate-spin text-tertiary" size={40} />
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#8b5a2b]">
           Verifying Credentials...
         </p>
@@ -79,17 +79,17 @@ const JoinInvitePage = () => {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-[#f4ebd0]/30 p-4">
-      <div className="bg-[#fdfcf8] w-full max-w-lg border-2 border-[#1a3f22] shadow-[20px_20px_0px_#d4a373] p-10 relative animate-in zoom-in duration-300">
+      <div className="bg-[#fdfcf8] w-full max-w-lg border-2 border-tertiary shadow-[20px_20px_0px_#d4a373] p-10 relative animate-in zoom-in duration-300">
         <div className="text-center space-y-6">
           <span className="text-[10px] font-mono font-black text-[#d4a373] uppercase tracking-[0.4em]">
             Official Dispatch
           </span>
-          <h1 className="text-4xl font-serif font-black text-[#1a3f22]">
+          <h1 className="text-4xl font-serif font-black text-tertiary">
             The Invitation
           </h1>
 
-          <div className="bg-[#f4ebd0] p-6 border-2 border-dashed border-[#1a3f22]/20 text-left flex gap-4 items-center">
-            <div className="w-16 h-20 bg-white shadow-sm shrink-0 border border-[#1a3f22]/10 overflow-hidden">
+          <div className="bg-[#f4ebd0] p-6 border-2 border-dashed border-tertiary/20 text-left flex gap-4 items-center">
+            <div className="w-16 h-20 bg-white shadow-sm shrink-0 border border-tertiary/10 overflow-hidden">
               {inviteData.cover && (
                 <img
                   src={inviteData.cover}
@@ -99,7 +99,7 @@ const JoinInvitePage = () => {
               )}
             </div>
             <div>
-              <h2 className="text-lg font-serif font-black text-[#1a3f22]">
+              <h2 className="text-lg font-serif font-black text-tertiary">
                 {inviteData.clubName}
               </h2>
               <p className="text-xs font-serif italic text-[#8b5a2b]">
@@ -111,14 +111,14 @@ const JoinInvitePage = () => {
           <button
             onClick={handleAction}
             disabled={isJoining}
-            className="w-full bg-[#1a3f22] text-[#f4ebd0] py-5 font-serif font-black italic text-xl shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3"
+            className="w-full bg-tertiary text-[#f4ebd0] py-5 font-serif font-black italic text-xl shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3"
           >
             {isJoining ? (
               <Loader2 className="animate-spin" />
             ) : (
               <>
                 {/* 3. DYNAMIC BUTTON TEXT based on confirmed auth status */}
-                {!user ? "Sign In to Join" : "Accept Fellowship"}
+                {!user ? "Sign In to Join" : "Accept Invitation"}
                 {!user ? <LogIn size={20} /> : <UserPlus size={20} />}
               </>
             )}

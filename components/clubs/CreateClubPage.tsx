@@ -81,7 +81,7 @@ const CreateClubPage = () => {
                 The Manuscript
               </h1>
               <p className="font-serif italic text-[#8b5a2b]">
-                Identify the book for this fellowship
+                Identify the book for this circle and set the vibe
               </p>
             </header>
 
@@ -304,7 +304,7 @@ const CreateClubPage = () => {
                 Return
               </button>
               <button onClick={() => h.setStep(3)} className={btnPrimary}>
-                The Fellowship <ChevronRight size={20} />
+                The Club <ChevronRight size={20} />
               </button>
             </div>
           </div>
@@ -315,7 +315,7 @@ const CreateClubPage = () => {
           <div className="bg-white dark:bg-[#252525] p-8 shadow-md border-l-[12px] border-primary-dark/10 animate-in fade-in slide-in-from-right-4">
             <header className="mb-10">
               <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
-                The Fellowship
+                The Club
               </h1>
               <p className="font-serif italic text-[#8b5a2b]">
                 Set the rules for your inner circle
@@ -465,7 +465,7 @@ const CreateClubPage = () => {
                 Circle Founded!
               </h1>
               <p className="text-[#8b5a2b] mb-8 font-serif italic">
-                Your fellowship is recorded. Now, gather the readers.
+                Your club is recorded. Now, gather the readers.
               </p>
 
               <div className="bg-black/5 p-4 border border-black/10 mb-8 flex items-center gap-2">

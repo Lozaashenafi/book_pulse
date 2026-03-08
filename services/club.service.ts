@@ -102,7 +102,7 @@ export async function createFullClub(
       await db.insert(posts).values({
         userId: userId,
         clubId: newClub.id,
-        content: `Founded a new circle: ${clubData.name}! Reading ${bookData.title}.`,
+        content: `A new reading circle just started! "${clubData.name}" is now open and we're diving into ${bookData.title}.`,
         postType: "CLUB_ANNOUNCEMENT",
       });
     }
@@ -298,8 +298,8 @@ export async function joinClub(
     await db.insert(notifications).values({
       userId: ownerId,
       type: "NEW_MEMBER",
-      title: "New Fellowship Member",
-      message: `${userName} has joined your circle: ${clubName}`,
+      title: "New Club Member",
+      message: `${userName} has joined your club: ${clubName}`,
     });
 
     return { success: true };
@@ -357,7 +357,7 @@ export async function updateMemberStatus(
     return { success: true }; // PLAIN object
   } catch (error) {
     console.error("Drizzle Member Status Error:", error);
-    throw new Error("Failed to update fellowship member");
+    throw new Error("Failed to update club member");
   }
 }
 export async function getInviteDetails(token: string) {
@@ -425,4 +425,12 @@ export async function joinWithToken(
   }
 
   return { success: true, clubId: invite.clubId };
+}
+// services/club.service.ts
+export async function getClubName(clubId: string) {
+  const data = await db.query.clubs.findFirst({
+    where: eq(clubs.id, clubId),
+    columns: { name: true },
+  });
+  return data?.name || "The ";
 }

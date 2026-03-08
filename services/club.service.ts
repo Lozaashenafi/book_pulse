@@ -13,7 +13,7 @@ import {
   notifications,
   bookCategories,
 } from "@/lib/db/schema";
-import { eq, and, asc, sql, count } from "drizzle-orm";
+import { eq, and, asc, sql, count, desc } from "drizzle-orm";
 
 export async function createFullClub(
   userId: string,
@@ -433,4 +433,30 @@ export async function getClubName(clubId: string) {
     columns: { name: true },
   });
   return data?.name || "The ";
+}
+export async function getPopularClubs() {
+  try {
+    const readerCountQuery = sql<number>`(SELECT count(*) FROM ${clubMembers} WHERE ${clubMembers.clubId} = ${clubs.id})`;
+
+    const data = await db
+      .select({
+        id: clubs.id,
+        name: clubs.name,
+        // Use the variable here
+        readerCount: readerCountQuery,
+      })
+      .from(clubs)
+      .where(eq(clubs.visibility, "PUBLIC"))
+      .orderBy(desc(readerCountQuery))
+      .limit(3);
+
+    return data.map((c) => ({
+      id: c.id,
+      name: c.name,
+      readers: Number(c.readerCount),
+    }));
+  } catch (error) {
+    console.error("Error fetching popular clubs:", error);
+    return [];
+  }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Heart,
   Share2,
@@ -19,18 +19,16 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePosts } from "@/hooks/usePosts";
-import {
-  deletePostAction,
-  updatePostAction,
-  sharePostAction,
-} from "@/services/post.service";
+import { usePopularClubs } from "@/hooks/usePopularClubs"; // New Hook
+import { deletePostAction, updatePostAction } from "@/services/post.service";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const BookPulsePage = () => {
   const { user, profile } = useAuthStore();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const highlightedId = searchParams.get("id");
 
   const {
@@ -40,16 +38,26 @@ const BookPulsePage = () => {
     likePost,
     refresh,
   } = usePosts(user?.id, profile?.name);
+  const { popularClubs } = usePopularClubs(); // Use dynamic data
 
   const [input, setInput] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editInput, setEditInput] = useState("");
-
-  // Modal States
   const [showPreview, setShowPreview] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+
+  // --- LOGIC: Add Quote Function ---
+  const handleAddQuote = () => {
+    if (!input.trim()) {
+      setInput('""');
+    } else {
+      // Wrap existing text in quotes if not already quoted
+      if (input.startsWith('"') && input.endsWith('"')) return;
+      setInput(`"${input}"`);
+    }
+  };
 
   const posts = useMemo(() => {
     if (!highlightedId || rawPosts.length === 0) return rawPosts;
@@ -68,27 +76,21 @@ const BookPulsePage = () => {
     if (!exportRef.current) return;
     setIsCapturing(true);
     const t = toast.loading("Finalizing image...");
-
     try {
-      // Small delay to ensure modal is fully rendered
       await new Promise((r) => setTimeout(r, 300));
-
       const dataUrl = await toPng(exportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#1a3f22",
       });
-
       const link = document.createElement("a");
       link.download = `BookPulse-Archive.png`;
       link.href = dataUrl;
       link.click();
-
       toast.success("Saved to device!", { id: t });
       setShowPreview(false);
     } catch (err) {
-      console.error(err);
-      toast.error("Capture failed. Try again.", { id: t });
+      toast.error("Capture failed.", { id: t });
     } finally {
       setIsCapturing(false);
     }
@@ -118,7 +120,11 @@ const BookPulsePage = () => {
             rows={2}
           />
           <div className="flex items-center justify-between pt-4 border-t border-dashed border-gray-200">
-            <button className="text-[#8b5a2b] flex items-center gap-1 text-[10px] font-black uppercase">
+            {/* FIXED: Add Quote Button */}
+            <button
+              onClick={handleAddQuote}
+              className="text-[#8b5a2b] flex items-center gap-1 text-[10px] font-black uppercase hover:text-tertiary transition-colors"
+            >
               <Quote size={14} /> Add Quote
             </button>
             <button
@@ -151,17 +157,11 @@ const BookPulsePage = () => {
             "rotate-[0.5deg]",
             "-rotate-[0.5deg]",
           ];
-          const colorClass = isHighlighted
-            ? "bg-white border-4 border-[#d4a373]"
-            : colors[idx % 4];
-          const rotationClass = isHighlighted
-            ? "rotate-0 scale-[1.02] z-20"
-            : rotations[idx % 4];
 
           return (
             <div
               key={post.id}
-              className={`relative transform ${rotationClass} ${colorClass} p-8 shadow-xl min-h-[250px] flex flex-col group transition-all duration-500`}
+              className={`relative transform ${isHighlighted ? "rotate-0 scale-[1.02] z-20" : rotations[idx % 4]} ${isHighlighted ? "bg-white border-4 border-[#d4a373]" : colors[idx % 4]} p-8 shadow-xl min-h-[250px] flex flex-col group transition-all duration-500`}
             >
               {isHighlighted && (
                 <div className="absolute -top-4 right-8 bg-[#d4a373] text-tertiary px-3 py-1 text-[10px] font-mono font-black uppercase shadow-md flex items-center gap-1 z-30 animate-bounce">
@@ -240,8 +240,9 @@ const BookPulsePage = () => {
                   </button>
                   <button
                     onClick={() => {
-                      const shareUrl = `${window.location.origin}/posts?id=${post.id}`;
-                      navigator.clipboard.writeText(shareUrl);
+                      navigator.clipboard.writeText(
+                        `${window.location.origin}/posts?id=${post.id}`,
+                      );
                       toast.success("Link copied!");
                     }}
                     className="flex items-center gap-1 hover:text-tertiary transition-colors"
@@ -267,18 +268,15 @@ const BookPulsePage = () => {
         })}
       </main>
 
-      {/* PREVIEW MODAL */}
+      {/* EXPORT MODAL - (Unchanged) */}
       {showPreview && selectedPost && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="max-w-lg w-full flex flex-col items-center gap-6">
-            {/* The Actual Exportable Square */}
             <div
               ref={exportRef}
               className="w-[450px] h-[450px] bg-tertiary p-8 flex items-center justify-center shadow-2xl"
             >
               <div className="bg-white w-full h-full p-8 flex flex-col relative">
-                <div className="absolute inset-3 border border-tertiary/5 pointer-events-none" />
-
                 <div className="flex items-center gap-3 mb-6">
                   <img
                     crossOrigin="anonymous"
@@ -286,7 +284,7 @@ const BookPulsePage = () => {
                       selectedPost.userImage ||
                       `https://api.dicebear.com/7.x/initials/svg?seed=${selectedPost.userName}`
                     }
-                    className="w-10 h-10 rounded-full bg-gray-100"
+                    className="w-10 h-10 rounded-full"
                     alt="avatar"
                   />
                   <div>
@@ -302,13 +300,11 @@ const BookPulsePage = () => {
                     className="ml-auto text-tertiary opacity-10"
                   />
                 </div>
-
                 <div className="flex-1 flex items-center justify-center text-center">
                   <p className="text-xl font-serif italic text-tertiary leading-relaxed">
                     “{selectedPost.content}”
                   </p>
                 </div>
-
                 <div className="mt-4 pt-4 border-t border-dashed border-gray-200 flex flex-col items-center">
                   <span className="text-[10px] font-black text-tertiary tracking-widest uppercase">
                     BookPulse
@@ -319,26 +315,18 @@ const BookPulsePage = () => {
                 </div>
               </div>
             </div>
-
-            {/* Modal Actions */}
-            <div className="flex gap-4 w-full justify-center">
+            <div className="flex gap-4">
               <button
                 onClick={() => setShowPreview(false)}
-                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 transition-all"
+                className="text-white px-6"
               >
-                <X size={18} /> Cancel
+                Cancel
               </button>
               <button
-                disabled={isCapturing}
                 onClick={handleDownload}
-                className="bg-[#d4a373] hover:bg-[#c39262] text-tertiary px-8 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition-all"
+                className="bg-[#d4a373] text-tertiary px-8 py-2 rounded-full font-bold"
               >
-                {isCapturing ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Download size={18} />
-                )}
-                Confirm Download
+                Download
               </button>
             </div>
           </div>
@@ -347,29 +335,35 @@ const BookPulsePage = () => {
 
       {/* RIGHT COLUMN */}
       <aside className="hidden xl:flex flex-col w-80 flex-shrink-0 h-full space-y-8 mt-4">
-        <div className="bg-[#fdfdfd] dark:bg-[#252525] rounded-r-3xl rounded-l-md p-6 border-y-2 border-r-4 border-gray-200 shadow-xl relative overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-tertiary" />
-          <h3 className="font-serif font-bold text-lg mb-6 text-tertiary flex items-center gap-2">
-            <BookOpen size={18} /> In Progress
-          </h3>
-          <div className="space-y-4">
-            <div className="border-b border-dashed border-gray-300 pb-2">
-              <p className="font-black text-lg font-serif text-gray-800 dark:text-gray-100 uppercase tracking-tighter">
-                The Great Gatsby
-              </p>
-              <p className="text-[10px] font-mono text-gray-400 uppercase">
-                F. Scott Fitzgerald
-              </p>
-            </div>
-            <div className="bg-gray-100 dark:bg-black/20 p-3 rounded-xl">
-              <div className="flex justify-between text-[10px] font-bold mb-1">
-                <span>ARCHIVE PROGRESS</span>
-                <span>45%</span>
+        {/* Popular Circles - DYNAMIC */}
+        <div className="bg-[#fff9f0] dark:bg-[#2c2420] p-6 border-2 border-[#e3d5c1] shadow-inner">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-[#e3d5c1] pb-2">
+            <h3 className="font-mono font-bold text-sm text-[#8b5a2b]">
+              LITERARY CIRCLES
+            </h3>
+            <TrendingUp size={16} className="text-[#8b5a2b]" />
+          </div>
+          <div className="space-y-6">
+            {popularClubs.map((club) => (
+              <div
+                key={club.id}
+                onClick={() => router.push(`/explore`)} // Or specific club link
+                className="flex items-center justify-between group cursor-pointer border-b border-[#e3d5c1] border-dotted pb-2"
+              >
+                <div>
+                  <p className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#8b5a2b] transition-colors">
+                    {club.name}
+                  </p>
+                  <p className="text-[9px] font-mono text-gray-500 uppercase">
+                    {club.readers} fellow readers
+                  </p>
+                </div>
+                <PlusCircle
+                  size={14}
+                  className="text-gray-300 group-hover:text-[#8b5a2b]"
+                />
               </div>
-              <div className="w-full bg-gray-300 h-1 rounded-full overflow-hidden">
-                <div className="bg-[#8b5a2b] h-full w-[45%]" />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </aside>

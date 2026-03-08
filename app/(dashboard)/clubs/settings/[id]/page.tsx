@@ -328,20 +328,27 @@ const ClubSettingsPage = () => {
                     </label>
                     <select
                       className="w-full bg-white dark:bg-[#252525] border-2 border-primary-dark/10 p-3 font-serif outline-none focus:border-primary-dark dark:text-white"
-                      value={club.books.category}
+                      // 1. Bind to categoryId instead of category name
+                      value={club.books.categoryId || ""}
                       onChange={(e) =>
                         setData({
                           ...data,
                           club: {
                             ...club,
-                            books: { ...club.books, category: e.target.value },
+                            books: {
+                              ...club.books,
+                              categoryId: e.target.value,
+                            },
                           },
                         })
                       }
                     >
-                      {categories.map((cat: string) => (
-                        <option key={cat} value={cat}>
-                          {cat}
+                      <option value="">Select Category</option>
+
+                      {/* 2. FIX: Map using cat.id and cat.name */}
+                      {categories.map((cat: any) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
                         </option>
                       ))}
                     </select>
@@ -576,8 +583,7 @@ const ClubSettingsPage = () => {
               <p className="font-serif italic text-primary-dark mb-8 text-sm">
                 Are you certain you wish to{" "}
                 {memberActionModal.action.toLowerCase()}{" "}
-                <strong>{memberActionModal.userName}</strong> from this
-                club?
+                <strong>{memberActionModal.userName}</strong> from this club?
               </p>
 
               <div className="flex gap-4">

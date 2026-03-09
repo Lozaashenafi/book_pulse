@@ -24,7 +24,7 @@ const EmptyState = () => {
       <h3 className="text-3xl font-serif font-black text-primary-dark dark:text-gray-100">
         Shelf is Empty
       </h3>
-      <p className="text-[#8b5a2b] dark:text-gray-400 mt-3 max-w-sm mx-auto font-serif italic text-lg">
+      <p className="text-primary-half dark:text-gray-400 mt-3 max-w-sm mx-auto font-serif italic text-lg">
         "A room without books is like a body without a soul." Start your own
         Club today.
       </p>
@@ -72,7 +72,7 @@ const MyClubsPage = () => {
           <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
             My Squads
           </h1>
-          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
+          <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
             Owner Registry // {ownedClubs.length} Created Circles
           </p>
         </div>
@@ -114,7 +114,7 @@ const MyClubsPage = () => {
 
       {/* Footer Decoration */}
       <div className="mt-20 border-t border-dashed border-primary-dark/20 pt-8 text-center">
-        <p className="font-mono text-[10px] uppercase text-[#8b5a2b] opacity-50">
+        <p className="font-mono text-[10px] uppercase text-primary-half opacity-50">
           BookPulse Literary Registry — End of List
         </p>
       </div>

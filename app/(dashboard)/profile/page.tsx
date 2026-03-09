@@ -81,7 +81,7 @@ const BookPulseProfile = () => {
             <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               The Reading Shelf
             </h1>
-            <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
+            <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
               {" "}
               Curated by {profile?.name || "Anonymous Reader"}
             </p>
@@ -98,7 +98,7 @@ const BookPulseProfile = () => {
 
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-2 px-4 py-2 bg-[#f4ebd0] border-2 border-[#d6c7a1] text-[#8b5a2b] font-mono text-[10px] font-black uppercase tracking-widest hover:border-[#8b5a2b] transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-[#f4ebd0] border-2 border-[#d6c7a1] text-primary-half font-mono text-[10px] font-black uppercase tracking-widest hover:border-primary-half transition-all"
             >
               {copied ? <Check size={14} /> : <LinkIcon size={14} />}
               {copied ? "Link Copied" : "Share"}
@@ -117,7 +117,7 @@ const BookPulseProfile = () => {
           {/* ... (Rest of your Left/Right columns stay exactly the same) ... */}
           {/* LEFT COLUMN: Profile Card */}
           <div className="lg:col-span-4 space-y-8">
-            <section className="relative bg-white dark:bg-[#25201e] p-8 shadow-[8px_8px_0px_rgba(92,64,51,0.1)] border-t-[12px] border-[#8b5a2b]/30">
+            <section className="relative bg-white dark:bg-[#25201e] p-8 shadow-[8px_8px_0px_rgba(92,64,51,0.1)] border-t-[12px] border-primary-half/30">
               <Paperclip
                 className="absolute -top-5 right-8 text-gray-400 -rotate-12"
                 size={32}
@@ -132,14 +132,14 @@ const BookPulseProfile = () => {
                         className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#8b5a2b] dark:text-[#d4a373] font-serif text-5xl font-bold">
+                      <div className="w-full h-full flex items-center justify-center text-primary-half dark:text-[#d4a373] font-serif text-5xl font-bold">
                         {initials}
                       </div>
                     )}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <span className="inline-block px-3 py-0.5 bg-[#f4ebd0] dark:bg-amber-900/20 text-[#8b5a2b] dark:text-[#d4a373] text-[10px] font-bold uppercase tracking-widest border border-[#d6c7a1] dark:border-primary-dark">
+                  <span className="inline-block px-3 py-0.5 bg-[#f4ebd0] dark:bg-amber-900/20 text-primary-half dark:text-[#d4a373] text-[10px] font-bold uppercase tracking-widest border border-[#d6c7a1] dark:border-primary-dark">
                     {profile?.role === "admin"
                       ? "Master Curator"
                       : "Prolific Reader"}
@@ -152,7 +152,7 @@ const BookPulseProfile = () => {
                   "{profile?.bio || "Lover of stories and shared perspectives."}
                   "
                 </p>
-                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3 text-[10px] font-mono font-bold text-[#8b5a2b] dark:text-[#d4a373] uppercase tracking-wider">
+                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3 text-[10px] font-mono font-bold text-primary-half dark:text-[#d4a373] uppercase tracking-wider">
                   <div className="flex items-center gap-2">
                     <MapPin size={14} /> {profile?.location || "Lost in a book"}
                   </div>
@@ -174,7 +174,7 @@ const BookPulseProfile = () => {
             {/* READING NOW */}
             <section className="bg-white dark:bg-[#25201e] p-10 shadow-md border-l-[15px] border-primary-dark/10 dark:border-[#d4a373]/10 relative">
               <h3 className="text-2xl font-serif font-black text-primary-dark dark:text-gray-100 mb-8 flex items-center gap-3">
-                <Bookmark className="fill-[#8b5a2b] text-[#8b5a2b] dark:fill-[#d4a373] dark:text-[#d4a373]" />{" "}
+                <Bookmark className="fill-primary-half text-primary-half dark:fill-[#d4a373] dark:text-[#d4a373]" />{" "}
                 Currently Deviating
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -195,13 +195,13 @@ const BookPulseProfile = () => {
                             </p>
                           </div>
                           <div className="mt-4 space-y-1">
-                            <div className="flex justify-between text-[9px] font-mono font-black text-[#8b5a2b] dark:text-[#d4a373]">
+                            <div className="flex justify-between text-[9px] font-mono font-black text-primary-half dark:text-[#d4a373]">
                               <span>PROGRESS</span>
                               <span>{book.progress}%</span>
                             </div>
                             <div className="w-32 bg-gray-100 dark:bg-white/5 h-1 border border-gray-200 dark:border-gray-800">
                               <div
-                                className="bg-[#8b5a2b] dark:bg-[#d4a373] h-full transition-all duration-1000"
+                                className="bg-primary-half dark:bg-[#d4a373] h-full transition-all duration-1000"
                                 style={{ width: `${book.progress}%` }}
                               />
                             </div>
@@ -221,8 +221,8 @@ const BookPulseProfile = () => {
             {/* ACTIVE CIRCLES */}
             <section className="bg-[#fdfcf8] dark:bg-[#25201e] p-10 border-2 border-dashed border-[#d6c7a1] dark:border-primary-dark">
               <h3 className="text-2xl font-serif font-black text-primary-dark dark:text-gray-100 mb-8 flex items-center gap-3">
-                <Users className="text-[#8b5a2b] dark:text-[#d4a373]" /> Active
-                Circles
+                <Users className="text-primary-half dark:text-[#d4a373]" />{" "}
+                Active Circles
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeCircles.map((circle: any) => (
@@ -259,7 +259,7 @@ const StatItem = ({ label, value }: { label: string; value: number }) => (
     <div className="text-xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
       {value}
     </div>
-    <div className="text-[9px] font-mono font-bold text-[#8b5a2b] dark:text-[#d4a373]/70 uppercase tracking-tighter">
+    <div className="text-[9px] font-mono font-bold text-primary-half dark:text-[#d4a373]/70 uppercase tracking-tighter">
       {label}
     </div>
   </div>

@@ -46,12 +46,12 @@ const CreateClubPage = () => {
       <nav className="mb-8 flex items-center justify-between border-b-2 border-primary-dark/10 pb-4">
         <button
           onClick={prevStep}
-          className="flex items-center space-x-2 text-[#8b5a2b] hover:text-primary-dark transition-colors font-mono text-xs uppercase font-bold tracking-widest"
+          className="flex items-center space-x-2 text-primary-half hover:text-primary-dark transition-colors font-mono text-xs uppercase font-bold tracking-widest"
         >
           <ArrowLeft size={16} />
           <span>{h.step === 1 ? "Discard Ledger" : "Back Step"}</span>
         </button>
-        <div className="font-mono text-[10px] font-bold text-[#8b5a2b] uppercase tracking-[0.3em]">
+        <div className="font-mono text-[10px] font-bold text-primary-half uppercase tracking-[0.3em]">
           Registry Entry / Part {h.step}
         </div>
       </nav>
@@ -71,7 +71,7 @@ const CreateClubPage = () => {
 
         {/* STEP 1: BOOK DETAILS */}
         {h.step === 1 && (
-          <div className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[12px] border-[#8b5a2b]/20 animate-in fade-in slide-in-from-bottom-4">
+          <div className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[12px] border-primary-half/20 animate-in fade-in slide-in-from-bottom-4">
             <Paperclip
               className="absolute -top-4 right-10 text-gray-400 rotate-12"
               size={32}
@@ -80,7 +80,7 @@ const CreateClubPage = () => {
               <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Manuscript
               </h1>
-              <p className="font-serif italic text-[#8b5a2b]">
+              <p className="font-serif italic text-primary-half">
                 Identify the book for this circle and set the vibe
               </p>
             </header>
@@ -131,7 +131,7 @@ const CreateClubPage = () => {
                   ))}
                 </select>
                 <ChevronDown
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b5a2b] pointer-events-none"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-half pointer-events-none"
                   size={18}
                 />
               </div>
@@ -153,7 +153,7 @@ const CreateClubPage = () => {
                       alt="Cover preview"
                     />
                   ) : (
-                    <div className="text-[#8b5a2b] flex flex-col items-center font-serif italic">
+                    <div className="text-primary-half flex flex-col items-center font-serif italic">
                       <ImageIcon size={32} strokeWidth={1.5} />
                       <span className="text-sm mt-2">Paste Cover Art</span>
                     </div>
@@ -173,7 +173,7 @@ const CreateClubPage = () => {
                 </label>
 
                 <label
-                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed transition-all cursor-pointer ${h.bookData.pdfFile ? "border-green-600 bg-green-50/10" : "border-primary-dark/20 text-[#8b5a2b] bg-[#fdfdfd] dark:bg-black/10"}`}
+                  className={`flex flex-col items-center justify-center h-56 border-2 border-dashed transition-all cursor-pointer ${h.bookData.pdfFile ? "border-green-600 bg-green-50/10" : "border-primary-dark/20 text-primary-half bg-[#fdfdfd] dark:bg-black/10"}`}
                 >
                   {h.bookData.pdfFile ? (
                     <CheckCircle2 size={32} className="text-green-600" />
@@ -217,7 +217,7 @@ const CreateClubPage = () => {
               <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Breakdown
               </h1>
-              <p className="font-mono text-[10px] uppercase font-bold text-[#8b5a2b]">
+              <p className="font-mono text-[10px] uppercase font-bold text-primary-half">
                 Reading Milestones & Chapters
               </p>
             </header>
@@ -237,7 +237,7 @@ const CreateClubPage = () => {
                     </div>
 
                     <input
-                      className="flex-1 bg-transparent border-b border-dotted border-primary-dark/30 p-1 font-serif text-primary-dark dark:text-gray-100 outline-none placeholder:text-[#8b5a2b]/40"
+                      className="flex-1 bg-transparent border-b border-dotted border-primary-dark/30 p-1 font-serif text-primary-dark dark:text-gray-100 outline-none placeholder:text-primary-half/40"
                       placeholder="Chapter Title or Goal"
                       value={ch.title}
                       onChange={(e) => {
@@ -249,7 +249,7 @@ const CreateClubPage = () => {
 
                     <div className="flex items-center gap-3 bg-white dark:bg-[#1a1614] px-4 py-2 border border-primary-dark/10 shadow-sm">
                       <div className="flex flex-col items-center">
-                        <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
+                        <span className="text-[7px] font-mono font-bold text-primary-half">
                           START
                         </span>
                         <input
@@ -261,7 +261,7 @@ const CreateClubPage = () => {
                       </div>
                       <div className="h-4 w-[1px] bg-primary-dark/20" />
                       <div className="flex flex-col items-center">
-                        <span className="text-[7px] font-mono font-bold text-[#8b5a2b]">
+                        <span className="text-[7px] font-mono font-bold text-primary-half">
                           END
                         </span>
                         <input
@@ -317,14 +317,14 @@ const CreateClubPage = () => {
               <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
                 The Club
               </h1>
-              <p className="font-serif italic text-[#8b5a2b]">
+              <p className="font-serif italic text-primary-half">
                 Set the rules for your inner circle
               </p>
             </header>
 
             <div className="space-y-8">
               <div className="space-y-1">
-                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                <label className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-widest">
                   Squad Name
                 </label>
                 <input
@@ -338,7 +338,7 @@ const CreateClubPage = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                <label className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-widest">
                   Manifesto
                 </label>
                 <textarea
@@ -356,7 +356,7 @@ const CreateClubPage = () => {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                  <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                     Opening Date
                   </label>
                   <input
@@ -372,7 +372,7 @@ const CreateClubPage = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                  <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                     Final Page Date
                   </label>
                   <input
@@ -408,7 +408,7 @@ const CreateClubPage = () => {
               </div>
 
               {h.clubData.visibility === "PUBLIC" && (
-                <div className="flex items-center gap-3 p-4 bg-[#f4ebd0]/30 border-2 border-dashed border-[#8b5a2b]/20">
+                <div className="flex items-center gap-3 p-4 bg-[#f4ebd0]/30 border-2 border-dashed border-primary-half/20">
                   <input
                     type="checkbox"
                     id="post"
@@ -464,7 +464,7 @@ const CreateClubPage = () => {
               <h1 className="text-4xl font-serif font-black text-[#2c2c2c] mb-2">
                 Circle Founded!
               </h1>
-              <p className="text-[#8b5a2b] mb-8 font-serif italic">
+              <p className="text-primary-half mb-8 font-serif italic">
                 Your club is recorded. Now, gather the readers.
               </p>
 

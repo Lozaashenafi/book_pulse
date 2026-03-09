@@ -53,7 +53,7 @@ export default function RootLayout({
               title:
                 "font-serif font-black text-tertiary dark:text-[#d4a373] text-base leading-tight",
               description:
-                "font-serif italic text-xs text-[#8b5a2b] dark:text-gray-400 mt-1",
+                "font-serif italic text-xs text-primary-half dark:text-gray-400 mt-1",
               success:
                 "bg-gradient-to-br from-[#fdfcf8] to-[#f0f7f1] !border-tertiary",
               error:

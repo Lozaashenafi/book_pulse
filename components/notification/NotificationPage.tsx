@@ -43,7 +43,7 @@ const NotificationPage = () => {
       case "CLUB_INVITE":
         return {
           icon: <Mail size={18} />,
-          color: "bg-[#d4a373]/10 text-[#8b5a2b] border-[#d4a373]/30",
+          color: "bg-[#d4a373]/10 text-primary-half border-[#d4a373]/30",
         };
       case "ANNOUNCEMENT":
         return {
@@ -74,7 +74,7 @@ const NotificationPage = () => {
             <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               Daily <span className="italic">Correspondence</span>
             </h1>
-            <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
+            <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
               Fresh updates from your literary squads.
             </p>
           </div>
@@ -112,7 +112,7 @@ const NotificationPage = () => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-mono font-black uppercase tracking-tighter text-[#8b5a2b]">
+                      <span className="text-[10px] font-mono font-black uppercase tracking-tighter text-primary-half">
                         {n.type.replace("_", " ")}
                       </span>
                       <span className="text-[10px] font-mono text-gray-400 flex items-center gap-1">
@@ -129,13 +129,6 @@ const NotificationPage = () => {
                       {n.message}
                     </p>
                   </div>
-
-                  <button
-                    onClick={() => removeNotification(n.id)}
-                    className="shrink-0 self-start p-2 text-gray-300 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
                 </div>
               );
             })
@@ -145,7 +138,7 @@ const NotificationPage = () => {
               <h3 className="text-2xl font-serif font-black text-tertiary dark:text-white opacity-40">
                 Silence in the Archives
               </h3>
-              <p className="text-[#8b5a2b] dark:text-gray-400 font-serif italic mt-2 opacity-60">
+              <p className="text-[#c4ae9a] dark:text-gray-400 font-serif italic mt-2 opacity-60">
                 Your mailbox is currently vacant.
               </p>
             </div>

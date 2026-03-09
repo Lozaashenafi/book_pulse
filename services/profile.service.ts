@@ -269,3 +269,25 @@ export async function getPublicProfileByUsername(username: string) {
     return null;
   }
 }
+export async function updatePreferences(
+  userId: string,
+  prefs: {
+    emailNotifications?: boolean;
+    privateShelf?: boolean;
+    clubInvites?: boolean;
+  },
+) {
+  try {
+    await db
+      .update(profiles)
+      .set({
+        ...prefs,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, userId));
+    return { success: true };
+  } catch (error) {
+    console.error("Preference Update Error:", error);
+    throw new Error("Failed to save preferences");
+  }
+}

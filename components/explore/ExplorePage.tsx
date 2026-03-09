@@ -60,7 +60,7 @@ const CategoryFilter = ({
         size={16}
         className="text-tertiary dark:text-[#d4a373]"
       />
-      <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-[#8b5a2b] dark:text-[#d4a373]">
+      <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-primary-half dark:text-[#d4a373]">
         Index Ledger
       </span>
     </div>
@@ -132,7 +132,7 @@ const ExplorePage = () => {
           <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter">
             The Global <span className="italic">Archives</span>
           </h1>
-          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg max-w-xl leading-snug">
+          <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg max-w-xl leading-snug">
             "Discover community-led reading circles and dive into your next
             story."
           </p>
@@ -161,7 +161,7 @@ const ExplorePage = () => {
               <h4 className="font-serif font-bold text-tertiary text-sm mb-2">
                 Member Note:
               </h4>
-              <p className="text-[11px] text-[#8b5a2b] font-serif italic leading-relaxed">
+              <p className="text-[11px] text-primary-half font-serif italic leading-relaxed">
                 Can't find your specific niche? Start your own circle from the
                 dashboard and invite your squad.
               </p>

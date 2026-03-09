@@ -128,7 +128,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
             <StatCard
               label="Manuscripts"
               value={stats?.books}
-              color="text-[#8b5a2b]"
+              color="text-primary-half"
             />
             <StatCard
               label="Scribbles"
@@ -228,7 +228,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
               </div>
             </div>
             <div className="bg-[#f4ebd0] p-8 border-2 border-[#d6c7a1]">
-              <h3 className="font-mono text-[10px] font-black text-[#8b5a2b] uppercase mb-6 tracking-widest border-b border-[#d6c7a1] pb-2">
+              <h3 className="font-mono text-[10px] font-black text-primary-half uppercase mb-6 tracking-widest border-b border-[#d6c7a1] pb-2">
                 Active Category Index
               </h3>
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">

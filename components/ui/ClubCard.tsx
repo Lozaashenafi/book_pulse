@@ -103,7 +103,7 @@ const ClubCard = ({ book }: { book: Book }) => {
 
         <div className="p-5 flex flex-col flex-1 min-w-0 relative">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-[9px] font-mono font-black text-[#8b5a2b] uppercase tracking-widest bg-[#f4ebd0] px-2 py-0.5">
+            <span className="text-[9px] font-mono font-black text-primary-half uppercase tracking-widest bg-[#f4ebd0] px-2 py-0.5">
               {book.category}
             </span>
             <div className="flex items-center gap-1 text-tertiary/40">
@@ -117,7 +117,7 @@ const ClubCard = ({ book }: { book: Book }) => {
           <h3 className="text-lg font-serif font-black text-tertiary dark:text-[#E8D5C4] truncate leading-tight">
             {book.title}
           </h3>
-          <p className="text-[#8b5a2b] italic text-xs mb-4 font-serif">
+          <p className="text-primary-half italic text-xs mb-4 font-serif">
             Reading: {book.bookTitle}
           </p>
 
@@ -165,7 +165,7 @@ const ClubCard = ({ book }: { book: Book }) => {
                 <p className="font-serif font-black text-xl text-tertiary dark:text-[#d4a373]">
                   {book.bookTitle}
                 </p>
-                <p className="text-xs font-mono font-bold text-[#8b5a2b] uppercase tracking-widest">
+                <p className="text-xs font-mono font-bold text-primary-half uppercase tracking-widest">
                   Authored by {book.author}
                 </p>
               </div>
@@ -193,7 +193,7 @@ const ClubCard = ({ book }: { book: Book }) => {
 
                 <div className="grid grid-cols-2 gap-6 pt-4 font-mono">
                   <div className="border-t-2 border-tertiary/10 pt-2">
-                    <p className="text-[9px] font-black text-[#8b5a2b] uppercase">
+                    <p className="text-[9px] font-black text-primary-half uppercase">
                       Timeline
                     </p>
                     <p className="text-xs font-bold text-tertiary dark:text-[#d4a373]">
@@ -201,11 +201,11 @@ const ClubCard = ({ book }: { book: Book }) => {
                     </p>
                   </div>
                   <div className="border-t-2 border-tertiary/10 pt-2">
-                    <p className="text-[9px] font-black text-[#8b5a2b] uppercase">
+                    <p className="text-[9px] font-black text-primary-half uppercase">
                       Active Readers
                     </p>
                     <p className="text-xs font-bold text-tertiary dark:text-[#d4a373]">
-                      {book.readers} Curators
+                      {book.readers} members
                     </p>
                   </div>
                 </div>

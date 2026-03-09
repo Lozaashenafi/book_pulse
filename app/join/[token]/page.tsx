@@ -53,7 +53,7 @@ const JoinInvitePage = () => {
       );
       if (res.success) {
         toast.success(`Welcome to ${inviteData.clubName}!`);
-        // REDIRECT TO CLUB PAGE
+
         router.push(`/clubs/${res.clubId}`);
         router.refresh();
       }
@@ -67,9 +67,9 @@ const JoinInvitePage = () => {
   // 2. WHILE LOADING: Show a professional "Checking Credentials" view
   if (authLoading || dataLoading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#fdfcf8] space-y-4">
+      <div className="h-screen w-screen flex flex-col items-center justify-center  space-y-4">
         <CuratorLoader />
-        <p className="font-mono text-[10px] uppercase tracking-widest text-[#8b5a2b]">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-primary-half">
           Verifying Credentials...
         </p>
       </div>
@@ -103,7 +103,7 @@ const JoinInvitePage = () => {
               <h2 className="text-lg font-serif font-black text-tertiary">
                 {inviteData.clubName}
               </h2>
-              <p className="text-xs font-serif italic text-[#8b5a2b]">
+              <p className="text-xs font-serif italic text-primary-half">
                 Reading {inviteData.bookTitle}
               </p>
             </div>
@@ -115,7 +115,7 @@ const JoinInvitePage = () => {
             className="w-full bg-tertiary text-[#f4ebd0] py-5 font-serif font-black italic text-xl shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3"
           >
             {isJoining ? (
-              <CuratorLoader />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
               <>
                 {/* 3. DYNAMIC BUTTON TEXT based on confirmed auth status */}
@@ -126,7 +126,7 @@ const JoinInvitePage = () => {
           </button>
 
           {user && (
-            <p className="text-[10px] font-mono text-[#8b5a2b]">
+            <p className="text-[10px] font-mono text-primary-half">
               Logged in as: {user.email}
             </p>
           )}

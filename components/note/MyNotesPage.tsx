@@ -77,7 +77,7 @@ const MyNotesPage = () => {
                 className="pl-10 pr-4 py-2 bg-white dark:bg-[#252525] border border-[#d6c7a1] font-serif italic text-sm outline-none focus:border-tertiary"
               />
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b5a2b]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-half"
                 size={16}
               />
             </div>
@@ -122,7 +122,7 @@ const MyNotesPage = () => {
 
             {/* Tags Index */}
             <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1]">
-              <h4 className="font-mono text-[10px] font-black uppercase tracking-widest text-[#8b5a2b] mb-4 border-b border-[#d6c7a1] pb-2">
+              <h4 className="font-mono text-[10px] font-black uppercase tracking-widest text-primary-half mb-4 border-b border-[#d6c7a1] pb-2">
                 Subject Index
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -165,8 +165,8 @@ const MyNotesPage = () => {
                     />
                   </button>
                   <div className="flex items-center gap-2 mb-4">
-                    <Clock size={12} className="text-[#8b5a2b]" />
-                    <span className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-tighter">
+                    <Clock size={12} className="text-primary-half" />
+                    <span className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-tighter">
                       {new Date(note.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -181,7 +181,7 @@ const MyNotesPage = () => {
                       {note.tags?.map((t: string) => (
                         <span
                           key={t}
-                          className="text-[8px] font-mono font-black uppercase text-[#8b5a2b] bg-tertiary/5 px-1"
+                          className="text-[8px] font-mono font-black uppercase text-primary-half bg-tertiary/5 px-1"
                         >
                           #{t}
                         </span>

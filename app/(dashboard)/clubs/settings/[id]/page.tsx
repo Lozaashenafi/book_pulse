@@ -35,7 +35,7 @@ import CuratorLoader from "@/components/ui/CuratorLoader";
 // UI Helper components inside the file to maintain specific styling
 const ClubInput = ({ label, ...props }: any) => (
   <div className="space-y-1">
-    <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest ml-1">
+    <label className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-widest ml-1">
       {label}
     </label>
     <input
@@ -48,7 +48,7 @@ const ClubInput = ({ label, ...props }: any) => (
 
 const ClubTextArea = ({ label, ...props }: any) => (
   <div className="space-y-1">
-    <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest ml-1">
+    <label className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-widest ml-1">
       {label}
     </label>
     <textarea
@@ -183,7 +183,7 @@ const ClubSettingsPage = () => {
       <div className="flex items-center justify-between border-b-2 border-primary-dark/10 pb-4 mb-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-[#8b5a2b] font-mono text-xs font-bold uppercase hover:text-primary-dark"
+          className="flex items-center gap-2 text-primary-half font-mono text-xs font-bold uppercase hover:text-primary-dark"
         >
           <ArrowLeft size={16} /> Back to Registry
         </button>
@@ -229,7 +229,7 @@ const ClubSettingsPage = () => {
 
         <main className="flex-1 space-y-10">
           {/* MAIN CONTENT CARD: SCRAP PAPER STYLE */}
-          <div className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[12px] border-[#8b5a2b]/20">
+          <div className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[12px] border-primary-half/20">
             <Paperclip
               className="absolute -top-4 right-8 text-gray-400 rotate-12"
               size={32}
@@ -320,7 +320,7 @@ const ClubSettingsPage = () => {
                     }
                   />
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase tracking-widest ml-1">
+                    <label className="text-[10px] font-mono font-bold text-primary-half uppercase tracking-widest ml-1">
                       Genre Category
                     </label>
                     <select
@@ -368,12 +368,12 @@ const ClubSettingsPage = () => {
                 <div className="p-6 border-2 border-dashed border-primary-dark/20 bg-[#f4ebd0]/20">
                   <label className="flex items-center justify-between cursor-pointer">
                     <div className="flex items-center gap-4">
-                      <FileUp className="text-[#8b5a2b]" />
+                      <FileUp className="text-primary-half" />
                       <div>
                         <p className="text-sm font-bold font-serif text-primary-dark dark:text-gray-100">
                           {newPdf ? newPdf.name : "Replace PDF Script"}
                         </p>
-                        <p className="text-[10px] font-mono text-[#8b5a2b] uppercase">
+                        <p className="text-[10px] font-mono text-primary-half uppercase">
                           {club.books.pdf_url
                             ? "Current file attached"
                             : "No script uploaded"}
@@ -412,7 +412,7 @@ const ClubSettingsPage = () => {
 
                 <div className="p-4 bg-[#f4ebd0] dark:bg-black/20 border-2 border-[#d6c7a1] flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[8px] font-mono font-bold text-[#8b5a2b] uppercase">
+                    <span className="text-[8px] font-mono font-bold text-primary-half uppercase">
                       Invitation Link
                     </span>
                     <span className="text-xs font-serif font-bold text-primary-dark dark:text-gray-300 truncate max-w-[200px]">
@@ -449,7 +449,7 @@ const ClubSettingsPage = () => {
                             {m.profiles.name}{" "}
                             {m.user_id === user?.id && "(You)"}
                           </p>
-                          <p className="text-[9px] font-mono text-[#8b5a2b] uppercase font-bold tracking-widest">
+                          <p className="text-[9px] font-mono text-primary-half uppercase font-bold tracking-widest">
                             {m.role}
                           </p>
                         </div>
@@ -527,7 +527,7 @@ const ClubSettingsPage = () => {
             <h2 className="text-2xl font-serif font-black text-center mb-2 text-[#2c2c2c]">
               Burn the Ledger?
             </h2>
-            <p className="text-center font-serif italic text-[#8b5a2b] mb-8">
+            <p className="text-center font-serif italic text-primary-half mb-8">
               Every note, member, and scribble in "{club.name}" will be lost to
               time.
             </p>

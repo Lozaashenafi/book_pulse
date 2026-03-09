@@ -58,6 +58,10 @@ export const profiles = pgTable("profiles", {
   username: text("username"),
   location: text("location"),
   bio: text("bio"),
+  emailNotifications: boolean("email_notifications").default(true),
+  privateShelf: boolean("private_shelf").default(false),
+  clubInvites: boolean("club_invites").default(true),
+  lastReminderAt: timestamp("last_reminder_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

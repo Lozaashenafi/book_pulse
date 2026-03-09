@@ -46,7 +46,7 @@ export default function NotFound() {
       </Link>
 
       {/* Aesthetic Footer Detail */}
-      <p className="mt-12 font-mono text-[10px] uppercase tracking-[0.3em] text-[#8b5a2b] opacity-60">
+      <p className="mt-12 font-mono text-[10px] uppercase tracking-[0.3em] text-primary-half opacity-60">
         Reference Error: Object_Not_Found // Library_Section_Missing
       </p>
     </div>

@@ -13,11 +13,17 @@ import {
   Paperclip,
 } from "lucide-react";
 import Link from "next/link";
-import { updateProfile, updateProfileImage } from "@/services/profile.service";
+import {
+  updatePreferences,
+  updateProfile,
+  updateProfileImage,
+} from "@/services/profile.service";
 import { toast } from "sonner";
 import CuratorLoader from "@/components/ui/CuratorLoader";
+
 const SettingsPage = () => {
   const { profile, user, syncSession } = useAuthStore();
+  const [toggling, setToggling] = useState<string | null>(null);
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +40,24 @@ const SettingsPage = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  const handleToggle = async (key: string, currentValue: boolean) => {
+    if (!user) return;
+
+    setToggling(key);
+    try {
+      // 1. Call Service
+      await updatePreferences(user.id, { [key]: !currentValue });
+
+      // 2. Sync Global state
+      await syncSession();
+
+      toast.success("Preference updated");
+    } catch (err) {
+      toast.error("Failed to update settings");
+    } finally {
+      setToggling(null);
+    }
+  };
 
   useEffect(() => {
     if (profile) {
@@ -130,7 +154,7 @@ const SettingsPage = () => {
           <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
             The Setup
           </h1>
-          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
+          <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
             Personalize your reading experience
           </p>
         </div>
@@ -144,7 +168,7 @@ const SettingsPage = () => {
 
       <div className="grid grid-cols-1 gap-10">
         {/* Profile Section */}
-        <section className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[10px] border-[#8b5a2b]/30">
+        <section className="relative bg-white dark:bg-[#252525] p-8 shadow-md border-t-[10px] border-primary-half/30">
           <Paperclip
             className="absolute -top-4 right-10 text-gray-400 rotate-12"
             size={32}
@@ -163,7 +187,7 @@ const SettingsPage = () => {
                     alt="Avatar"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[#8b5a2b]">
+                  <div className="w-full h-full flex items-center justify-center text-primary-half">
                     <User size={40} />
                   </div>
                 )}
@@ -194,7 +218,7 @@ const SettingsPage = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                  <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                     Full Name
                   </label>
                   <input
@@ -207,7 +231,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                  <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                     Location
                   </label>
                   <input
@@ -221,7 +245,7 @@ const SettingsPage = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+                <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                   Reading Bio
                 </label>
                 <textarea
@@ -246,22 +270,42 @@ const SettingsPage = () => {
         </section>
 
         {/* Preferences Section */}
-        <section className="bg-[#f4ebd0] dark:bg-[#2c2420] p-8 border-2 border-[#d6c7a1] shadow-inner">
+        <section className="bg-[#f4ebd0] dark:bg-[#2c2420] p-8 border-2 border-[#d6c7a1] shadow-inner mt-10">
           <h2 className="text-xl font-serif font-bold mb-6 flex items-center gap-2 text-primary-dark dark:text-gray-100">
             <Bell size={20} /> The Buzz & Privacy
           </h2>
-          <div className="space-y-6">
+
+          <div className="space-y-2">
             <ToggleRow
               label="Email Notifications"
               description="Get notified when someone likes your scribbles."
+              isEnabled={profile?.emailNotifications ?? true}
+              isLoading={toggling === "emailNotifications"}
+              onToggle={() =>
+                handleToggle(
+                  "emailNotifications",
+                  profile?.emailNotifications ?? true,
+                )
+              }
             />
+            {/* 
             <ToggleRow
               label="Private Shelf"
               description="Only you can see your 'Brain Dumps' and progress."
-            />
+              isEnabled={profile?.privateShelf ?? false}
+              isLoading={toggling === "privateShelf"}
+              onToggle={() =>
+                handleToggle("privateShelf", profile?.privateShelf ?? false)
+              }
+            /> */}
             <ToggleRow
               label="Club Invites"
               description="Allow squads to invite you to their circles."
+              isEnabled={profile?.clubInvites ?? true}
+              isLoading={toggling === "clubInvites"}
+              onToggle={() =>
+                handleToggle("clubInvites", profile?.clubInvites ?? true)
+              }
             />
           </div>
         </section>
@@ -276,7 +320,7 @@ const SettingsPage = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end"
           >
             <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+              <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                 New Password
               </label>
               <input
@@ -292,7 +336,7 @@ const SettingsPage = () => {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-mono font-bold text-[#8b5a2b] uppercase">
+              <label className="text-[10px] font-mono font-bold text-primary-half uppercase">
                 Confirm
               </label>
               <input
@@ -324,21 +368,37 @@ const SettingsPage = () => {
 const ToggleRow = ({
   label,
   description,
-}: {
-  label: string;
-  description: string;
-}) => (
-  <div className="flex items-center justify-between py-4 border-b border-primary-dark/10 last:border-0">
-    <div>
+  isEnabled,
+  onToggle,
+  isLoading,
+}: any) => (
+  <div className="flex items-center justify-between py-5 border-b border-[#1a3f22]/10 last:border-0">
+    <div className="pr-4">
       <p className="font-serif font-bold text-primary-dark dark:text-gray-100">
         {label}
       </p>
-      <p className="text-xs text-gray-500 font-mono italic">{description}</p>
+      <p className="text-xs text-primary-half dark:text-gray-500 font-mono italic">
+        {description}
+      </p>
     </div>
-    <div className="w-12 h-6 bg-primary-dark/20 rounded-full relative cursor-pointer p-1">
-      <div className="w-4 h-4 bg-primary-dark rounded-full" />
-    </div>
+
+    <button
+      onClick={onToggle}
+      disabled={isLoading}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+        isEnabled ? "bg-primary-dark" : "bg-gray-200 dark:bg-stone-700"
+      }`}
+    >
+      <span
+        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out flex items-center justify-center ${
+          isEnabled ? "translate-x-5" : "translate-x-0"
+        }`}
+      >
+        {isLoading && (
+          <Loader2 size={10} className="animate-spin text-primary-dark" />
+        )}
+      </span>
+    </button>
   </div>
 );
-
 export default SettingsPage;

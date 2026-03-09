@@ -29,7 +29,7 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
     <div className="group relative bg-white dark:bg-[#252525] border-2 border-primary-dark/10 shadow-[4px_4px_0px_rgba(92,64,51,0.1)] transition-all hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(92,64,51,0.15)] flex flex-col md:flex-row overflow-hidden">
       {/* Accent Spine (Vertical) */}
       <div
-        className={`w-full md:w-[8px] h-[6px] md:h-auto shrink-0 ${book.color || "bg-[#8b5a2b]"}`}
+        className={`w-full md:w-[8px] h-[6px] md:h-auto shrink-0 ${book.color || "bg-primary-half"}`}
       />
 
       {/* Book Cover Section - Styled like a recessed photo slot */}
@@ -41,7 +41,7 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#8b5a2b]/30">
+          <div className="w-full h-full flex items-center justify-center text-primary-half/30">
             <BookIcon size={40} />
           </div>
         )}
@@ -50,7 +50,7 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-1 min-w-0">
         <div className="flex justify-between items-start mb-3">
-          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border border-primary-dark/20 text-[#8b5a2b] dark:text-[#d4a373]">
+          <span className="font-mono text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 border border-primary-dark/20 text-primary-half dark:text-[#d4a373]">
             {book.category}
           </span>
         </div>
@@ -59,7 +59,7 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
           <h3 className="text-xl font-serif font-black text-primary-dark dark:text-[#d4a373] leading-tight truncate">
             {book.title}
           </h3>
-          <p className="text-[#8b5a2b] dark:text-gray-400 font-serif italic text-sm">
+          <p className="text-primary-half dark:text-gray-400 font-serif italic text-sm">
             Featuring: {book.bookTitle || "Selected Work"}
           </p>
         </div>
@@ -70,13 +70,13 @@ const MyClubCard = ({ book, onAction, isJoined, loading }: BookCardProps) => {
 
         {/* Meta Stats */}
         <div className="flex items-center gap-4 mb-5">
-          <div className="flex items-center gap-1.5 text-[#8b5a2b]">
+          <div className="flex items-center gap-1.5 text-primary-half">
             <Users size={14} />
             <span className="font-mono text-[10px] font-bold uppercase tracking-tighter">
               {book.readers} Readers
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-[#8b5a2b]">
+          <div className="flex items-center gap-1.5 text-primary-half">
             <Calendar size={14} />
             <span className="font-mono text-[10px] font-bold uppercase tracking-tighter">
               {book.dateRange}

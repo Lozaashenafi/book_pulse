@@ -15,36 +15,57 @@ import {
   PanelLeftOpen,
   Menu,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getSidebarClubs } from "@/services/profile.service";
+import { getUserNotifications } from "@/services/notification.service"; // Import notification service
+import { useTheme } from "next-themes"; // Import theme hook
 
 export default function SideBar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isBrowseOpen, setIsBrowseOpen] = useState(false);
+
+  // Data States
   const [clubsData, setClubsData] = useState<{ owned: any[]; all: any[] }>({
     owned: [],
     all: [],
   });
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const { user, profile, signOut } = useAuthStore();
 
   const isInsideClub =
     pathname.startsWith("/clubs/") && pathname !== "/clubs/myclubs";
 
+  // Prevent Hydration Mismatch & Fetch Data
   useEffect(() => {
     setMounted(true);
     if (user?.id) {
+      // Fetch Clubs
       getSidebarClubs(user.id).then(setClubsData);
+
+      // Initial Notification Fetch
+      const fetchNotices = async () => {
+        const notices = await getUserNotifications(user.id);
+        const unread = notices.filter((n: any) => !n.isRead).length;
+        setUnreadCount(unread);
+      };
+
+      fetchNotices();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(fetchNotices, 30000);
+      return () => clearInterval(interval);
     }
   }, [user]);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
@@ -53,6 +74,10 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
@@ -64,12 +89,21 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             BookPulse
           </h1>
         </Link>
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="p-2 text-tertiary dark:text-[#d4a373]"
-        >
-          <Menu size={28} />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Mobile Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-tertiary dark:text-[#d4a373]"
+          >
+            {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+          </button>
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            className="p-2 text-tertiary dark:text-[#d4a373]"
+          >
+            <Menu size={28} />
+          </button>
+        </div>
       </div>
 
       {/* --- MOBILE BACKDROP --- */}
@@ -82,14 +116,8 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
 
       {/* --- SIDEBAR ASIDE --- */}
       <aside
-        className={`
-          fixed inset-y-0 left-0 z-[70] transition-transform duration-300 ease-in-out bg-[#eaddcf] dark:bg-[#1a1614]
-          lg:static lg:translate-x-0 lg:flex lg:flex-col lg:flex-shrink-0 h-full py-8 px-4
-          ${isMobileOpen ? "translate-x-0 w-72 shadow-2xl" : "-translate-x-full lg:translate-x-0"}
-          ${isCollapsed ? "lg:w-20" : "lg:w-64"}
-        `}
+        className={`fixed inset-y-0 left-0 z-[70] transition-transform duration-300 ease-in-out bg-[#eaddcf] dark:bg-[#1a1614] lg:static lg:translate-x-0 lg:flex lg:flex-col lg:flex-shrink-0 h-full py-8 px-4 ${isMobileOpen ? "translate-x-0 w-72 shadow-2xl" : "-translate-x-full lg:translate-x-0"} ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
       >
-        {/* Mobile Close Button */}
         <button
           onClick={() => setIsMobileOpen(false)}
           className="lg:hidden absolute top-6 right-6 text-tertiary"
@@ -111,28 +139,25 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
               {isCollapsed ? "BP" : "BookPulse"}
             </h1>
             {!isCollapsed && (
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1 text-[#8b5a2b]">
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold mt-1 text-primary-half">
                 {user ? "Welcome back, Reader" : "Chill & Read"}
               </p>
             )}
           </Link>
-
-          {/* Desktop Collapse Toggle */}
           {!isCollapsed && (
             <button
               onClick={() => setIsCollapsed(true)}
-              className="hidden lg:block text-[#8b5a2b] hover:text-tertiary dark:hover:text-[#d4a373] transition-colors ml-2"
+              className="hidden lg:block text-primary-half hover:text-tertiary dark:hover:text-[#d4a373] transition-colors ml-2"
             >
               <PanelLeftClose size={20} />
             </button>
           )}
         </div>
 
-        {/* Desktop Expand Toggle (Shown only when collapsed) */}
         {isCollapsed && (
           <button
             onClick={() => setIsCollapsed(false)}
-            className="hidden lg:flex mb-6 items-center justify-center text-[#8b5a2b] hover:text-[#d4a373]"
+            className="hidden lg:flex mb-6 items-center justify-center text-primary-half hover:text-[#d4a373]"
           >
             <PanelLeftOpen size={20} />
           </button>
@@ -154,7 +179,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             active={pathname === "/search"}
             isCollapsed={isCollapsed}
           />
-
           <NavItem
             href="/clubs/myclubs"
             icon={<Users size={20} />}
@@ -171,16 +195,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           <div className="space-y-1">
             <button
               onClick={() => setIsBrowseOpen(!isBrowseOpen)}
-              className={`w-full flex items-center transition-all mb-1 ${
-                isCollapsed
-                  ? "justify-center py-3"
-                  : "justify-between px-4 py-2"
-              } ${
-                isInsideClub
-                  ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
-                  : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary"
-              }`}
-              title={isCollapsed ? "Enter Circles" : ""}
+              className={`w-full flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${isInsideClub ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary"}`}
             >
               <div className="flex items-center space-x-3">
                 <MessageCircle
@@ -200,25 +215,17 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                 />
               )}
             </button>
-
             {isBrowseOpen && !isCollapsed && (
               <div className="pl-6 space-y-1 animate-in slide-in-from-top-2 duration-300">
-                {clubsData.all.map((club) => {
-                  const isCurrentClub = pathname === `/clubs/${club.id}`;
-                  return (
-                    <Link
-                      key={club.id}
-                      href={`/clubs/${club.id}`}
-                      className={`block px-4 py-1.5 text-sm font-bold font-serif italic border-l transition-all ${
-                        isCurrentClub
-                          ? "text-tertiary border-tertiary"
-                          : "text-[#8b5a2b] border-tertiary/20 hover:border-tertiary hover:text-tertiary"
-                      }`}
-                    >
-                      # {club.name}
-                    </Link>
-                  );
-                })}
+                {clubsData.all.map((club) => (
+                  <Link
+                    key={club.id}
+                    href={`/clubs/${club.id}`}
+                    className={`block px-4 py-1.5 text-sm font-bold font-serif italic border-l transition-all ${pathname === `/clubs/${club.id}` ? "text-tertiary border-tertiary" : "text-primary-half border-tertiary/20 hover:border-tertiary hover:text-tertiary"}`}
+                  >
+                    # {club.name}
+                  </Link>
+                ))}
               </div>
             )}
           </div>
@@ -230,13 +237,21 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             active={pathname === "/note"}
             isCollapsed={isCollapsed}
           />
+
+          {/* UPDATED: THE BUZZ WITH DYNAMIC BADGE */}
           <NavItem
             href="/notices"
             icon={<Bell size={20} />}
             label="The Buzz"
+            badge={
+              !isCollapsed && unreadCount > 0
+                ? unreadCount.toString()
+                : undefined
+            }
             active={pathname === "/notices"}
             isCollapsed={isCollapsed}
           />
+
           <NavItem
             href="/settings"
             icon={<Settings size={20} />}
@@ -244,6 +259,25 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             active={pathname === "/settings"}
             isCollapsed={isCollapsed}
           />
+
+          {/* NEW: THEME TOGGLE FOR DESKTOP */}
+          <button
+            onClick={toggleTheme}
+            className={`w-full flex items-center transition-all mt-4 ${isCollapsed ? "justify-center py-3" : "px-4 py-2"} text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary`}
+          >
+            <div className="flex items-center space-x-3">
+              {resolvedTheme === "dark" ? (
+                <Sun size={20} />
+              ) : (
+                <Moon size={20} />
+              )}
+              {!isCollapsed && (
+                <span className="font-serif font-bold text-sm tracking-tight">
+                  Toggle Visuals
+                </span>
+              )}
+            </div>
+          </button>
         </nav>
 
         {/* PROFILE SECTION */}
@@ -268,7 +302,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                   </span>
                 )}
               </Link>
-
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-[#5c4033] dark:text-gray-100 truncate">
@@ -276,7 +309,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                   </p>
                   <button
                     onClick={handleSignOut}
-                    className="text-[#8b5a2b] hover:text-red-600 dark:text-[#d4a373] text-[10px] font-mono font-bold uppercase"
+                    className="text-primary-half hover:text-red-600 dark:text-[#d4a373] text-[10px] font-mono font-bold uppercase"
                   >
                     Sign Out
                   </button>
@@ -294,7 +327,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         )}
       </aside>
 
-      {/* --- MAIN CONTENT --- */}
       <main className="flex-1 h-full overflow-y-auto custom-scrollbar px-4 lg:px-8 py-8 lg:py-0">
         <div
           className={`${isCollapsed ? "lg:ml-0" : ""} transition-all duration-300 h-full`}
@@ -302,19 +334,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(26, 63, 34, 0.2);
-          border-radius: 10px;
-        }
-      `}</style>
     </div>
   );
 }
@@ -329,14 +348,7 @@ const NavItem = ({
 }: any) => (
   <Link href={href || "#"}>
     <div
-      title={isCollapsed ? label : ""}
-      className={`flex items-center transition-all mb-1 ${
-        isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"
-      } ${
-        active
-          ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
-          : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"
-      }`}
+      className={`flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${active ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"}`}
     >
       <div className="flex items-center space-x-3">
         <span className={active ? "animate-pulse" : ""}>{icon}</span>

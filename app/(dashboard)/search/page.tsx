@@ -53,7 +53,7 @@ const CategoryFilter = ({
         size={16}
         className="text-[#1a3f22] dark:text-[#d4a373]"
       />
-      <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-[#8b5a2b] dark:text-[#d4a373]">
+      <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-primary-half dark:text-[#d4a373]">
         Classification Index
       </span>
     </div>
@@ -152,7 +152,7 @@ const ExplorePage = () => {
               <Bookmark size={14} className="fill-current" />
               Member Note:
             </h4>
-            <p className="text-[11px] text-[#8b5a2b] dark:text-gray-400 font-serif italic leading-relaxed">
+            <p className="text-[11px] text-primary-half dark:text-gray-400 font-serif italic leading-relaxed">
               Can't find your specific niche? Start your own circle from the
               dashboard and invite your squad.
             </p>

@@ -131,10 +131,9 @@ const BookPulsePage = () => {
             rows={2}
           />
           <div className="flex items-center justify-between pt-4 border-t border-dashed border-gray-200">
-            {/* FIXED: Add Quote Button */}
             <button
               onClick={handleAddQuote}
-              className="text-[#8b5a2b] flex items-center gap-1 text-[10px] font-black uppercase hover:text-tertiary transition-colors"
+              className="text-primary-half flex items-center gap-1 text-[10px] font-black uppercase hover:text-tertiary transition-colors"
             >
               <Quote size={14} /> Add Quote
             </button>
@@ -312,7 +311,7 @@ const BookPulsePage = () => {
                     <p className="font-serif font-black text-sm text-tertiary uppercase tracking-tighter">
                       {selectedPost.userName}
                     </p>
-                    <p className="text-[9px] font-mono text-[#8b5a2b] font-bold">
+                    <p className="text-[9px] font-mono text-primary-half font-bold">
                       READER NO. {selectedPost.userId.slice(-6).toUpperCase()}
                     </p>
                   </div>
@@ -338,11 +337,35 @@ const BookPulsePage = () => {
 
               {/* Footer: Archive Stamp */}
               <div className="relative z-10 mt-8 pt-6  flex flex-col items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-tertiary tracking-[0.4em] uppercase">
-                    BookPulse Archive
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "900",
+                      color: "#1a3f22",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    BOOKPULSE
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "900",
+                      color: "#1a3f22",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    ARCHIVE
                   </span>
                 </div>
+
                 <p className="text-[9px] font-mono text-gray-500 uppercase">
                   Captured{" "}
                   {new Date(selectedPost.createdAt).toLocaleDateString(
@@ -384,20 +407,20 @@ const BookPulsePage = () => {
         {/* Popular Circles - DYNAMIC */}
         <div className="bg-[#fff9f0] dark:bg-[#2c2420] p-6 border-2 border-[#e3d5c1] shadow-inner">
           <div className="flex items-center justify-between mb-6 border-b-2 border-[#e3d5c1] pb-2">
-            <h3 className="font-mono font-bold text-sm text-[#8b5a2b]">
+            <h3 className="font-mono font-bold text-sm text-primary-half">
               LITERARY CIRCLES
             </h3>
-            <TrendingUp size={16} className="text-[#8b5a2b]" />
+            <TrendingUp size={16} className="text-primary-half" />
           </div>
           <div className="space-y-6">
             {popularClubs.map((club) => (
               <div
                 key={club.id}
-                onClick={() => router.push(`/explore`)} // Or specific club link
+                onClick={() => router.push(`/search`)} // Or specific club link
                 className="flex items-center justify-between group cursor-pointer border-b border-[#e3d5c1] border-dotted pb-2"
               >
                 <div>
-                  <p className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#8b5a2b] transition-colors">
+                  <p className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200 group-hover:text-primary-half transition-colors">
                     {club.name}
                   </p>
                   <p className="text-[9px] font-mono text-gray-500 uppercase">
@@ -406,7 +429,7 @@ const BookPulsePage = () => {
                 </div>
                 <PlusCircle
                   size={14}
-                  className="text-gray-300 group-hover:text-[#8b5a2b]"
+                  className="text-gray-300 group-hover:text-primary-half"
                 />
               </div>
             ))}

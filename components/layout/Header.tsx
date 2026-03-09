@@ -58,7 +58,7 @@ const Header = () => {
         className={`relative group px-1 py-1 transition-all duration-300 font-serif font-bold text-sm tracking-tight ${
           active
             ? "text-tertiary dark:text-[#d4a373]"
-            : "text-[#8b5a2b] hover:text-tertiary dark:text-gray-400 dark:hover:text-[#d4a373]"
+            : "text-primary-half hover:text-tertiary dark:text-gray-400 dark:hover:text-[#d4a373]"
         }`}
       >
         <span className="relative z-10">{children}</span>
@@ -257,7 +257,7 @@ const Header = () => {
                   className={`text-lg font-serif font-black px-4 py-2 transition-all ${
                     isActive(path)
                       ? "bg-tertiary text-[#f4ebd0] shadow-[4px_4px_0px_#d4a373]"
-                      : "text-[#8b5a2b] dark:text-gray-400"
+                      : "text-primary-half dark:text-gray-400"
                   }`}
                 >
                   {path === "/"

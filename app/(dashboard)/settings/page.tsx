@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { updateProfile, updateProfileImage } from "@/services/profile.service";
 import { toast } from "sonner";
+import CuratorLoader from "@/components/ui/CuratorLoader";
 const SettingsPage = () => {
   const { profile, user, syncSession } = useAuthStore();
   const supabase = createClient();
@@ -167,8 +168,8 @@ const SettingsPage = () => {
                   </div>
                 )}
                 {uploading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Loader2 className="animate-spin text-white" />
+                  <div className="min-h-screen flex items-center justify-center">
+                    <CuratorLoader />
                   </div>
                 )}
               </div>

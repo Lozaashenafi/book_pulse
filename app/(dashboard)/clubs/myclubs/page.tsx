@@ -6,6 +6,7 @@ import MyClubCard from "../../../../components/ui/MyClubCard";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMyClubs } from "@/hooks/useMyClubs";
+import CuratorLoader from "@/components/ui/CuratorLoader";
 
 const EmptyState = () => {
   const router = useRouter();
@@ -57,8 +58,8 @@ const MyClubsPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary-dark" size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+        <CuratorLoader />
       </div>
     );
   }

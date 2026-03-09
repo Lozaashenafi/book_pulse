@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNotes } from "@/hooks/useNotes";
+import CuratorLoader from "../ui/CuratorLoader";
 
 const MyNotesPage = () => {
   const { user } = useAuthStore();
@@ -52,7 +53,7 @@ const MyNotesPage = () => {
   if (isLoading)
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+        <CuratorLoader />
       </div>
     );
 

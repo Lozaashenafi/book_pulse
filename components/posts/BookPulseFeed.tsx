@@ -24,6 +24,7 @@ import { deletePostAction, updatePostAction } from "@/services/post.service";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { useSearchParams, useRouter } from "next/navigation";
+import CuratorLoader from "../ui/CuratorLoader";
 
 const BookPulsePage = () => {
   const { user, profile } = useAuthStore();
@@ -55,6 +56,10 @@ const BookPulsePage = () => {
     } else {
       // Wrap existing text in quotes if not already quoted
       if (input.startsWith('"') && input.endsWith('"')) return;
+      if (input.length + 2 > 260) {
+        toast.error("Character limit reached! Cannot add quotes.");
+        return;
+      }
       setInput(`"${input}"`);
     }
   };
@@ -81,7 +86,7 @@ const BookPulsePage = () => {
       const dataUrl = await toPng(exportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: "#1a3f22",
+        backgroundColor: "#f4ebd0",
       });
       const link = document.createElement("a");
       link.download = `BookPulse-Archive.png`;
@@ -99,7 +104,7 @@ const BookPulsePage = () => {
   if (isLoading)
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+        <CuratorLoader />
       </div>
     );
 
@@ -114,8 +119,14 @@ const BookPulsePage = () => {
           />
           <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="w-full bg-transparent border-none focus:ring-0 text-xl font-serif italic placeholder:text-gray-300 resize-none outline-none"
+            maxLength={260}
+            onChange={(e) => {
+              setInput(e.target.value);
+              if (e.target.value.length === 260) {
+                toast.error("You've reached the 260 character limit.");
+              }
+            }}
+            className="w-full py-6 bg-transparent border-none focus:ring-0 text-xl font-serif italic placeholder:text-gray-300 resize-none outline-none"
             placeholder="Scribble a thought..."
             rows={2}
           />
@@ -129,9 +140,11 @@ const BookPulsePage = () => {
             </button>
             <button
               onClick={() => {
-                if (input.trim()) {
+                if (input.trim().length > 0 && input.length <= 260) {
                   addPost(input);
                   setInput("");
+                } else if (input.length > 260) {
+                  toast.error("Post is too long!");
                 }
               }}
               className="bg-tertiary text-[#f4ebd0] px-6 py-1.5 font-serif italic shadow-md hover:bg-[#132f19] transition-all"
@@ -219,7 +232,7 @@ const BookPulsePage = () => {
                   </div>
                 ) : (
                   <p className="text-[#2c2c2c] font-serif text-xl leading-relaxed">
-                    "{post.content}"
+                    {post.content}
                   </p>
                 )}
               </div>
@@ -269,70 +282,103 @@ const BookPulsePage = () => {
       </main>
 
       {/* EXPORT MODAL - (Unchanged) */}
+
       {showPreview && selectedPost && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="max-w-lg w-full flex flex-col items-center gap-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+          <div className="max-w-2xl w-full flex flex-col items-center gap-6">
+            {/* THE EXPORTABLE CARD (This part becomes the image) */}
             <div
               ref={exportRef}
-              className="w-[450px] h-[450px] bg-tertiary p-8 flex items-center justify-center shadow-2xl"
+              className="w-[450px] h-[550px] bg-[#f4ebd0] p-10 flex flex-col shadow-2xl relative border-[1px] border-black/5"
             >
-              <div className="bg-white w-full h-full p-8 flex flex-col relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <img
-                    crossOrigin="anonymous"
-                    src={
-                      selectedPost.userImage ||
-                      `https://api.dicebear.com/7.x/initials/svg?seed=${selectedPost.userName}`
-                    }
-                    className="w-10 h-10 rounded-full"
-                    alt="avatar"
-                  />
+              {/* Subtle Paper Texture Overlay */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
+
+              {/* Header: Library Card Style */}
+              <div className="relative z-10 flex justify-between items-start border-b-2 border-tertiary/20 pb-6 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full border-2 border-tertiary shadow-sm overflow-hidden">
+                    <img
+                      crossOrigin="anonymous"
+                      src={
+                        selectedPost.userImage ||
+                        `https://api.dicebear.com/7.x/initials/svg?seed=${selectedPost.userName}`
+                      }
+                      className="w-full h-full object-cover grayscale"
+                      alt="avatar"
+                    />
+                  </div>
                   <div>
-                    <p className="font-serif font-bold text-sm text-tertiary">
+                    <p className="font-serif font-black text-sm text-tertiary uppercase tracking-tighter">
                       {selectedPost.userName}
                     </p>
-                    <p className="text-[8px] font-mono uppercase tracking-widest text-[#8b5a2b]">
-                      Reader Archive
+                    <p className="text-[9px] font-mono text-[#8b5a2b] font-bold">
+                      READER NO. {selectedPost.userId.slice(-6).toUpperCase()}
                     </p>
                   </div>
-                  <BookMarked
-                    size={20}
-                    className="ml-auto text-tertiary opacity-10"
-                  />
                 </div>
-                <div className="flex-1 flex items-center justify-center text-center">
-                  <p className="text-xl font-serif italic text-tertiary leading-relaxed">
-                    “{selectedPost.content}”
-                  </p>
-                </div>
-                <div className="mt-4 pt-4 border-t border-dashed border-gray-200 flex flex-col items-center">
-                  <span className="text-[10px] font-black text-tertiary tracking-widest uppercase">
-                    BookPulse
+                <BookMarked size={24} className="text-tertiary" />
+              </div>
+
+              {/* Main Content: The Scribble */}
+              <div className="relative z-10 flex-1 flex items-center justify-center text-center">
+                {/* Decorative Typewriter Quotes */}
+                <span className="absolute top-0 left-0 text-6xl font-serif text-tertiary/5 select-none">
+                  “
+                </span>
+
+                <p className="text-2xl font-serif italic text-tertiary leading-relaxed px-4">
+                  {selectedPost.content}
+                </p>
+
+                <span className="absolute bottom-0 right-0 text-6xl font-serif text-tertiary/5 select-none">
+                  ”
+                </span>
+              </div>
+
+              {/* Footer: Archive Stamp */}
+              <div className="relative z-10 mt-8 pt-6  flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-tertiary tracking-[0.4em] uppercase">
+                    BookPulse Archive
                   </span>
-                  <span className="text-[8px] font-mono text-gray-400 uppercase">
-                    {new Date(selectedPost.createdAt).toLocaleDateString()}
-                  </span>
                 </div>
+                <p className="text-[9px] font-mono text-gray-500 uppercase">
+                  Captured{" "}
+                  {new Date(selectedPost.createdAt).toLocaleDateString(
+                    "en-US",
+                    { month: "long", day: "numeric", year: "numeric" },
+                  )}
+                </p>
               </div>
             </div>
-            <div className="flex gap-4">
+
+            {/* MODAL CONTROLS (Not exported) */}
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowPreview(false)}
-                className="text-white px-6"
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full text-sm font-bold backdrop-blur-md transition-all"
               >
-                Cancel
+                Close
               </button>
               <button
                 onClick={handleDownload}
-                className="bg-[#d4a373] text-tertiary px-8 py-2 rounded-full font-bold"
+                disabled={isCapturing}
+                className="bg-[#d4a373] hover:bg-[#c39262] text-tertiary px-8 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 transition-all disabled:opacity-50"
               >
-                Download
+                {isCapturing ? (
+                  <CuratorLoader />
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Save Image
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
-
       {/* RIGHT COLUMN */}
       <aside className="hidden xl:flex flex-col w-80 flex-shrink-0 h-full space-y-8 mt-4">
         {/* Popular Circles - DYNAMIC */}

@@ -30,6 +30,7 @@ import {
   updateMemberStatus,
 } from "@/services/club.service";
 import { createClient } from "@/lib/supabase/client";
+import CuratorLoader from "@/components/ui/CuratorLoader";
 
 // UI Helper components inside the file to maintain specific styling
 const ClubInput = ({ label, ...props }: any) => (
@@ -172,8 +173,8 @@ const ClubSettingsPage = () => {
 
   if (loading || !club)
     return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary-dark" size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+        <CuratorLoader />
       </div>
     );
 
@@ -285,11 +286,7 @@ const ClubSettingsPage = () => {
                   disabled={saving}
                   className="bg-primary-dark text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
                 >
-                  {saving ? (
-                    <Loader2 className="animate-spin" size={18} />
-                  ) : (
-                    <Save size={18} />
-                  )}
+                  {saving ? <CuratorLoader /> : <Save size={18} />}
                   Update Ledger
                 </button>
               </div>
@@ -400,11 +397,7 @@ const ClubSettingsPage = () => {
                   disabled={saving}
                   className="bg-primary-dark text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
                 >
-                  {saving ? (
-                    <Loader2 className="animate-spin" size={18} />
-                  ) : (
-                    <Save size={18} />
-                  )}
+                  {saving ? <CuratorLoader /> : <Save size={18} />}
                   Update Manuscript
                 </button>
               </div>

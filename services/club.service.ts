@@ -272,8 +272,6 @@ export async function joinClub(
   userName: string,
 ) {
   try {
-    // 1. Double-check if the user is already a member
-    // This handles cases where the UI hasn't refreshed yet
     const existing = await db
       .select()
       .from(clubMembers)
@@ -458,5 +456,51 @@ export async function getPopularClubs() {
   } catch (error) {
     console.error("Error fetching popular clubs:", error);
     return [];
+  }
+}
+
+export async function checkClubAccessAction(clubId: string, userId: string) {
+  try {
+    // 1. Check Membership in Neon
+    const membership = await db
+      .select()
+      .from(clubMembers)
+      .where(
+        and(eq(clubMembers.clubId, clubId), eq(clubMembers.userId, userId)),
+      )
+      .limit(1);
+
+    if (membership.length > 0) return { status: "member" };
+
+    // 2. Check Club Visibility in Neon
+    const club = await db
+      .select({ visibility: clubs.visibility })
+      .from(clubs)
+      .where(eq(clubs.id, clubId))
+      .limit(1);
+
+    if (club.length === 0) return { status: "not-found" };
+
+    if (club[0].visibility === "PRIVATE") {
+      return { status: "private-denied" };
+    }
+
+    return { status: "public-gate" };
+  } catch (error) {
+    console.error("Access check failed:", error);
+    return { status: "member" }; // Fallback
+  }
+}
+export async function joinPublicClubAction(clubId: string, userId: string) {
+  try {
+    await db.insert(clubMembers).values({
+      clubId,
+      userId,
+      role: "MEMBER",
+      joinedAt: new Date(),
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
   }
 }

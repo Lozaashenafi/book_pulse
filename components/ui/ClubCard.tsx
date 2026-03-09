@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { joinClub } from "@/services/club.service";
 import { toast } from "sonner";
+import CuratorLoader from "./CuratorLoader";
 
 export interface Book {
   id: string;
@@ -223,7 +224,7 @@ const ClubCard = ({ book }: { book: Book }) => {
                     className="w-full bg-tertiary text-[#f4ebd0] py-5 shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all font-serif font-black italic text-lg flex items-center justify-center gap-3"
                   >
                     {isJoining ? (
-                      <Loader2 className="animate-spin" size={20} />
+                      <CuratorLoader />
                     ) : (
                       <>
                         {!user ? "Login to Access" : "Join this Circle"}

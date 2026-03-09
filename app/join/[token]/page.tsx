@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { getInviteDetails, joinWithToken } from "@/services/club.service";
 import { Loader2, UserPlus, LogIn } from "lucide-react";
 import { toast } from "sonner";
+import CuratorLoader from "@/components/ui/CuratorLoader";
 
 const JoinInvitePage = () => {
   const { token } = useParams() as { token: string };
@@ -67,7 +68,7 @@ const JoinInvitePage = () => {
   if (authLoading || dataLoading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#fdfcf8] space-y-4">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+        <CuratorLoader />
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#8b5a2b]">
           Verifying Credentials...
         </p>
@@ -114,7 +115,7 @@ const JoinInvitePage = () => {
             className="w-full bg-tertiary text-[#f4ebd0] py-5 font-serif font-black italic text-xl shadow-[6px_6px_0px_#d4a373] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3"
           >
             {isJoining ? (
-              <Loader2 className="animate-spin" />
+              <CuratorLoader />
             ) : (
               <>
                 {/* 3. DYNAMIC BUTTON TEXT based on confirmed auth status */}

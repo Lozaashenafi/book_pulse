@@ -34,6 +34,11 @@ import {
 } from "@/services/chat.service";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  checkClubAccessAction,
+  joinPublicClubAction,
+} from "@/services/club.service";
+import CuratorLoader from "../ui/CuratorLoader";
 
 const ClubDiscussion = ({ clubId }: { clubId: string }) => {
   const { user, profile: myProfile } = useAuthStore();
@@ -67,7 +72,10 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
   const [members, setMembers] = useState<any[]>([]);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
-
+  const [accessStatus, setAccessStatus] = useState<
+    "checking" | "member" | "public-gate" | "private-denied"
+  >("checking");
+  const [isJoining, setIsJoining] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +87,43 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
     return () =>
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+  useEffect(() => {
+    const checkAccess = async () => {
+      // Auth is still checked via Supabase session/AuthStore
+      if (!user) {
+        router.push("/login");
+        return;
+      }
 
+      // Call the Server Action (which queries Neon via Drizzle)
+      const result = await checkClubAccessAction(clubId, user.id);
+
+      if (result.status === "not-found") {
+        toast.error("Literary circle not found.");
+        router.push("/explore");
+        return;
+      }
+
+      // Set the state based on Neon data
+      setAccessStatus(result.status as any);
+    };
+
+    checkAccess();
+  }, [clubId, user, router]);
+
+  // Function to handle joining the public club
+  const handleJoinClub = async () => {
+    setIsJoining(true);
+    const result = await joinPublicClubAction(clubId, user!.id);
+
+    if (result.success) {
+      toast.success("Welcome to the fellowship!");
+      setAccessStatus("member");
+    } else {
+      toast.error("Failed to join.");
+    }
+    setIsJoining(false);
+  };
   const handleToggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -144,12 +188,68 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, viewMode, activeRoom]);
 
-  if (isLoading)
+  if (isLoading || accessStatus === "checking") {
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+        <CuratorLoader />
       </div>
     );
+  }
+  if (accessStatus === "private-denied") {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center">
+        <Lock className="text-red-700 mb-4" size={48} />
+        <h2 className="font-serif font-black text-2xl text-tertiary uppercase">
+          Private Archive
+        </h2>
+        <p className="max-w-md text-sm text-gray-500 mt-2 italic font-serif">
+          This literary circle is restricted to invited members only. You do not
+          have the clearance to view these manuscripts.
+        </p>
+        <button
+          onClick={() => router.push("/explore")}
+          className="mt-6 text-tertiary font-mono font-bold underline"
+        >
+          Return to Library
+        </button>
+      </div>
+    );
+  }
+
+  // 3. Show Public Join Popup (The Gate)
+  if (accessStatus === "public-gate") {
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#f4ebd0]/90 backdrop-blur-sm p-4">
+        <div className="bg-white border-2 border-tertiary p-8 max-w-sm w-full shadow-[8px_8px_0px_#1a3f22] text-center">
+          <Users className="mx-auto text-tertiary mb-4" size={40} />
+          <h2 className="font-serif font-black text-xl text-tertiary uppercase">
+            Join the Circle
+          </h2>
+          <p className="text-sm text-gray-600 my-4 font-serif italic">
+            You aren't a member of{" "}
+            <span className="font-bold text-tertiary">"{clubName}"</span> yet.
+            You need to join this circle before you can enter the chat and see
+            the discussion.
+          </p>
+          <div className="flex flex-col gap-3 mt-6">
+            <button
+              onClick={handleJoinClub}
+              disabled={isJoining}
+              className="w-full bg-tertiary text-[#f4ebd0] py-4 font-serif italic font-bold hover:bg-[#132f19] transition-all flex items-center justify-center gap-2"
+            >
+              {isJoining ? <CuratorLoader /> : "Join Now"}
+            </button>
+            <button
+              onClick={() => router.push("/explore")}
+              className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest hover:text-red-700 transition-colors"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -442,11 +542,7 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
                     onClick={() => fileInputRef.current?.click()}
                     className="p-2 md:p-3 text-tertiary hover:bg-[#f4ebd0] rounded"
                   >
-                    {isUploading ? (
-                      <Loader2 className="animate-spin" size={18} />
-                    ) : (
-                      <Paperclip size={18} />
-                    )}
+                    {isUploading ? <CuratorLoader /> : <Paperclip size={18} />}
                   </button>
                   <button
                     type="submit"

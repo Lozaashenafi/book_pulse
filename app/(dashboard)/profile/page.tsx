@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useProfileData } from "@/hooks/useProfileData";
 import { toast } from "sonner";
+import CuratorLoader from "@/components/ui/CuratorLoader";
 
 const BookPulseProfile = () => {
   const router = useRouter();
@@ -52,8 +53,8 @@ const BookPulseProfile = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary-dark" size={40} />
+      <div className="min-h-screen flex items-center justify-center">
+        <CuratorLoader />
       </div>
     );
   }

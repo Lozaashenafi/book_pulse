@@ -21,6 +21,7 @@ import {
   googleLoginAction,
 } from "@/app/(auth)/action";
 import { useAuthStore } from "@/store/useAuthStore";
+import CuratorLoader from "../ui/CuratorLoader";
 
 const AuthPage = ({
   type,
@@ -276,7 +277,7 @@ const AuthPage = ({
                 className="w-full bg-tertiary text-[#f4ebd0] py-4 shadow-[6px_6px_0px_rgba(26,63,34,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center space-x-2 active:scale-95 font-serif font-black italic"
               >
                 {loading ? (
-                  <Loader2 className="animate-spin" size={20} />
+                  <CuratorLoader />
                 ) : (
                   <>
                     <span>{isSignIn ? "Enter Library" : "Join the Squad"}</span>

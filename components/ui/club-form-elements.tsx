@@ -1,6 +1,7 @@
 // src/components/ui/club-form-elements.tsx
 import React from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
+import CuratorLoader from "./CuratorLoader";
 
 export const TabButton = ({ active, onClick, icon, label }: any) => (
   <button
@@ -74,7 +75,7 @@ export const SaveButton = ({ loading, onClick, label, icon: Icon }: any) => (
     className="w-full bg-primary text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all disabled:opacity-50"
   >
     {loading ? (
-      <Loader2 className="animate-spin" />
+      <CuratorLoader />
     ) : (
       <>
         <Icon size={18} /> {label}

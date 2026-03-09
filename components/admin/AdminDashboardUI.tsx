@@ -19,6 +19,7 @@ import {
   updateUserRole,
 } from "@/services/admin.service";
 import { toast } from "sonner";
+import CuratorLoader from "../ui/CuratorLoader";
 
 // Accept the user from the parent Server Component
 const AdminDashboardUI = ({ user }: { user: any }) => {
@@ -71,7 +72,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
   if (loading)
     return (
       <div className="h-screen flex items-center justify-center bg-[#fdfcf8]">
-        <Loader2 className="animate-spin text-tertiary" size={40} />
+        <CuratorLoader />
       </div>
     );
 

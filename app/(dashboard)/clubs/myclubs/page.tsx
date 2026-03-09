@@ -58,7 +58,7 @@ const MyClubsPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+      <div className="min-h-screen flex items-center justify-center">
         <CuratorLoader />
       </div>
     );
@@ -69,13 +69,10 @@ const MyClubsPage = () => {
       {/* Header "Library Index" Style */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-4 border-primary-dark/10 pb-6 gap-6">
         <div className="text-left">
-          <h1 className="text-5xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
-            My{" "}
-            <span className="italic underline decoration-wavy decoration-[#8b5a2b]/30">
-              Squads
-            </span>
+          <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
+            My Squads
           </h1>
-          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-mono text-xs uppercase tracking-[0.2em] font-bold">
+          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
             Owner Registry // {ownedClubs.length} Created Circles
           </p>
         </div>

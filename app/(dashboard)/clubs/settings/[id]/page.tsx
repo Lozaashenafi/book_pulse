@@ -173,7 +173,7 @@ const ClubSettingsPage = () => {
 
   if (loading || !club)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+      <div className="min-h-screen flex items-center justify-center">
         <CuratorLoader />
       </div>
     );

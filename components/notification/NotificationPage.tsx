@@ -71,10 +71,7 @@ const NotificationPage = () => {
       <div className="max-w-4xl mx-auto px-6">
         <header className="mb-12 border-b-2 border-tertiary/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <div className="inline-block bg-tertiary text-[#f4ebd0] px-3 py-0.5 text-[10px] font-mono font-black uppercase tracking-[0.3em] mb-4">
-              Postmaster Ledger
-            </div>
-            <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
+            <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               Daily <span className="italic">Correspondence</span>
             </h1>
             <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">

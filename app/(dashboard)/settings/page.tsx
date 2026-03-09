@@ -127,10 +127,10 @@ const SettingsPage = () => {
       {/* Header */}
       <div className="mb-10 flex items-end justify-between border-b-2 border-primary-dark/20 pb-4">
         <div>
-          <h1 className="text-4xl font-serif font-black text-primary-dark dark:text-[#d4a373]">
+          <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
             The Setup
           </h1>
-          <p className="text-xs font-mono uppercase tracking-widest text-[#8b5a2b] mt-1">
+          <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
             Personalize your reading experience
           </p>
         </div>

@@ -129,9 +129,6 @@ const ExplorePage = () => {
     <div className="pt-40 pb-20 transition-colors duration-500 min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
         <header className="mb-12 border-b-2 border-tertiary/10 pb-8 relative">
-          <div className="inline-block bg-tertiary text-[#f4ebd0] px-3 py-0.5 text-[10px] font-mono font-bold uppercase tracking-[0.3em] mb-4">
-            Curated Collections
-          </div>
           <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter">
             The Global <span className="italic">Archives</span>
           </h1>

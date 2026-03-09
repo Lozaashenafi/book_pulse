@@ -47,7 +47,7 @@ const BookPulseProfile = () => {
     const url = `${window.location.origin}/profile/${profile.username}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
-    toast.success("Public Registry link copied!");
+    toast.success("Public user link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -78,10 +78,11 @@ const BookPulseProfile = () => {
         {/* HEADER: Library Bookmark Style */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-primary-dark/20 pb-6 gap-6">
           <div className="relative">
-            <h1 className="text-5xl font-serif font-black text-primary-dark dark:text-[#d4a373] tracking-tight">
+            <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               The Reading Shelf
             </h1>
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#8b5a2b] mt-2">
+            <p className="text-[#8b5a2b] dark:text-gray-400 mt-2 font-serif italic text-lg">
+              {" "}
               Curated by {profile?.name || "Anonymous Reader"}
             </p>
           </div>
@@ -100,7 +101,7 @@ const BookPulseProfile = () => {
               className="flex items-center gap-2 px-4 py-2 bg-[#f4ebd0] border-2 border-[#d6c7a1] text-[#8b5a2b] font-mono text-[10px] font-black uppercase tracking-widest hover:border-[#8b5a2b] transition-all"
             >
               {copied ? <Check size={14} /> : <LinkIcon size={14} />}
-              {copied ? "Link Copied" : "Share Registry"}
+              {copied ? "Link Copied" : "Share"}
             </button>
 
             <button

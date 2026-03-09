@@ -148,10 +148,10 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             isCollapsed={isCollapsed}
           />
           <NavItem
-            href="/explore"
+            href="/search"
             icon={<Search size={20} />}
             label="Deep Search"
-            active={pathname === "/explore"}
+            active={pathname === "/search"}
             isCollapsed={isCollapsed}
           />
 

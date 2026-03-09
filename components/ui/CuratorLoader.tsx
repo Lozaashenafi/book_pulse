@@ -24,7 +24,7 @@ const CuratorLoader = () => {
       {/* Narrative Loading Text */}
       <div className="flex flex-col items-center">
         <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-tertiary animate-pulse">
-          Consulting Archives
+          Summoning the results
         </span>
         <div className="flex gap-1 mt-1">
           <div className="w-1 h-1 bg-[#d4a373] rounded-full animate-bounce [animation-delay:-0.3s]"></div>

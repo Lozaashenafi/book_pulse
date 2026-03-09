@@ -12,6 +12,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@vercel/analytics": "^1.6.1",
     "drizzle-orm": "^0.45.1",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",

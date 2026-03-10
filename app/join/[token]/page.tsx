@@ -18,9 +18,10 @@ const JoinInvitePage = () => {
   const [isJoining, setIsJoining] = useState(false);
 
   // 1. Force sync auth and fetch invite data on mount
+
   useEffect(() => {
     const init = async () => {
-      await syncSession(); // Force verify if user is logged in
+      await syncSession();
       const data = await getInviteDetails(token);
       if (!data) {
         toast.error("Invitation link invalid.");
@@ -33,17 +34,16 @@ const JoinInvitePage = () => {
   }, [token, syncSession]);
 
   const handleAction = async () => {
-    // If auth is still loading, do nothing
     if (authLoading) return;
 
-    // STEP 1: If user is definitely NOT logged in
+    // STEP 1: Redirect to login if not authenticated
     if (!user) {
       toast.info("Please sign in to accept the invitation.");
       router.push(`/login?next=/join/${token}`);
       return;
     }
 
-    // STEP 2: If user IS logged in, execute the join in Neon
+    // STEP 2: Execute the join
     setIsJoining(true);
     try {
       const res = await joinWithToken(
@@ -51,15 +51,18 @@ const JoinInvitePage = () => {
         token,
         profile?.name || "A reader",
       );
-      if (res.success) {
-        toast.success(`Welcome to ${inviteData.clubName}!`);
+
+      if (res && res.success) {
+        toast.success(`Access Granted: Welcome to ${inviteData.clubName}`);
 
         router.push(`/clubs/${res.clubId}`);
-        router.refresh();
+      } else {
+        setIsJoining(false);
+        toast.error("Failed to process invitation.");
       }
     } catch (err: any) {
-      toast.error(err.message);
-    } finally {
+      console.error(err);
+      toast.error(err.message || "An unexpected error occurred.");
       setIsJoining(false);
     }
   };

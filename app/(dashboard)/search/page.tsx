@@ -30,10 +30,10 @@ const SearchBar = ({ searchQuery, setSearchQuery }: any) => (
       placeholder="Search archives by title or author..."
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full pl-12 pr-6 py-4 bg-white dark:bg-[#2c2420] border-2 border-[#1a3f22]/10 dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(26,63,34,0.05)] outline-none focus:border-[#1a3f22] transition-all text-[#1a3f22] dark:text-[#f4ebd0] font-serif italic placeholder:text-gray-300"
+      className="w-full pl-12 pr-6 py-4 bg-white dark:bg-[#2c2420] border-2 border-tertiary/10 dark:border-[#3e2b22] shadow-[6px_6px_0px_rgba(26,63,34,0.05)] outline-none focus:border-tertiary transition-all text-tertiary dark:text-[#f4ebd0] font-serif italic placeholder:text-gray-300"
     />
     <Search
-      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1a3f22] dark:text-[#d4a373] opacity-40"
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary dark:text-[#d4a373] opacity-40"
       size={20}
     />
   </div>
@@ -46,12 +46,12 @@ const CategoryFilter = ({
   categories,
 }: any) => (
   <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1] dark:border-[#3e2b22] shadow-[8px_8px_0px_rgba(92,64,51,0.08)] relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-16 h-16 bg-[#1a3f22]/5 -rotate-45 translate-x-8 -translate-y-8" />
+    <div className="absolute top-0 right-0 w-16 h-16 bg-tertiary/5 -rotate-45 translate-x-8 -translate-y-8" />
 
     <div className="flex items-center space-x-2 mb-6 border-b border-[#d6c7a1] dark:border-[#3e2b22] pb-2">
       <SlidersHorizontal
         size={16}
-        className="text-[#1a3f22] dark:text-[#d4a373]"
+        className="text-tertiary dark:text-[#d4a373]"
       />
       <span className="font-mono font-black uppercase tracking-[0.2em] text-[10px] text-primary-half dark:text-[#d4a373]">
         Classification Index
@@ -65,8 +65,8 @@ const CategoryFilter = ({
           onClick={() => setActiveCategory(cat)}
           className={`px-3 py-1.5 text-[10px] font-mono font-black uppercase tracking-widest transition-all border ${
             activeCategory === cat
-              ? "bg-[#1a3f22] text-[#f4ebd0] border-[#1a3f22] shadow-[3px_3px_0px_#d4a373]"
-              : "bg-white/50 dark:bg-black/20 text-[#1a3f22] dark:text-[#d4a373] border-[#d6c7a1] dark:border-white/5 hover:bg-white dark:hover:bg-white/10"
+              ? "bg-tertiary text-[#f4ebd0] border-tertiary shadow-[3px_3px_0px_#d4a373]"
+              : "bg-white/50 dark:bg-black/20 text-tertiary dark:text-[#d4a373] border-[#d6c7a1] dark:border-white/5 hover:bg-white dark:hover:bg-white/10"
           }`}
         >
           #{cat}
@@ -120,7 +120,7 @@ const ExplorePage = () => {
   return (
     <div className="max-w-7xl mx-auto py-6">
       {/* HEADER: Archive Style */}
-      <header className="mb-12 border-b-4 border-[#1a3f22]/10 pb-8 relative">
+      <header className="mb-12 border-b-4 border-tertiary/10 pb-8 relative">
         <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
           The Reading <span className="italic">Archives</span>
         </h1>
@@ -148,7 +148,7 @@ const ExplorePage = () => {
 
           {/* Decorative Sidebar Note */}
           <div className="p-6 bg-white dark:bg-[#2c2420] border-2 border-dashed border-[#d6c7a1] hidden lg:block">
-            <h4 className="font-serif font-bold text-[#1a3f22] dark:text-[#d4a373] text-sm mb-2 flex items-center gap-2">
+            <h4 className="font-serif font-bold text-tertiary dark:text-[#d4a373] text-sm mb-2 flex items-center gap-2">
               <Bookmark size={14} className="fill-current" />
               Member Note:
             </h4>
@@ -174,8 +174,8 @@ const ExplorePage = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-32 text-center bg-white/50 dark:bg-[#2c2420] border-2 border-dashed border-[#d6c7a1]">
-              <BookX size={60} className="text-[#1a3f22] opacity-10 mb-6" />
-              <h3 className="text-2xl font-serif font-black text-[#1a3f22] dark:text-white opacity-40 uppercase tracking-tighter">
+              <BookX size={60} className="text-tertiary opacity-10 mb-6" />
+              <h3 className="text-2xl font-serif font-black text-tertiary dark:text-white opacity-40 uppercase tracking-tighter">
                 No Records Found
               </h3>
               <button
@@ -183,7 +183,7 @@ const ExplorePage = () => {
                   setSearchQuery("");
                   setActiveCategory("All");
                 }}
-                className="mt-6 font-mono text-[10px] font-black uppercase tracking-widest text-[#1a3f22] dark:text-[#d4a373] underline decoration-dotted underline-offset-4"
+                className="mt-6 font-mono text-[10px] font-black uppercase tracking-widest text-tertiary dark:text-[#d4a373] underline decoration-dotted underline-offset-4"
               >
                 Clear Search Parameters
               </button>

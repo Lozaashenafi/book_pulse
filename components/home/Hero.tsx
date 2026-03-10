@@ -182,7 +182,7 @@ const BookPulseHero = () => {
                   much symbolism I missed on the first read!
                 </p>
                 <div className="mt-6 flex justify-between items-center">
-                  <span className="text-[10px] font-mono font-bold text-[#8b5a2b]">
+                  <span className="text-[10px] font-mono font-bold text-primary-half">
                     READER: loza_ashenafi
                   </span>
                   <div className="flex gap-1">
@@ -206,7 +206,7 @@ const BookPulseHero = () => {
           <h2 className="text-3xl font-serif font-black text-tertiary dark:text-[#d4a373] mb-6">
             Ready to turn the next page?
           </h2>
-          <p className="text-[#8b5a2b] mb-10 font-serif italic">
+          <p className="text-primary-half mb-10 font-serif italic">
             Join a community of passionate readers and experience books like
             never before.
           </p>
@@ -229,7 +229,7 @@ const FeatureItem = ({ icon, title, text }: any) => (
     </div>
     <div>
       <h4 className="font-bold text-tertiary dark:text-gray-100">{title}</h4>
-      <p className="text-sm text-[#8b5a2b] leading-relaxed">{text}</p>
+      <p className="text-sm text-primary-half leading-relaxed">{text}</p>
     </div>
   </div>
 );
@@ -239,7 +239,7 @@ const FeatureItem = ({ icon, title, text }: any) => (
 const StepCard = ({ number, title, desc, icon }: any) => (
   <div className="flex flex-col items-center text-center space-y-4 group">
     <div className="w-16 h-16 bg-white dark:bg-[#1a1614] border-2 border-tertiary flex items-center justify-center text-tertiary dark:text-[#d4a373] shadow-[5px_5px_0px_#1a3f22] relative">
-      <span className="absolute -top-3 -left-3 bg-[#d4a373] text-[#1a3f22] text-[10px] font-mono font-black px-1.5 py-0.5">
+      <span className="absolute -top-3 -left-3 bg-[#d4a373] text-tertiary text-[10px] font-mono font-black px-1.5 py-0.5">
         {number}
       </span>
       {icon}
@@ -247,7 +247,7 @@ const StepCard = ({ number, title, desc, icon }: any) => (
     <h3 className="font-serif font-black text-xl text-tertiary dark:text-gray-100">
       {title}
     </h3>
-    <p className="text-sm font-serif italic text-[#8b5a2b] dark:text-gray-400 leading-relaxed">
+    <p className="text-sm font-serif italic text-primary-half dark:text-gray-400 leading-relaxed">
       {desc}
     </p>
   </div>

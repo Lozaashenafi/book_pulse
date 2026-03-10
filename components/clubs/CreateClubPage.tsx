@@ -22,7 +22,21 @@ import { toast } from "sonner";
 const CreateClubPage = () => {
   const router = useRouter();
   const { user } = useAuthStore();
+  const handleFinalSubmit = () => {
+    // Check mandatory fields for the Club Ledger
+    if (!h.clubData.name.trim()) {
+      return toast.error("The Squad needs a name to be recorded.");
+    }
+    if (!h.clubData.startDate) {
+      return toast.error("Please select an Opening Date for the fellowship.");
+    }
+    if (!h.clubData.endDate) {
+      return toast.error("Please select a Final Page Date.");
+    }
 
+    // If all clear, proceed to the database
+    h.submit();
+  };
   const h = useCreateClub(user?.id);
 
   // Re-styled Tailwind constants to match the Sidebar/Desk aesthetic
@@ -200,8 +214,17 @@ const CreateClubPage = () => {
               </div>
 
               <button
-                disabled={!h.bookData.title || !h.bookData.coverFile}
-                onClick={() => h.setStep(2)}
+                disabled={
+                  !h.bookData.title ||
+                  !h.bookData.coverFile ||
+                  !h.bookData.categoryId
+                }
+                onClick={() => {
+                  if (!h.bookData.categoryId) {
+                    return toast.error("Please select a Manuscript Category.");
+                  }
+                  h.setStep(2);
+                }}
                 className={btnPrimary}
               >
                 Draft Breakdown <ChevronRight size={20} />
@@ -435,7 +458,7 @@ const CreateClubPage = () => {
                   Back
                 </button>
                 <button
-                  onClick={h.submit}
+                  onClick={handleFinalSubmit}
                   disabled={h.loading || !h.clubData.name}
                   className={btnPrimary}
                 >

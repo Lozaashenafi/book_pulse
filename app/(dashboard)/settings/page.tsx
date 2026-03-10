@@ -372,7 +372,7 @@ const ToggleRow = ({
   onToggle,
   isLoading,
 }: any) => (
-  <div className="flex items-center justify-between py-5 border-b border-[#1a3f22]/10 last:border-0">
+  <div className="flex items-center justify-between py-5 border-b border-tertiary/10 last:border-0">
     <div className="pr-4">
       <p className="font-serif font-bold text-primary-dark dark:text-gray-100">
         {label}

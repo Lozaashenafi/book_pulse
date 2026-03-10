@@ -50,9 +50,9 @@ const PublicProfileUI = ({ data }: { data: any }) => {
     <div className="pb-12 transition-colors duration-500 bg-[#fcf8f1] dark:bg-[#1a1614] min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
         {/* HEADER: Library Bookmark Style */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-[#1a3f22]/20 dark:border-[#d4a373]/20 pb-6 gap-4">
+        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-tertiary/20 dark:border-[#d4a373]/20 pb-6 gap-4">
           <div className="relative pt-10">
-            <h1 className="text-5xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] tracking-tight mt-1">
+            <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tight mt-1">
               {data.name}
             </h1>
           </div>
@@ -64,7 +64,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* --- LEFT COLUMN: IDENTITY --- */}
           <aside className="lg:col-span-4 space-y-8">
-            <section className="relative bg-white dark:bg-[#2c2420] p-8 shadow-[8px_8px_0px_rgba(92,64,51,0.1)] dark:shadow-[8px_8px_0px_rgba(0,0,0,0.3)] border-t-[12px] border-[#1a3f22]/30 dark:border-[#d4a373]/30">
+            <section className="relative bg-white dark:bg-[#2c2420] p-8 shadow-[8px_8px_0px_rgba(92,64,51,0.1)] dark:shadow-[8px_8px_0px_rgba(0,0,0,0.3)] border-t-[12px] border-tertiary/30 dark:border-[#d4a373]/30">
               <Pin
                 className="absolute -top-5 right-8 text-gray-400 dark:text-stone-600 -rotate-12"
                 size={32}
@@ -89,7 +89,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-serif font-bold text-[#1a3f22] dark:text-[#d4a373]">
+                  <h2 className="text-2xl font-serif font-bold text-tertiary dark:text-[#d4a373]">
                     @{data.username}
                   </h2>
                   <p className="text-sm font-serif italic text-[#5a5a5a] dark:text-stone-400 px-2 leading-relaxed">
@@ -101,14 +101,14 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                   <div className="flex items-center gap-2">
                     <MapPin
                       size={14}
-                      className="text-[#1a3f22] dark:text-[#d4a373]"
+                      className="text-tertiary dark:text-[#d4a373]"
                     />{" "}
                     {data.location || "The Archive"}
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar
                       size={14}
-                      className="text-[#1a3f22] dark:text-[#d4a373]"
+                      className="text-tertiary dark:text-[#d4a373]"
                     />{" "}
                     Inscribed {joinDate}
                   </div>
@@ -118,7 +118,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
 
             {/* ACHIEVEMENTS: Wax Seal Style */}
             <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1] dark:border-[#d4a373]/20 shadow-md space-y-4">
-              <h4 className="text-[10px] font-mono font-black uppercase text-[#1a3f22] dark:text-[#d4a373] border-b border-[#d6c7a1] dark:border-[#d4a373]/20 pb-2">
+              <h4 className="text-[10px] font-mono font-black uppercase text-tertiary dark:text-[#d4a373] border-b border-[#d6c7a1] dark:border-[#d4a373]/20 pb-2">
                 Recognition Seals
               </h4>
               <div className="flex flex-wrap gap-4">
@@ -130,7 +130,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                       className="flex items-center gap-3 group"
                       title={a.desc}
                     >
-                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-[#1a3f22] dark:border-[#d4a373] flex items-center justify-center text-[#1a3f22] dark:text-[#d4a373] group-hover:bg-[#1a3f22] dark:group-hover:bg-[#d4a373] group-hover:text-white dark:group-hover:text-[#1a1614] transition-all">
+                      <div className="w-10 h-10 rounded-full border-2 border-dashed border-tertiary dark:border-[#d4a373] flex items-center justify-center text-tertiary dark:text-[#d4a373] group-hover:bg-tertiary dark:group-hover:bg-[#d4a373] group-hover:text-white dark:group-hover:text-[#1a1614] transition-all">
                         {a.icon}
                       </div>
                       <div className="flex flex-col">
@@ -150,9 +150,9 @@ const PublicProfileUI = ({ data }: { data: any }) => {
           {/* --- RIGHT COLUMN: ACTIVITY --- */}
           <main className="lg:col-span-8 space-y-12">
             {/* ACTIVE CIRCLES: Library Card Drawer */}
-            <section className="bg-white dark:bg-[#2c2420] p-10 shadow-md border-l-[15px] border-[#1a3f22]/10 dark:border-[#d4a373]/10 relative">
-              <h3 className="text-2xl font-serif font-black text-[#1a3f22] dark:text-[#d4a373] mb-8 flex items-center gap-3">
-                <Bookmark className="fill-[#1a3f22] text-[#1a3f22] dark:fill-[#d4a373] dark:text-[#d4a373]" />{" "}
+            <section className="bg-white dark:bg-[#2c2420] p-10 shadow-md border-l-[15px] border-tertiary/10 dark:border-[#d4a373]/10 relative">
+              <h3 className="text-2xl font-serif font-black text-tertiary dark:text-[#d4a373] mb-8 flex items-center gap-3">
+                <Bookmark className="fill-tertiary text-tertiary dark:fill-[#d4a373] dark:text-[#d4a373]" />{" "}
                 Active Circles
               </h3>
 
@@ -161,7 +161,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                   <button
                     key={club.id}
                     onClick={() => router.push(`/clubs/${club.id}`)}
-                    className="flex items-center justify-between p-4 bg-[#fcf8f1] dark:bg-[#1c1917] border border-[#d6c7a1] dark:border-[#d4a373]/20 hover:border-[#1a3f22] dark:hover:border-[#d4a373] transition-all group text-left"
+                    className="flex items-center justify-between p-4 bg-[#fcf8f1] dark:bg-[#1c1917] border border-[#d6c7a1] dark:border-[#d4a373]/20 hover:border-tertiary dark:hover:border-[#d4a373] transition-all group text-left"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-16 bg-white dark:bg-[#2c2420] border border-[#d6c7a1] dark:border-stone-700 flex-shrink-0 overflow-hidden shadow-sm group-hover:rotate-2 transition-transform">
@@ -179,7 +179,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-serif font-bold text-sm text-[#1a3f22] dark:text-[#d4a373] truncate">
+                        <p className="font-serif font-bold text-sm text-tertiary dark:text-[#d4a373] truncate">
                           {club.name}
                         </p>
                         <p className="text-[9px] font-mono font-bold text-primary-half dark:text-[#d4a373]/60 uppercase">
@@ -189,7 +189,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                     </div>
                     <ArrowRight
                       size={16}
-                      className="text-gray-300 dark:text-stone-600 group-hover:text-[#1a3f22] dark:group-hover:text-[#d4a373] transition-colors"
+                      className="text-gray-300 dark:text-stone-600 group-hover:text-tertiary dark:group-hover:text-[#d4a373] transition-colors"
                     />
                   </button>
                 ))}
@@ -204,10 +204,10 @@ const PublicProfileUI = ({ data }: { data: any }) => {
             {/* TRANSMISSIONS: Dynamic Sticky Notes */}
             <section>
               <div className="flex items-center gap-4 mb-8">
-                <h3 className="font-serif font-black text-2xl pt-4 uppercase tracking-tighter text-[#1a3f22] dark:text-[#d4a373]">
+                <h3 className="font-serif font-black text-2xl pt-4 uppercase tracking-tighter text-tertiary dark:text-[#d4a373]">
                   Scribe's Log
                 </h3>
-                <div className="h-[2px] flex-grow bg-[#1a3f22]/10 dark:bg-[#d4a373]/10" />
+                <div className="h-[2px] flex-grow bg-tertiary/10 dark:bg-[#d4a373]/10" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

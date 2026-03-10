@@ -3,12 +3,17 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createFullClub, getCategories } from "@/services/club.service";
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export function useCreateClub(userId?: string) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const [bookData, setBookData] = useState({
     title: "",
@@ -34,7 +39,7 @@ export function useCreateClub(userId?: string) {
 
   useEffect(() => {
     getCategories()
-      .then(setCategories)
+      .then((data: any) => setCategories(data))
       .catch(() => toast.error("Failed to load categories"));
   }, []);
 
@@ -43,9 +48,13 @@ export function useCreateClub(userId?: string) {
     setChapters((prev) => {
       const updated = [...prev];
       updated[index].end_page = newEnd;
+      // Cascade page numbers to subsequent chapters
       for (let i = index + 1; i < updated.length; i++) {
         const previousEnd = updated[i - 1].end_page;
-        const chapterRange = updated[i].end_page - updated[i].start_page;
+        const chapterRange = Math.max(
+          0,
+          updated[i].end_page - updated[i].start_page,
+        );
         updated[i].start_page = previousEnd + 1;
         updated[i].end_page = updated[i].start_page + chapterRange;
       }
@@ -55,11 +64,9 @@ export function useCreateClub(userId?: string) {
 
   const addChapter = () => {
     setChapters((prev) => {
-      // If there are no chapters at all, start fresh
       if (prev.length === 0) {
         return [{ title: "Chapter 1", start_page: 1, end_page: 20 }];
       }
-
       const last = prev[prev.length - 1];
       return [
         ...prev,
@@ -71,41 +78,40 @@ export function useCreateClub(userId?: string) {
       ];
     });
   };
+
   const submit = async () => {
     if (!userId) return toast.error("Please log in first");
     setLoading(true);
 
     try {
-      // 2. Initialize the browser client (No await needed here)
       const supabase = createClient();
 
-      // 3. Upload Cover Art
+      // 1. Upload Cover Art
       let coverUrl = "";
       if (bookData.coverFile) {
         const coverExt = bookData.coverFile.name.split(".").pop();
         const coverPath = `covers/${crypto.randomUUID()}.${coverExt}`;
-
-        const { error: uploadError } = await supabase.storage
+        const { error: upErr } = await supabase.storage
           .from("books")
           .upload(coverPath, bookData.coverFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data } = supabase.storage.from("books").getPublicUrl(coverPath);
-        coverUrl = data.publicUrl;
+        if (upErr) throw new Error("Cover upload failed");
+        coverUrl = supabase.storage.from("books").getPublicUrl(coverPath)
+          .data.publicUrl;
       }
 
-      // 4. Upload PDF (Optional)
+      // 2. Upload PDF
       let pdfUrl = null;
       if (bookData.pdfFile) {
         const pdfPath = `pdfs/${crypto.randomUUID()}.pdf`;
-        await supabase.storage.from("books").upload(pdfPath, bookData.pdfFile);
+        const { error: upErr } = await supabase.storage
+          .from("books")
+          .upload(pdfPath, bookData.pdfFile);
+        if (upErr) throw new Error("PDF upload failed");
         pdfUrl = supabase.storage.from("books").getPublicUrl(pdfPath)
           .data.publicUrl;
       }
 
-      // 5. Call the Drizzle-powered Server Action
-      // Pass the URLs we just generated to the server
+      // 3. Server Action
       const result = await createFullClub(userId, {
         bookData: { ...bookData, coverUrl, pdfUrl },
         clubData,
@@ -117,7 +123,7 @@ export function useCreateClub(userId?: string) {
       toast.success("Circle founded successfully!");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to create club");
+      toast.error(err.message || "An unexpected error occurred");
     } finally {
       setLoading(false);
     }

@@ -14,6 +14,7 @@ import {
   bookCategories,
 } from "@/lib/db/schema";
 import { eq, and, asc, sql, count, desc } from "drizzle-orm";
+import { InferInsertModel } from "drizzle-orm"; // Add this import at the top
 
 export async function createFullClub(
   userId: string,
@@ -27,15 +28,14 @@ export async function createFullClub(
     // 1. Create Book
     const [newBook] = await db
       .insert(books)
-
       .values({
         title: bookData.title,
         author: bookData.author,
         description: bookData.description,
         categoryId: bookData.categoryId,
-        coverUrl: bookData.coverUrl, // Passed from client storage upload
+        coverUrl: bookData.coverUrl,
         pdfUrl: bookData.pdfUrl,
-        totalPages: chapterList[chapterList.length - 1].end_page,
+        totalPages: Math.max(...chapterList.map((ch: any) => ch.end_page)),
       })
       .returning();
 
@@ -49,76 +49,103 @@ export async function createFullClub(
         endDate: new Date(clubData.endDate),
         bookId: newBook.id,
         ownerId: userId,
-        visibility: clubData.visibility,
+        visibility: clubData.visibility || "PUBLIC",
       })
       .returning();
 
-    // 3. Create Chapters, Chats, and Initial Progress
-    for (const [index, ch] of chapterList.entries()) {
-      const [insertedChapter] = await db
-        .insert(chapters)
-        .values({
+    // 3. Bulk Insert Chapters (One request to Neon)
+    const insertedChapters = await db
+      .insert(chapters)
+      .values(
+        chapterList.map((ch: any, index: number) => ({
           clubId: newClub.id,
           title: ch.title,
           chapterNumber: index + 1,
           startPage: ch.start_page,
           endPage: ch.end_page,
-        })
-        .returning();
+        })),
+      )
+      .returning();
 
-      // Chapter Chat Room
-      await db.insert(chatRooms).values({
+    // 4. Bulk Insert Chat Rooms
+    type ChatRoomInsert = InferInsertModel<typeof chatRooms>;
+    const chatRoomsToInsert: ChatRoomInsert[] = insertedChapters.map((ch) => ({
+      clubId: newClub.id,
+      chapterId: ch.id,
+      type: "CHAPTER",
+      title: `📖 ${ch.title}`,
+    }));
+
+    chatRoomsToInsert.push(
+      {
         clubId: newClub.id,
-        chapterId: insertedChapter.id,
-        type: "CHAPTER",
-        title: `📖 ${ch.title}`,
-      });
+        chapterId: null,
+        type: "GENERAL",
+        title: "💬 General Discussion",
+      },
+      {
+        clubId: newClub.id,
+        chapterId: null,
+        type: "SPOILER",
+        title: "🚨 Spoiler Room",
+      },
+    );
 
-      // Reading Progress for the Owner
-      await db.insert(readingProgress).values({
+    await db.insert(chatRooms).values(chatRoomsToInsert);
+
+    // 5. Bulk Insert Progress for the Owner
+    await db.insert(readingProgress).values(
+      insertedChapters.map((ch, index) => ({
         userId: userId,
         clubId: newClub.id,
-        chapterId: insertedChapter.id,
-        status: index === 0 ? "IN_PROGRESS" : "NOT_STARTED",
-        currentPage: index === 0 ? ch.start_page : null,
-      });
-    }
+        chapterId: ch.id,
+        status:
+          index === 0 ? ("IN_PROGRESS" as const) : ("NOT_STARTED" as const),
+        currentPage: index === 0 ? ch.startPage : null,
+      })),
+    );
 
-    // 4. Global Chat Rooms
-    await db.insert(chatRooms).values([
-      { clubId: newClub.id, type: "GENERAL", title: "💬 General Discussion" },
-      { clubId: newClub.id, type: "SPOILER", title: "🚨 Spoiler Room" },
-    ]);
-
-    // 5. Membership
+    // 6. Membership
     await db.insert(clubMembers).values({
       clubId: newClub.id,
       userId: userId,
       role: "OWNER",
     });
 
-    // 6. Optional Announcement Post
-    if (clubData.makePost && clubData.visibility === "PUBLIC") {
-      await db.insert(posts).values({
-        userId: userId,
-        clubId: newClub.id,
-        content: `A new reading circle just started! "${clubData.name}" is now open and we're diving into ${bookData.title}.`,
-        postType: "CLUB_ANNOUNCEMENT",
-      });
-    }
-
-    // 7. Generate Invite Link Token
-    const token = Math.random().toString(36).substring(2, 15);
+    // 7. Invite Token
+    const token = crypto.randomUUID();
     await db.insert(clubInvites).values({
       clubId: newClub.id,
       token,
       createdBy: userId,
     });
 
+    // 8. Optional Post
+    if (clubData.makePost && clubData.visibility === "PUBLIC") {
+      await db.insert(posts).values({
+        userId: userId,
+        clubId: newClub.id,
+        content: `Just started a new reading circle: "${clubData.name}"! We're reading ${bookData.title}.`,
+        postType: "CLUB_ANNOUNCEMENT",
+      });
+    }
+
     return { id: newClub.id, inviteLink: token };
   } catch (error) {
-    console.error("Create Club Failed:", error);
+    console.error("Database Error:", error);
     throw error;
+  }
+}
+export async function getCategories() {
+  try {
+    const data = await db
+      .select()
+      .from(bookCategories)
+      .orderBy(bookCategories.name);
+    return data; // No need for double JSON parse
+  } catch (error) {
+    console.error("Drizzle Categories Error:", error);
+    return [];
   }
 }
 export async function getExploreClubs(userId?: string) {
@@ -168,19 +195,7 @@ export async function getExploreClubs(userId?: string) {
     return [];
   }
 }
-export async function getCategories() {
-  try {
-    // Fetch from the actual categories table
-    const data = await db
-      .select()
-      .from(bookCategories)
-      .orderBy(bookCategories.name);
-    return JSON.parse(JSON.stringify(data)); // Returns array of {id, name}
-  } catch (error) {
-    console.error("Drizzle Categories Error:", error);
-    return [];
-  }
-}
+
 // 4. Fetch Full Club Data for Settings/Dashboard
 export async function getClubFullData(clubId: string) {
   try {

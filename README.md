@@ -57,7 +57,7 @@ BookPulse is a digital sanctuary built for readers who believe the best stories 
 - **Daily Scribbles**: A community board for pinning thoughts, featuring high-resolution "Archive Card" exports for social sharing.
 - **Postmaster Dispatches**: Automated reminders via Resend SMTP if your quill stays dry for more than 3 days.
 
-## 🛠️ Technical Architecture
+##  Technical Architecture
 
 BookPulse utilizes a "Best-of-Breed" multi-cloud strategy to ensure 100% stability and zero connection timeouts:
 
@@ -68,7 +68,7 @@ BookPulse utilizes a "Best-of-Breed" multi-cloud strategy to ensure 100% stabili
 - **Storage**: Supabase Storage for secure manuscript and avatar hosting
 - **Emails**: Resend for professional dispatch delivery
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Setup Environment
 
@@ -93,8 +93,9 @@ CRON_SECRET="your-random-string"
 ```
 
 # Clone the ledger
+```
 
-git clone https://github.com/your-username/book-pulse.git
+git clone https://github.com/lozaashenafi/book_pulse.git
 
 # Navigate to project directory
 
@@ -111,10 +112,13 @@ npx drizzle-kit push
 # Begin the session
 
 npm run dev
+```
 
 # Folder structure
 
-📦 book-pulse
+```
+
+book-pulse
 ├── 📁 app/ # Route Handlers & Server Components
 ├── 📁 components/ # Atomic UI Design System
 ├── 📁 drizzle
@@ -125,3 +129,5 @@ npm run dev
 ├── 📁 services/ # Drizzle-powered Server Actions
 ├── 📁 store/  
 └── 📁 public/ # Branded assets & textures
+
+```

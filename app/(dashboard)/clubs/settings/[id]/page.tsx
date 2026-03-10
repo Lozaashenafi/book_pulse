@@ -277,7 +277,7 @@ const ClubSettingsPage = () => {
                         : ""
                     }
                     onChange={(v: string) =>
-                      setData({ ...data, club: { ...club, end_date: v } })
+                      setData({ ...data, club: { ...club, endDate: v } })
                     }
                   />
                 </div>
@@ -286,7 +286,7 @@ const ClubSettingsPage = () => {
                   disabled={saving}
                   className="bg-primary-dark text-[#f4ebd0] px-8 py-3 font-serif italic shadow-[4px_4px_0px_#3e2b22] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
                 >
-                  {saving ? <CuratorLoader /> : <Save size={18} />}
+                  {saving ? <Loader2 /> : <Save size={18} />}
                   Update Ledger
                 </button>
               </div>

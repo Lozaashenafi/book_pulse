@@ -423,9 +423,6 @@ const BookPulsePage = () => {
                   <p className="text-sm font-serif font-bold text-gray-800 dark:text-gray-200 group-hover:text-primary-half transition-colors">
                     {club.name}
                   </p>
-                  <p className="text-[9px] font-mono text-gray-500 uppercase">
-                    {club.readers} fellow readers
-                  </p>
                 </div>
                 <PlusCircle
                   size={14}

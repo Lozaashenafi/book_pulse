@@ -112,36 +112,43 @@ export async function updateUserProgress(
   clubId: string,
   pageNumber: number,
 ) {
+  // 1. Safety check for NaN
+  if (!pageNumber || isNaN(pageNumber)) throw new Error("Invalid page number.");
+
   try {
-    // 1. Find which chapter this page belongs to
+    // 2. Find which chapter this page belongs to
     const allChapters = await db
       .select()
       .from(chapters)
       .where(eq(chapters.clubId, clubId));
-    const currentChapter =
-      allChapters.find(
-        (ch) => pageNumber >= ch.startPage && pageNumber <= ch.endPage,
-      ) || allChapters[0];
+    const currentChapter = allChapters.find(
+      (ch) => pageNumber >= ch.startPage && pageNumber <= ch.endPage,
+    );
 
-    // 2. Update or Insert progress
-    // We use a manual check because Neon HTTP doesn't do 'onConflictUpdate' easily in some versions
+    if (!currentChapter)
+      throw new Error("Page number is outside of club milestones.");
+
+    // 3. Check if progress already exists for THIS SPECIFIC CHAPTER
     const existing = await db.query.readingProgress.findFirst({
       where: and(
         eq(readingProgress.userId, userId),
-        eq(readingProgress.clubId, clubId),
+        eq(readingProgress.chapterId, currentChapter.id),
       ),
     });
 
     if (existing) {
+      // Update existing chapter progress
       await db
         .update(readingProgress)
         .set({
           currentPage: pageNumber,
-          chapterId: currentChapter.id,
+          status:
+            pageNumber === currentChapter.endPage ? "COMPLETED" : "IN_PROGRESS",
           updatedAt: new Date(),
         })
         .where(eq(readingProgress.id, existing.id));
     } else {
+      // Insert new progress for this chapter
       await db.insert(readingProgress).values({
         userId,
         clubId,
@@ -152,12 +159,11 @@ export async function updateUserProgress(
     }
 
     return { success: true };
-  } catch (error) {
-    console.error(error);
-    throw new Error("Failed to log progress");
+  } catch (error: any) {
+    console.error("Sync Error:", error.message);
+    throw new Error(error.message || "Failed to log progress");
   }
 }
-
 /**
  * Gets the latest message ID/Timestamp for each room to check for unread status
  */

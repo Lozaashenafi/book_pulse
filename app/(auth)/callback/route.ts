@@ -1,58 +1,54 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { db } from "@/lib/db"; // Import Neon DB
-import { profiles } from "@/lib/db/schema"; // Import Schema
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  // 'next' will be /update-password if coming from the reset email
   const next = searchParams.get("next") ?? "/";
+
   if (code) {
     const supabase = await createClient();
 
-    // 1. Exchange the code for a Supabase Session
+    // 1. Exchange the PKCE code for a real session
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data.user) {
       try {
-        // 2. Check if the profile already exists in NEON
+        // 2. Standard Neon Sync (Keep your existing logic)
         const existingProfile = await db
           .select()
           .from(profiles)
           .where(eq(profiles.id, data.user.id))
           .limit(1);
 
-        // 3. If no profile exists (first time Google user), create it in NEON
         if (existingProfile.length === 0) {
           const fullName = data.user.user_metadata.full_name || "New Reader";
-
           await db.insert(profiles).values({
-            id: data.user.id, // Linking ID
+            id: data.user.id,
             name: fullName,
             email: data.user.email,
-            // Generate a simple username from their name + some random numbers
             username:
               fullName.toLowerCase().replace(/\s/g, "_") +
               Math.floor(Math.random() * 1000),
             role: "user",
           });
-
-          console.log("Neon Profile created for OAuth user:", data.user.id);
         }
       } catch (dbError) {
-        // Log the error but let the user log in anyway
-        // They can fix their profile in settings later
         console.error("Database Sync Error in Callback:", dbError);
       }
 
-      // Success! Redirect to the destination or home
+      // 3. REDIRECT to the 'next' URL (This will be /update-password)
+      // Using origin ensures we stay on lozi.me in production
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
-  // FAIL: Return the user to login with a clear error message
+  // FAIL: If code is invalid or exchange failed
   return NextResponse.redirect(
-    `${origin}/login?error=Could not authenticate user with the provided code`,
+    `${origin}/login?error=The link is invalid or has expired`,
   );
 }

@@ -26,8 +26,31 @@ export async function loginAction(email: string, password: string) {
 
   if (error) return { error: error.message };
   return { error: null };
-}
+} // app/(auth)/action.ts
 
+export async function verifyOtpAction(email: string, token: string) {
+  // 1. Initialize Supabase
+  const supabase = await createClient();
+
+  // 2. CRITICAL: Ensure we are sending ONLY these three exact fields as strings
+  const payload = {
+    email: String(email).trim(),
+    token: String(token).trim(),
+    type: "recovery" as const, // Must be 'recovery' for password resets
+  };
+
+  console.log("Verifying Payload:", payload); // Debug to check the 8-digit code
+
+  const { data, error } = await supabase.auth.verifyOtp(payload);
+
+  if (error) {
+    console.error("Supabase Auth Error:", error.message);
+    return { error: error.message };
+  }
+
+  // Success: A session is now established in the cookies
+  return { error: null };
+}
 export async function signUpAction(
   email: string,
   password: string,
@@ -36,7 +59,19 @@ export async function signUpAction(
   const supabase = await createClient();
   const redirectTo = await getURL();
 
-  // 1. Create the user in Supabase Auth
+  // 1. Check if the email already exists in our Neon Database BEFORE hitting Supabase
+  // This prevents the "Sync Error" you are seeing.
+  const existingProfile = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.email, email))
+    .limit(1);
+
+  if (existingProfile.length > 0) {
+    return { error: "This email is already registered in the archives." };
+  }
+
+  // 2. Create the user in Supabase Auth
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -50,24 +85,53 @@ export async function signUpAction(
   });
 
   if (error) return { error: error.message };
-  // 2. IMPORTANT: Sync the new user to your Neon Database
+
+  // 3. Sync to Neon
   if (data.user) {
     try {
       await db.insert(profiles).values({
-        id: data.user.id, // Links Supabase Auth ID to Neon Profile ID
+        id: data.user.id,
         name: username,
         email: email,
         username: username.toLowerCase().replace(/\s/g, "_"),
         role: "user",
-        // image, bio, location will be null/default by default
       });
-    } catch (dbError) {
+    } catch (dbError: any) {
+      // If it still fails due to a race condition (duplicate key code 23505)
+      if (dbError.code === "23505") {
+        return { error: "This email is already in use." };
+      }
+
       console.error("Neon Profile Sync Error:", dbError);
-      // We don't necessarily want to block the user if the profile insert fails
-      // (they can try to fix it in settings later), but you can return an error if you want.
+      return { error: "Database sync failed. Please try again." };
     }
   }
 
+  return { error: null };
+}
+
+export async function updatePasswordAction(newPassword: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) return { error: error.message };
+  return { error: null };
+}
+export async function resetPasswordAction(email: string) {
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+
+  // 1. THIS IS THE KEY: We point to /callback and set next=/update-password
+  const redirectTo = `${origin}/callback?next=/update-password`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) return { error: error.message };
   return { error: null };
 }
 

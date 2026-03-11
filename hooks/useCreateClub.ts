@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -48,7 +50,6 @@ export function useCreateClub(userId?: string) {
     setChapters((prev) => {
       const updated = [...prev];
       updated[index].end_page = newEnd;
-      // Cascade page numbers to subsequent chapters
       for (let i = index + 1; i < updated.length; i++) {
         const previousEnd = updated[i - 1].end_page;
         const chapterRange = Math.max(
@@ -64,9 +65,8 @@ export function useCreateClub(userId?: string) {
 
   const addChapter = () => {
     setChapters((prev) => {
-      if (prev.length === 0) {
+      if (prev.length === 0)
         return [{ title: "Chapter 1", start_page: 1, end_page: 20 }];
-      }
       const last = prev[prev.length - 1];
       return [
         ...prev,
@@ -95,8 +95,8 @@ export function useCreateClub(userId?: string) {
           .from("books")
           .upload(coverPath, bookData.coverFile);
         if (upErr) throw new Error("Cover upload failed");
-        coverUrl = supabase.storage.from("books").getPublicUrl(coverPath)
-          .data.publicUrl;
+        const { data } = supabase.storage.from("books").getPublicUrl(coverPath);
+        coverUrl = data.publicUrl;
       }
 
       // 2. Upload PDF
@@ -107,22 +107,41 @@ export function useCreateClub(userId?: string) {
           .from("books")
           .upload(pdfPath, bookData.pdfFile);
         if (upErr) throw new Error("PDF upload failed");
-        pdfUrl = supabase.storage.from("books").getPublicUrl(pdfPath)
-          .data.publicUrl;
+        const { data } = supabase.storage.from("books").getPublicUrl(pdfPath);
+        pdfUrl = data.publicUrl;
       }
 
-      // 3. Server Action
-      const result = await createFullClub(userId, {
-        bookData: { ...bookData, coverUrl, pdfUrl },
-        clubData,
-        chapters,
-      });
+      // --- THE CRITICAL FIX START ---
+      // We explicitly pull the File objects out and do NOT send them to the server.
+      // cleanBookData only contains strings (title, author, etc.)
+      const { coverFile, pdfFile, ...cleanBookData } = bookData;
+
+      const cleanPayload = {
+        bookData: {
+          ...cleanBookData,
+          coverUrl,
+          pdfUrl,
+        },
+        clubData: {
+          ...clubData,
+        },
+        // Ensure chapters are simple objects
+        chapters: chapters.map((ch) => ({
+          title: ch.title,
+          start_page: ch.start_page,
+          end_page: ch.end_page,
+        })),
+      };
+      // --- THE CRITICAL FIX END ---
+
+      // 3. Server Action (Sending only JSON text, no binary data)
+      const result = await createFullClub(userId, cleanPayload);
 
       setInviteLink(`${window.location.origin}/join/${result.inviteLink}`);
       setStep(4);
       toast.success("Circle founded successfully!");
     } catch (err: any) {
-      console.error(err);
+      console.error("Submission Error:", err);
       toast.error(err.message || "An unexpected error occurred");
     } finally {
       setLoading(false);

@@ -8,6 +8,8 @@ import {
   Loader2,
   ArrowRight,
   BookOpen,
+  Eye,
+  EyeOff,
   Paperclip,
   Quote,
 } from "lucide-react";
@@ -21,7 +23,6 @@ import {
   googleLoginAction,
 } from "@/app/(auth)/action";
 import { useAuthStore } from "@/store/useAuthStore";
-import CuratorLoader from "../ui/CuratorLoader";
 
 const AuthPage = ({
   type,
@@ -37,6 +38,7 @@ const AuthPage = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEmailSent, setIsEmailSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -251,16 +253,27 @@ const AuthPage = ({
               </div>
 
               <div className="space-y-1 group">
-                <label className="text-[10px] font-mono font-black text-tertiary/50 uppercase tracking-tighter ml-1">
-                  {isSignIn ? "02. Password" : "03. Security Key"}
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-mono font-black text-tertiary/50 uppercase tracking-tighter ml-1">
+                    {isSignIn ? "02. Password" : "03. Security Key"}
+                  </label>
+                  {isSignIn && (
+                    <Link
+                      href="/forgot-password"
+                      className="text-[10px] text-tertiary font-bold hover:underline"
+                    >
+                      Forgot?
+                    </Link>
+                  )}
+                </div>
                 <div className="relative border-b-2 border-tertiary/10 group-focus-within:border-tertiary transition-colors">
                   <input
                     name="password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    type="password"
+                    // DYNAMIC TYPE: Switches between password and text
+                    type={showPassword ? "text" : "password"}
                     className="w-full pl-10 pr-12 py-2 bg-transparent dark:text-white text-sm outline-none font-serif italic"
                     placeholder="••••••••"
                   />
@@ -268,6 +281,18 @@ const AuthPage = ({
                     className="absolute left-2 top-1/2 -translate-y-1/2 text-tertiary/30"
                     size={16}
                   />
+
+                  {/* VISIBILITY TOGGLE BUTTON */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary/30 hover:text-tertiary transition-colors p-1"
+                    title={
+                      showPassword ? "Hide Security Key" : "Show Security Key"
+                    }
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 
@@ -277,7 +302,7 @@ const AuthPage = ({
                 className="w-full bg-tertiary text-[#f4ebd0] py-4 shadow-[6px_6px_0px_rgba(26,63,34,0.2)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center space-x-2 active:scale-95 font-serif font-black italic"
               >
                 {loading ? (
-                  <CuratorLoader />
+                  <Loader2 className="animate-spin" />
                 ) : (
                   <>
                     <span>{isSignIn ? "Enter Library" : "Join the Squad"}</span>

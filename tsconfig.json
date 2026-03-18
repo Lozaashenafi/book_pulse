@@ -30,7 +30,8 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "app/(dashboard)/profile/layout.js",
-    "app/(dashboard)/clubs/layout.js"
+    "app/(dashboard)/clubs/layout.js",
+    "app/feedback/layout.js"
   ],
   "exclude": ["node_modules"]
 }

@@ -256,6 +256,12 @@ export const postShares = pgTable("post_shares", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+export const feedbacks = pgTable("feedbacks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  content: text("content").notNull(),
+  category: text("category").default("General"), // e.g. "Bug", "Idea", "Love"
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 // --- Update RELATIONS section ---
 export const postRelations = relations(posts, ({ one, many }) => ({
   user: one(profiles, { fields: [posts.userId], references: [profiles.id] }),

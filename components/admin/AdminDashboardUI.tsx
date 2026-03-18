@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ShieldCheck,
   Users,
@@ -10,6 +10,9 @@ import {
   UserCog,
   Database,
   Loader2,
+  MessageSquare,
+  Search,
+  Filter,
 } from "lucide-react";
 import {
   getAdminStats,
@@ -18,32 +21,43 @@ import {
   manageCategory,
   updateUserRole,
 } from "@/services/admin.service";
+import {
+  getFeedbacksAdmin,
+  deleteFeedbackAction,
+} from "@/services/feedback.service";
 import { toast } from "sonner";
 import CuratorLoader from "../ui/CuratorLoader";
 
-// Accept the user from the parent Server Component
 const AdminDashboardUI = ({ user }: { user: any }) => {
-  const [activeTab, setActiveTab] = useState<"stats" | "users" | "genres">(
-    "stats",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "stats" | "users" | "genres" | "feedback"
+  >("stats");
   const [loading, setLoading] = useState(true);
 
+  // Data States
   const [stats, setStats] = useState<any>(null);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [feedbacksList, setFeedbacksList] = useState<any[]>([]);
+
+  // Feedback UI States
+  const [feedbackSearch, setFeedbackSearch] = useState("");
+  const [feedbackFilter, setFeedbackFilter] = useState("All");
   const [newCat, setNewCat] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [s, u, c] = await Promise.all([
+      const [s, u, c, f] = await Promise.all([
         getAdminStats(user.id),
         getAllUsersAdmin(user.id),
         getBookCategoriesAdmin(),
+        getFeedbacksAdmin(user.id),
       ]);
       setStats(s);
       setUsersList(u);
       setCategories(c);
+      setFeedbacksList(f);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -54,6 +68,30 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // --- DELETE FEEDBACK LOGIC ---
+  const handleDeleteFeedback = async (id: string) => {
+    if (!confirm("Remove this dispatch from the archives?")) return;
+    try {
+      await deleteFeedbackAction(user.id, id);
+      setFeedbacksList((prev) => prev.filter((f) => f.id !== id));
+      toast.success("Dispatch destroyed.");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  // --- SEARCH & FILTER LOGIC ---
+  const filteredFeedbacks = useMemo(() => {
+    return feedbacksList.filter((f) => {
+      const matchesSearch = f.content
+        .toLowerCase()
+        .includes(feedbackSearch.toLowerCase());
+      const matchesCategory =
+        feedbackFilter === "All" || f.category === feedbackFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [feedbacksList, feedbackSearch, feedbackFilter]);
 
   const handleAddCategory = async () => {
     if (!newCat) return;
@@ -91,7 +129,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
               Grand Archive <span className="italic">Control</span>
             </h1>
           </div>
-          <nav className="flex bg-tertiary/5 p-1 border border-tertiary/10">
+          <nav className="flex bg-tertiary/5 p-1 border border-tertiary/10 flex-wrap gap-1">
             <TabBtn
               active={activeTab === "stats"}
               label="System Vitals"
@@ -110,9 +148,16 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
               onClick={() => setActiveTab("genres")}
               icon={<Bookmark size={14} />}
             />
+            <TabBtn
+              active={activeTab === "feedback"}
+              label="Dispatches"
+              onClick={() => setActiveTab("feedback")}
+              icon={<MessageSquare size={14} />}
+            />
           </nav>
         </header>
 
+        {/* --- STATS VIEW --- */}
         {activeTab === "stats" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-500">
             <StatCard
@@ -138,7 +183,82 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
           </div>
         )}
 
+        {/* --- FEEDBACK (DISPATCHES) VIEW --- */}
+        {activeTab === "feedback" && (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Local Search & Filter for Feedback */}
+            <div className="flex flex-col md:flex-row gap-4 bg-[#1a3f22]/5 p-4 border border-[#1a3f22]/10">
+              <div className="relative flex-1">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary opacity-40"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search dispatch content..."
+                  value={feedbackSearch}
+                  onChange={(e) => setFeedbackSearch(e.target.value)}
+                  className="w-full bg-white pl-10 pr-4 py-2 text-sm font-serif italic outline-none border border-tertiary/20 focus:border-tertiary"
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-white px-3 border border-tertiary/20">
+                <Filter size={14} className="text-tertiary opacity-40" />
+                <select
+                  value={feedbackFilter}
+                  onChange={(e) => setFeedbackFilter(e.target.value)}
+                  className="py-2 text-[10px] font-mono font-black uppercase outline-none cursor-pointer"
+                >
+                  <option value="All">All Classifications</option>
+                  <option value="General">General</option>
+                  <option value="Bug Report">Bug Reports</option>
+                  <option value="Feature Idea">Feature Ideas</option>
+                  <option value="Love Letter">Love Letters</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredFeedbacks.length > 0 ? (
+                filteredFeedbacks.map((f) => (
+                  <div
+                    key={f.id}
+                    className="bg-white border-2 border-[#1a3f22] p-6 shadow-[5px_5px_0px_#f4ebd0] group relative overflow-hidden"
+                  >
+                    <div className="flex justify-between items-start mb-4 relative z-10">
+                      <span className="bg-[#f4ebd0] text-[#8b5a2b] px-2 py-0.5 text-[8px] font-mono font-black uppercase border border-[#d6c7a1]">
+                        {f.category}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[8px] text-gray-400 font-mono">
+                          {new Date(f.createdAt).toLocaleString()}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteFeedback(f.id)}
+                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-700 transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="font-serif italic text-sm text-[#1a3f22] leading-relaxed relative z-10">
+                      "{f.content}"
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full py-20 text-center border-2 border-dashed border-[#d6c7a1]">
+                  <p className="font-serif italic text-gray-400">
+                    No matching dispatches found.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ... (Keep Users and Genres views the same) ... */}
         {activeTab === "users" && (
+          /* Users table logic */
           <div className="bg-white border-2 border-tertiary shadow-[10px_10px_0px_#d4a373] overflow-hidden animate-in slide-in-from-bottom-4">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -157,7 +277,7 @@ const AdminDashboardUI = ({ user }: { user: any }) => {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-[#d6c7a1]">
                           {u.image && (
                             <img
                               src={u.image}

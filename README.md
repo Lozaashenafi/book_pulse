@@ -10,7 +10,7 @@
     <br />
     A professional reading circle platform for curators of literature.
     <br />
-    <a href="https://pookpulse.lozi.me"><strong>Explore the Archives »</strong></a>
+    <a href="https://bookpulse.lozi.me"><strong>Explore the Archives »</strong></a>
   </p>
 </div>
 

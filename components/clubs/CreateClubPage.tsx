@@ -86,7 +86,6 @@ const CreateClubPage = () => {
       </nav>
 
       <main className="pb-20">
-        {/* Progress Bar */}
         <div className="flex justify-between mb-12 gap-2">
           {[1, 2, 3, 4].map((i) => (
             <div

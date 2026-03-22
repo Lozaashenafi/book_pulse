@@ -13,6 +13,56 @@ import {
 } from "@/lib/db/schema";
 import { eq, count, and, sql, desc } from "drizzle-orm";
 
+export async function getProfile(userId: string) {
+  try {
+    const data = await db.query.profiles.findFirst({
+      where: eq(profiles.id, userId),
+    });
+    return data || null;
+  } catch (error) {
+    console.error("Neon Fetch Error:", error);
+    throw new Error("Database is taking too long to respond.");
+  }
+}
+
+export async function ensureNeonProfile(supabaseUser: any) {
+  if (!supabaseUser) return null;
+
+  try {
+    console.log("🔍 Checking Neon for User ID:", supabaseUser.id);
+    
+    const existing = await db.query.profiles.findFirst({
+      where: eq(profiles.id, supabaseUser.id),
+    });
+
+    if (existing) {
+      console.log("✅ Profile already exists in Neon.");
+      return existing;
+    }
+
+    console.log("🚨 Profile MISSING in Neon. Attempting to create...");
+
+    const name = supabaseUser.user_metadata?.full_name || 
+                 supabaseUser.user_metadata?.name || 
+                 supabaseUser.email?.split('@')[0] || "New Reader";
+
+    const [newProfile] = await db.insert(profiles).values({
+      id: supabaseUser.id,
+      name: name,
+      email: supabaseUser.email!,
+      username: name.toLowerCase().replace(/\s/g, "_") + Math.floor(Math.random() * 100).toString(),
+      role: "user",
+    }).returning();
+
+    console.log("✨ Successfully created profile in Neon for:", supabaseUser.email);
+    return newProfile;
+  } catch (error: any) {
+    console.error("❌ CRITICAL Neon Sync Error:", error.message);
+    // If it's a timeout, we see it here
+    return null;
+  }
+}
+
 export async function getStats(userId: string) {
   if (!userId) return { circles: 0, booksRead: 0, discussions: 0 };
 
@@ -146,19 +196,19 @@ export async function getActiveCircles(userId: string) {
     return [];
   }
 }
-export async function getProfile(userId: string) {
-  try {
-    const [profile] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.id, userId))
-      .limit(1);
-    return profile || null;
-  } catch (error) {
-    console.error("Error fetching profile from Neon:", error);
-    return null;
-  }
-}
+// export async function getProfile(userId: string) {
+//   try {
+//     const [profile] = await db
+//       .select()
+//       .from(profiles)
+//       .where(eq(profiles.id, userId))
+//       .limit(1);
+//     return profile || null;
+//   } catch (error) {
+//     console.error("Error fetching profile from Neon:", error);
+//     return null;
+//   }
+// }
 
 export async function getMyClubs(userId: string) {
   if (!userId) return [];

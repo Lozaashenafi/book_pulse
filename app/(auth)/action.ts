@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db"; // Import your Neon/Drizzle instance
 import { profiles } from "@/lib/db/schema"; // Import your schema
 import { eq } from "drizzle-orm";
+import {  ensureNeonProfile} from "@/services/profile.service";
 
 const getURL = async () => {
   let url =
@@ -15,18 +16,37 @@ const getURL = async () => {
   url = url.replace(/\/$/, "");
   return `${url}/callback`;
 };
-
 export async function loginAction(email: string, password: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error: error.message };
+
+  // Sync to Neon on every login just in case
+  await ensureNeonProfile(data.user);
+
+  return { error: null };
+}
+
+export async function signUpAction(email: string, password: string, username: string) {
+  const supabase = await createClient();
+  
+  // 1. Supabase Signup
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: { data: { full_name: username } },
   });
 
   if (error) return { error: error.message };
+
+  // 2. Immediate Sync
+  if (data.user) {
+    await ensureNeonProfile(data.user);
+  }
+
   return { error: null };
-} // app/(auth)/action.ts
+}
 
 export async function verifyOtpAction(email: string, token: string) {
   // 1. Initialize Supabase
@@ -51,64 +71,64 @@ export async function verifyOtpAction(email: string, token: string) {
   // Success: A session is now established in the cookies
   return { error: null };
 }
-export async function signUpAction(
-  email: string,
-  password: string,
-  username: string,
-) {
-  const supabase = await createClient();
-  const redirectTo = await getURL();
+// export async function signUpAction(
+//   email: string,
+//   password: string,
+//   username: string,
+// ) {
+//   const supabase = await createClient();
+//   const redirectTo = await getURL();
 
-  // 1. Check if the email already exists in our Neon Database BEFORE hitting Supabase
-  // This prevents the "Sync Error" you are seeing.
-  const existingProfile = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.email, email))
-    .limit(1);
+//   // 1. Check if the email already exists in our Neon Database BEFORE hitting Supabase
+//   // This prevents the "Sync Error" you are seeing.
+//   const existingProfile = await db
+//     .select()
+//     .from(profiles)
+//     .where(eq(profiles.email, email))
+//     .limit(1);
 
-  if (existingProfile.length > 0) {
-    return { error: "This email is already registered in the archives." };
-  }
+//   if (existingProfile.length > 0) {
+//     return { error: "This email is already registered in the archives." };
+//   }
 
-  // 2. Create the user in Supabase Auth
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: redirectTo,
-      data: {
-        full_name: username,
-        username: username.toLowerCase().replace(/\s/g, "_"),
-      },
-    },
-  });
+//   // 2. Create the user in Supabase Auth
+//   const { data, error } = await supabase.auth.signUp({
+//     email,
+//     password,
+//     options: {
+//       emailRedirectTo: redirectTo,
+//       data: {
+//         full_name: username,
+//         username: username.toLowerCase().replace(/\s/g, "_"),
+//       },
+//     },
+//   });
 
-  if (error) return { error: error.message };
+//   if (error) return { error: error.message };
 
-  // 3. Sync to Neon
-  if (data.user) {
-    try {
-      await db.insert(profiles).values({
-        id: data.user.id,
-        name: username,
-        email: email,
-        username: username.toLowerCase().replace(/\s/g, "_"),
-        role: "user",
-      });
-    } catch (dbError: any) {
-      // If it still fails due to a race condition (duplicate key code 23505)
-      if (dbError.code === "23505") {
-        return { error: "This email is already in use." };
-      }
+//   // 3. Sync to Neon
+//   if (data.user) {
+//     try {
+//       await db.insert(profiles).values({
+//         id: data.user.id,
+//         name: username,
+//         email: email,
+//         username: username.toLowerCase().replace(/\s/g, "_"),
+//         role: "user",
+//       });
+//     } catch (dbError: any) {
+//       // If it still fails due to a race condition (duplicate key code 23505)
+//       if (dbError.code === "23505") {
+//         return { error: "This email is already in use." };
+//       }
 
-      console.error("Neon Profile Sync Error:", dbError);
-      return { error: "Database sync failed. Please try again." };
-    }
-  }
+//       console.error("Neon Profile Sync Error:", dbError);
+//       return { error: "Database sync failed. Please try again." };
+//     }
+//   }
 
-  return { error: null };
-}
+//   return { error: null };
+// }
 
 export async function updatePasswordAction(newPassword: string) {
   const supabase = await createClient();

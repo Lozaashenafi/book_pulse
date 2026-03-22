@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-import { getProfile } from "@/services/profile.service";
+import { ensureNeonProfile, getProfile } from "@/services/profile.service";
 import { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 // Define what a profile looks like based on your SQL
 interface Profile {
@@ -27,31 +28,40 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profile: null,
   isLoading: true,
+  
   syncSession: async () => {
+    // 1. Start loading
+    set({ isLoading: true });
     const supabase = createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      // If there's an auth error (like invalid token), just reset to logged out state
-      set({ user: null, profile: null, isLoading: false });
-      return;
-    }
-
+    
     try {
-      const profileData = await getProfile(user.id);
-      set({ user, profile: profileData, isLoading: false });
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // 2. If user exists, try to get profile from Neon
+        let profileData = await getProfile(user.id);
+        
+        if (!profileData) {
+          profileData = await ensureNeonProfile(user);
+        }
+
+        set({ user, profile: profileData, isLoading: false });
+      } else {
+        // 3. CRITICAL FIX: If no user, reset state and STOP loading
+        set({ user: null, profile: null, isLoading: false });
+      }
     } catch (err) {
-      set({ user, profile: null, isLoading: false });
+      console.error("Auth sync error:", err);
+      // Ensure loading stops even on error
+      set({ user: null, profile: null, isLoading: false });
     }
   },
 
   signOut: async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    set({ user: null, profile: null });
-    window.location.href = "/"; // Force redirect on logout
+    // 4. Reset everything on sign out
+    set({ user: null, profile: null, isLoading: false });
+    window.location.href = "/";
   },
 }));

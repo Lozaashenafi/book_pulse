@@ -13,7 +13,74 @@ import {
   notifications,
 } from "@/lib/db/schema";
 import { eq, and, asc, desc } from "drizzle-orm";
+import { cacheService } from "./cache.service";
 
+// Add this at the top of your existing service file
+export async function getClubRoomsWithCache(clubId: string, userId: string) {
+  // Check cache first
+  const cachedRooms = cacheService.getRooms(clubId);
+  if (cachedRooms) {
+    // Still need to check locks with current progress
+    const progress = await getUserClubProgress(userId, clubId);
+    return cachedRooms.map(room => ({
+      ...room,
+      isLocked: room.type === "CHAPTER" && room.chapter
+        ? progress < (room.chapter?.startPage || 0)
+        : false
+    }));
+  }
+
+  // Fetch fresh data
+  const rooms = await getClubRooms(clubId, userId);
+  cacheService.setRooms(clubId, rooms);
+  return rooms;
+}
+
+export async function getRoomMessagesWithCache(roomId: string) {
+  // Check cache first
+  const cachedMessages = cacheService.getMessages(roomId);
+  if (cachedMessages) {
+    return cachedMessages;
+  }
+
+  // Fetch fresh data
+  const messages = await getRoomMessages(roomId);
+  cacheService.setMessages(roomId, messages);
+  return messages;
+}
+
+export async function getUserProgressWithCache(userId: string, clubId: string) {
+  // Check cache first
+  const cachedProgress = cacheService.getProgress(userId, clubId);
+  if (cachedProgress !== null) {
+    return cachedProgress;
+  }
+
+  // Fetch fresh data
+  const progress = await getUserClubProgress(userId, clubId);
+  cacheService.setProgress(userId, clubId, progress);
+  return progress;
+}
+
+// Update the progress function to invalidate cache
+export async function updateUserProgressWithCache(
+  userId: string,
+  clubId: string,
+  pageNumber: number,
+) {
+  // Call the original function
+  const result = await updateUserProgress(userId, clubId, pageNumber);
+  
+  if (result.success) {
+    // Invalidate cache for this user and club
+    cacheService.clearProgress(userId, clubId);
+    
+    // Also invalidate rooms cache as lock status might change
+    cacheService.clearRooms(clubId);
+  }
+  
+  return result;
+}
 /**
  * Fetch all rooms for a club and calculate which ones are locked based on progress
  */
@@ -284,38 +351,53 @@ export async function getPublicProfileData(userId: string) {
 /**
  * Enhanced Leave: Notifies Owner
  */
-export async function leaveClubRecord(
-  userId: string,
-  clubId: string,
-  userName: string,
-) {
-  const club = await db.query.clubs.findFirst({
-    where: eq(clubs.id, clubId),
-    columns: { ownerId: true, name: true },
-  });
-
-  const [membership] = await db
-    .select()
-    .from(clubMembers)
-    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
-
-  if (membership?.role === "OWNER")
-    throw new Error("Owners must dissolve in settings.");
-
-  await db
-    .delete(clubMembers)
-    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
-
-  if (club) {
-    await db.insert(notifications).values({
-      userId: club.ownerId,
-      type: "NEW_MEMBER", // Re-using NEW_MEMBER or you can add MEMBER_LEFT to enum
-      title: "Member Departure",
-      message: `${userName} has left the circle: ${club.name}`,
+export async function leaveClubRecord(clubId: string, userId: string) {
+  try {
+    // 1. Check if the user exists in the club and what their role is
+    const member = await db.query.clubMembers.findFirst({
+      where: and(
+        eq(clubMembers.clubId, clubId),
+        eq(clubMembers.userId, userId)
+      ),
     });
-  }
 
-  return { success: true };
+    if (!member) {
+      return { success: false, error: "You are not a member of this circle." };
+    }
+
+    // 2. Prevent the Owner from leaving (they should delete the club instead)
+    if (member.role === "OWNER") {
+      return { 
+        success: false, 
+        error: "As the Architect (Owner), you cannot leave. You must delete the archive instead." 
+      };
+    }
+
+    // 3. Remove the record from clubMembers
+    await db
+      .delete(clubMembers)
+      .where(
+        and(
+          eq(clubMembers.clubId, clubId),
+          eq(clubMembers.userId, userId)
+        )
+      );
+
+    // 4. (Optional) Remove reading progress for this specific club to save space
+    await db
+      .delete(readingProgress)
+      .where(
+        and(
+          eq(readingProgress.clubId, clubId),
+          eq(readingProgress.userId, userId)
+        )
+      );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Drizzle Leave Error:", error);
+    return { success: false, error: "Failed to exit the fellowship." };
+  }
 }
 export async function getClubMembers(clubId: string) {
   try {

@@ -69,7 +69,7 @@ const MyClubsPage = () => {
       {/* Header "Library Index" Style */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b-4 border-primary-dark/10 pb-6 gap-6">
         <div className="text-left">
-          <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
+          <h1 className="text-5xl font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
             My Squads
           </h1>
           <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
@@ -91,10 +91,13 @@ const MyClubsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {ownedClubs.map((club) => (
             <div key={club.id} className="relative group">
-              {/* Settings button - always visible here because we filtered for owners */}
+              {/* Settings button - absolute positioned, will stay on top */}
               <div className="absolute -top-3 -right-3 z-20">
                 <button
-                  onClick={() => router.push(`/clubs/settings/${club.id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent card click from firing
+                    router.push(`/clubs/settings/${club.id}`);
+                  }}
                   className="p-2 bg-primary-dark text-[#f4ebd0] shadow-md hover:scale-110 transition-transform"
                   title="Modify Ledger"
                 >
@@ -102,7 +105,11 @@ const MyClubsPage = () => {
                 </button>
               </div>
 
-              <div className="transition-transform hover:-rotate-1 duration-300">
+              {/* Added onClick and cursor-pointer to the card container */}
+              <div 
+                onClick={() => router.push(`/clubs/${club.id}`)}
+                className="transition-transform hover:-rotate-1 duration-300 cursor-pointer"
+              >
                 <MyClubCard book={club} />
               </div>
             </div>

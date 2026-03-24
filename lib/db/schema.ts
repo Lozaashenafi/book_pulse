@@ -309,6 +309,43 @@ export const profileNoteRelations = relations(profiles, ({ many }) => ({
   notes: many(notes),
 }));
 
+export const bookReviews = pgTable("book_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  
+  bookTitle: text("book_title").notNull(),
+  authorName: text("author_name").notNull(),
+  content: text("content").notNull(),
+  rating: integer("rating").default(5),
+  imageUrl: text("image_url"),
+  
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+export const reviewLikes = pgTable("review_likes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reviewId: uuid("review_id").references(() => bookReviews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+}, (t) => ({
+  unq: unique().on(t.reviewId, t.userId),
+}));
+
+export const reviewFavorites = pgTable("review_favorites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reviewId: uuid("review_id").references(() => bookReviews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+}, (t) => ({
+  unq: unique().on(t.reviewId, t.userId),
+}));
+// Add Relation
+export const bookReviewRelations = relations(bookReviews, ({ one }) => ({
+  user: one(profiles, {
+    fields: [bookReviews.userId],
+    references: [profiles.id],
+  }),
+}));
 // --- RELATIONS ---
 // 1. Club Relations (Already mostly correct, but needs books backlink)
 export const clubRelations = relations(clubs, ({ one, many }) => ({

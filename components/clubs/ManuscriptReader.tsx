@@ -1,7 +1,7 @@
 // components/ManuscriptReader.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { 
   Maximize2, Minimize2, X, Plus, Minus, 
@@ -68,6 +68,7 @@ const ManuscriptReader = ({
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
         setPdfData(blobUrl);
+        setIsLoading(false)
         
         // Clean up old blob URL
         return () => {
@@ -149,6 +150,7 @@ const ManuscriptReader = ({
   }, [pdfData]);
 
   if (!pdfUrl) {
+    
     return (
       <div className="flex-1 flex items-center justify-center bg-[#333]">
         <div className="text-center text-gray-400">
@@ -158,6 +160,14 @@ const ManuscriptReader = ({
       </div>
     );
   }
+
+    const documentOptions = useMemo(
+    () => ({
+      cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/cmaps/`,
+      cMapPacked: true,
+    }),
+    []
+  );
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#1a1a1a] relative">
@@ -276,10 +286,13 @@ const ManuscriptReader = ({
                     <Loader2 className="animate-spin text-[#d4a373]" size={32} />
                   </div>
                 }
-                options={{
-                  cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
-                  cMapPacked: true,
-                }}
+                options={
+                  documentOptions
+                }
+                // options={{
+                //   cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+                //   cMapPacked: true,
+                // }}
               >
                 <Page 
                   pageNumber={currentPageNum} 

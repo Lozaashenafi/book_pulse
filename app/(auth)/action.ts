@@ -2,9 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
-import { db } from "@/lib/db"; // Import your Neon/Drizzle instance
-import { profiles } from "@/lib/db/schema"; // Import your schema
-import { eq } from "drizzle-orm";
+
 import {  ensureNeonProfile} from "@/services/profile.service";
 
 const getURL = async () => {

@@ -17,13 +17,14 @@ import {
   X,
   Sun,
   Moon,
+  BookMarked, // Added for Book Reviews
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getSidebarClubs } from "@/services/profile.service";
-import { getUserNotifications } from "@/services/notification.service"; // Import notification service
-import { useTheme } from "next-themes"; // Import theme hook
+import { getUserNotifications } from "@/services/notification.service";
+import { useTheme } from "next-themes";
 
 export default function SideBar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -49,10 +50,8 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     if (user?.id) {
-      // Fetch Clubs
       getSidebarClubs(user.id).then(setClubsData);
 
-      // Initial Notification Fetch
       const fetchNotices = async () => {
         const notices = await getUserNotifications(user.id);
         const unread = notices.filter((n: any) => !n.isRead).length;
@@ -60,7 +59,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
       };
 
       fetchNotices();
-      // Poll for new notifications every 30 seconds
       const interval = setInterval(fetchNotices, 30000);
       return () => clearInterval(interval);
     }
@@ -90,7 +88,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           </h1>
         </Link>
         <div className="flex items-center gap-2">
-          {/* Mobile Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="p-2 text-tertiary dark:text-[#d4a373]"
@@ -230,6 +227,15 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
+          {/* --- NEW: BOOK REVIEW ITEM --- */}
+          <NavItem
+            href="/reviews"
+            icon={<BookMarked size={20} />}
+            label="Review Registry"
+            active={pathname === "/reviews"}
+            isCollapsed={isCollapsed}
+          />
+
           <NavItem
             href="/note"
             icon={<PenTool size={20} />}
@@ -238,7 +244,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             isCollapsed={isCollapsed}
           />
 
-          {/* UPDATED: THE BUZZ WITH DYNAMIC BADGE */}
           <NavItem
             href="/notices"
             icon={<Bell size={20} />}
@@ -260,7 +265,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             isCollapsed={isCollapsed}
           />
 
-          {/* NEW: THEME TOGGLE FOR DESKTOP */}
+          {/* THEME TOGGLE */}
           <button
             onClick={toggleTheme}
             className={`w-full flex items-center transition-all mt-4 ${isCollapsed ? "justify-center py-3" : "px-4 py-2"} text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary`}
@@ -327,6 +332,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         )}
       </aside>
 
+      {/* --- MAIN CONTENT --- */}
       <main className="flex-1 h-full overflow-y-auto custom-scrollbar px-4 lg:px-8 py-8 lg:py-0">
         <div
           className={`${isCollapsed ? "lg:ml-0" : ""} transition-all duration-300 h-full`}
@@ -348,6 +354,7 @@ const NavItem = ({
 }: any) => (
   <Link href={href || "#"}>
     <div
+      title={isCollapsed ? label : ""}
       className={`flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${active ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"}`}
     >
       <div className="flex items-center space-x-3">

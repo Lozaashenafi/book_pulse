@@ -3,15 +3,12 @@
 import { useEffect, useState } from "react";
 import {
   Settings,
-  Book,
   Users,
-  MessageSquare,
   Award,
   Bookmark,
   MapPin,
   Calendar,
   ChevronRight,
-  Loader2,
   Paperclip,
   ArrowRight,
   Eye,
@@ -33,6 +30,7 @@ const BookPulseProfile = () => {
     stats,
     currentReads,
     activeCircles,
+    badges,
     isLoading: dataLoading,
   } = useProfileData(user?.id);
 
@@ -53,7 +51,7 @@ const BookPulseProfile = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="h-screen w-full flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
         <CuratorLoader />
       </div>
     );
@@ -65,6 +63,7 @@ const BookPulseProfile = () => {
       .map((n: any) => n[0])
       .join("")
       .toUpperCase() || "??";
+
   const joinedDate = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString("en-US", {
         month: "long",
@@ -75,19 +74,17 @@ const BookPulseProfile = () => {
   return (
     <div className="pb-12 transition-colors duration-500">
       <div className="max-w-5xl mx-auto">
-        {/* HEADER: Library Bookmark Style */}
+        {/* HEADER */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-primary-dark/20 pb-6 gap-6">
           <div className="relative">
             <h1 className="text-5xl pt-4 font-serif font-black text-tertiary dark:text-[#d4a373] tracking-tighter leading-none">
               The Reading Shelf
             </h1>
             <p className="text-primary-half dark:text-gray-400 mt-2 font-serif italic text-lg">
-              {" "}
               Curated by {profile?.name || "Anonymous Reader"}
             </p>
           </div>
 
-          {/* NEW: Action Bar for Public View & Sharing */}
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => router.push(`/profile/${profile?.username}`)}
@@ -114,8 +111,7 @@ const BookPulseProfile = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* ... (Rest of your Left/Right columns stay exactly the same) ... */}
-          {/* LEFT COLUMN: Profile Card */}
+          {/* LEFT COLUMN: Identity & Badges */}
           <div className="lg:col-span-4 space-y-8">
             <section className="relative bg-white dark:bg-[#25201e] p-8 shadow-[8px_8px_0px_rgba(92,64,51,0.1)] border-t-[12px] border-primary-half/30">
               <Paperclip
@@ -132,12 +128,13 @@ const BookPulseProfile = () => {
                         className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-primary-half dark:text-[#d4a373] font-serif text-5xl font-bold">
+                      <div className="w-full h-full flex items-center justify-center text-[#8b5a2b] dark:text-[#d4a373] font-serif text-5xl font-bold">
                         {initials}
                       </div>
                     )}
                   </div>
                 </div>
+
                 <div className="space-y-2">
                   <span className="inline-block px-3 py-0.5 bg-[#f4ebd0] dark:bg-amber-900/20 text-primary-half dark:text-[#d4a373] text-[10px] font-bold uppercase tracking-widest border border-[#d6c7a1] dark:border-primary-dark">
                     {profile?.role === "admin"
@@ -148,11 +145,12 @@ const BookPulseProfile = () => {
                     @{profile?.username || "reader"}
                   </h2>
                 </div>
+
                 <p className="text-sm font-serif italic leading-relaxed text-[#5a5a5a] dark:text-gray-400">
-                  "{profile?.bio || "Lover of stories and shared perspectives."}
-                  "
+                  "{profile?.bio || "Lover of stories and shared perspectives."}"
                 </p>
-                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3 text-[10px] font-mono font-bold text-primary-half dark:text-[#d4a373] uppercase tracking-wider">
+
+                <div className="w-full pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 flex flex-col gap-3 text-[10px] font-mono font-bold text-[#8b5a2b] dark:text-[#d4a373] uppercase tracking-wider text-left">
                   <div className="flex items-center gap-2">
                     <MapPin size={14} /> {profile?.location || "Lost in a book"}
                   </div>
@@ -162,6 +160,28 @@ const BookPulseProfile = () => {
                 </div>
               </div>
             </section>
+
+            {/* RECOGNITION SEALS */}
+            <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1] dark:border-primary-dark shadow-md space-y-4">
+              <h4 className="text-[10px] font-mono font-black uppercase text-[#1a3f22] dark:text-[#d4a373] border-b border-[#d6c7a1] dark:border-stone-700 pb-2">
+                Recognition Seals
+              </h4>
+              <div className="flex flex-wrap gap-4">
+                {badges?.map((badge: any) => (
+                  <div key={badge.id} className="flex items-center gap-3 group" title={badge.desc}>
+                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-[#1a3f22] dark:border-[#d4a373] flex items-center justify-center text-xl group-hover:bg-[#d4a373] transition-all">
+                      <span>{badge.icon}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black font-mono leading-none dark:text-stone-300">{badge.name}</span>
+                      <span className="text-[8px] italic text-[#8b5a2b] dark:text-[#d4a373]/70">Verified</span>
+                    </div>
+                  </div>
+                ))}
+                {badges?.length === 0 && <p className="text-[9px] italic opacity-40">No seals earned yet.</p>}
+              </div>
+            </div>
+
             <div className="bg-[#f4ebd0] dark:bg-[#2c2420] p-6 border-2 border-[#d6c7a1] dark:border-primary-dark shadow-md grid grid-cols-3 gap-2">
               <StatItem label="Read" value={stats.booksRead} />
               <StatItem label="Circles" value={stats.circles} />
@@ -182,8 +202,12 @@ const BookPulseProfile = () => {
                   currentReads.map((book, i) => (
                     <div key={i} className="group relative">
                       <div className="flex gap-4">
-                        <div className="w-16 h-24 bg-primary-dark/10 dark:bg-[#d4a373]/10 border border-primary-dark/20 flex-shrink-0 flex items-center justify-center font-mono text-[10px] -rotate-2 group-hover:rotate-0 transition-transform text-primary-dark dark:text-[#d4a373]">
-                          COVER
+                        <div className="w-16 h-24 bg-[#f4ebd0] dark:bg-black/20 border border-[#d6c7a1] flex-shrink-0 overflow-hidden -rotate-2 group-hover:rotate-0 transition-transform">
+                          {book.cover ? (
+                            <img src={book.cover} className="w-full h-full object-cover" alt="cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[8px] font-mono text-gray-300 uppercase">No Cover</div>
+                          )}
                         </div>
                         <div className="flex flex-col justify-between py-1">
                           <div>
@@ -235,7 +259,7 @@ const BookPulseProfile = () => {
                       <div className="w-8 h-8 rounded-full bg-[#f4ebd0] dark:bg-[#1a1614] flex items-center justify-center font-serif font-bold text-primary-dark dark:text-[#d4a373]">
                         {circle?.name?.[0] || "?"}
                       </div>
-                      <span className="font-serif font-bold text-sm text-primary-dark dark:text-gray-200">
+                      <span className="font-serif font-bold text-sm text-primary-dark dark:text-gray-200 truncate max-w-[150px]">
                         {circle.name}
                       </span>
                     </div>

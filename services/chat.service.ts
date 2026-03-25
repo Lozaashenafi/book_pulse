@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, asc, desc } from "drizzle-orm";
 import { cacheService } from "./cache.service";
+import { checkReadingStreak } from "./badge.service";
 
 // Add this at the top of your existing service file
 export async function getClubRoomsWithCache(clubId: string, userId: string) {
@@ -62,6 +63,78 @@ export async function getUserProgressWithCache(userId: string, clubId: string) {
   return progress;
 }
 
+// --- INTERNAL RETRY HELPER ---
+async function retryQuery(fn: () => Promise<any>, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      console.log(`🔄 Neon Sync Attempt ${i + 1} failed. Retrying...`);
+      await new Promise(res => setTimeout(res, 1500)); // Wait 1.5s
+    }
+  }
+}
+export async function updateUserProgress(userId: string, clubId: string, pageNumber: number) {
+  const cleanPage = Math.floor(Number(pageNumber));
+  if (isNaN(cleanPage) || cleanPage <= 0) return { success: false, error: "Invalid page" };
+
+  try {
+    return await retryQuery(async () => {
+      // 1. Fetch milestones
+      const allChapters = await db
+        .select()
+        .from(chapters)
+        .where(eq(chapters.clubId, clubId))
+        .orderBy(asc(chapters.chapterNumber));
+
+      if (allChapters.length === 0) throw new Error("No milestones found.");
+
+      // 2. Identify current chapter
+      let currentChapter = allChapters.find(ch => cleanPage >= ch.startPage && cleanPage <= ch.endPage);
+      if (!currentChapter) {
+        currentChapter = cleanPage > allChapters[allChapters.length - 1].endPage 
+          ? allChapters[allChapters.length - 1] 
+          : allChapters[0];
+      }
+
+      // 3. Upsert progress record
+      const existing = await db.query.readingProgress.findFirst({
+        where: and(eq(readingProgress.userId, userId), eq(readingProgress.clubId, clubId))
+      });
+
+      if (existing) {
+        await db.update(readingProgress)
+          .set({ 
+            currentPage: cleanPage, 
+            chapterId: currentChapter.id, 
+            status: cleanPage >= currentChapter.endPage ? "COMPLETED" : "IN_PROGRESS",
+            updatedAt: new Date() 
+          })
+          .where(eq(readingProgress.id, existing.id));
+      } else {
+        await db.insert(readingProgress).values({
+          userId,
+          clubId,
+          chapterId: currentChapter.id,
+          currentPage: cleanPage,
+          status: "IN_PROGRESS"
+        });
+      }
+
+      // Clear cache immediately
+      cacheService.clearProgress(userId, clubId);
+      cacheService.clearRooms(clubId);
+      await checkReadingStreak(userId); 
+
+
+      return { success: true };
+    });
+  } catch (error: any) {
+    console.error("Final Sync Failure:", error.message);
+    return { success: false, error: "Connection timed out. Retrying in background..." };
+  }
+}
 // Update the progress function to invalidate cache
 export async function updateUserProgressWithCache(
   userId: string,
@@ -167,6 +240,7 @@ export async function sendRoomMessage(
         content,
       })
       .returning();
+    await checkReadingStreak(userId); 
 
     return JSON.parse(JSON.stringify(newMessage));
   } catch (error) {
@@ -174,63 +248,7 @@ export async function sendRoomMessage(
     throw new Error("Failed to send message");
   }
 }
-export async function updateUserProgress(
-  userId: string,
-  clubId: string,
-  pageNumber: number,
-) {
-  // 1. Safety check for NaN
-  if (!pageNumber || isNaN(pageNumber)) throw new Error("Invalid page number.");
 
-  try {
-    // 2. Find which chapter this page belongs to
-    const allChapters = await db
-      .select()
-      .from(chapters)
-      .where(eq(chapters.clubId, clubId));
-    const currentChapter = allChapters.find(
-      (ch) => pageNumber >= ch.startPage && pageNumber <= ch.endPage,
-    );
-
-    if (!currentChapter)
-      throw new Error("Page number is outside of club milestones.");
-
-    // 3. Check if progress already exists for THIS SPECIFIC CHAPTER
-    const existing = await db.query.readingProgress.findFirst({
-      where: and(
-        eq(readingProgress.userId, userId),
-        eq(readingProgress.chapterId, currentChapter.id),
-      ),
-    });
-
-    if (existing) {
-      // Update existing chapter progress
-      await db
-        .update(readingProgress)
-        .set({
-          currentPage: pageNumber,
-          status:
-            pageNumber === currentChapter.endPage ? "COMPLETED" : "IN_PROGRESS",
-          updatedAt: new Date(),
-        })
-        .where(eq(readingProgress.id, existing.id));
-    } else {
-      // Insert new progress for this chapter
-      await db.insert(readingProgress).values({
-        userId,
-        clubId,
-        chapterId: currentChapter.id,
-        currentPage: pageNumber,
-        status: "IN_PROGRESS",
-      });
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("Sync Error:", error.message);
-    throw new Error(error.message || "Failed to log progress");
-  }
-}
 /**
  * Gets the latest message ID/Timestamp for each room to check for unread status
  */

@@ -206,32 +206,20 @@ export function useChat(clubId: string, userId?: string) {
   // 4. Update Progress with Caching (Silent sync - no toast)
   const logProgress = useCallback(async (pageValue: any) => {
     const page = parseInt(pageValue);
-    if (!userId || isNaN(page) || page === currentPage) {
-      return;
-    }
+    if (!userId || isNaN(page) || page === currentPage) return;
 
     try {
+      // Direct call to service (which now handles retries internally)
       const res = await updateUserProgress(userId, clubId, page);
+      
       if (res.success && isMountedRef.current) {
         setCurrentPage(page);
-        // Update cache
-        cacheService.setProgress(userId, clubId, page);
-        // Invalidate rooms cache as lock status may change
-        cacheService.clearRooms(clubId);
-        
-        // Refresh rooms in background
-        const roomData = await getClubRooms(clubId, userId);
-        if (isMountedRef.current) {
-          setRooms(roomData);
-          cacheService.setRooms(clubId, roomData);
-        }
+        // Only refresh rooms to check for unlocks, don't re-fetch PDF/Name
+        const updatedRooms = await getClubRooms(clubId, userId);
+        setRooms(updatedRooms);
       }
-    } catch (err: any) {
-      console.error("Sync failed:", err);
-      // Only show toast on actual errors
-      if (isMountedRef.current) {
-        toast.error(err.message || "Sync failed");
-      }
+    } catch (err) {
+      console.error("Progress Sync Failed");
     }
   }, [userId, clubId, currentPage]);
 

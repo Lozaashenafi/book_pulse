@@ -9,14 +9,18 @@ import {
 } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import { useChat } from "@/hooks/useChat";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // Configure PDF.js worker
 // This ensures the worker version ALWAYS matches your library version
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
+ 
+   
 interface ReaderProps {
   pdfUrl: string;
   clubName: string;
+  clubId:string;
   currentPage: number;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
@@ -25,9 +29,11 @@ interface ReaderProps {
 }
 
 const ManuscriptReader = ({ 
-  pdfUrl, clubName, currentPage, isFullscreen, 
+  pdfUrl, clubName, currentPage, isFullscreen, clubId,
   onToggleFullscreen, onClose, onLogProgress 
 }: ReaderProps) => {
+    const { user, profile: myProfile } = useAuthStore();
+  
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPageNum, setCurrentPageNum] = useState(currentPage);
   const [zoom, setZoom] = useState(1.0);
@@ -38,6 +44,9 @@ const ManuscriptReader = ({
   
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const {
+    logProgress,
+  } = useChat(clubId, user?.id);
   // Load PDF with proper CORS handling
   useEffect(() => {
     const loadPDF = async () => {
@@ -115,16 +124,19 @@ const ManuscriptReader = ({
   setIsLoading(false); // This stops the spinner
 };
 
-  const handlePageChange = useCallback((newPage: number) => {
-    if (newPage >= 1 && newPage <= numPages && newPage !== currentPageNum) {
-      setCurrentPageNum(newPage);
-      onLogProgress(newPage);
-      
-      setShowSyncIndicator(true);
-      setTimeout(() => setShowSyncIndicator(false), 1000);
-    }
-  }, [numPages, currentPageNum, onLogProgress]);
-
+ const handlePageChange = useCallback((newPage: number) => {
+  if (newPage >= 1 && newPage <= numPages && newPage !== currentPageNum) {
+    setCurrentPageNum(newPage);
+    
+    // Only call the prop, let the parent handle the database update
+    onLogProgress(newPage); 
+    logProgress(newPage);
+    
+    
+    setShowSyncIndicator(true);
+    setTimeout(() => setShowSyncIndicator(false), 1000);
+  }
+}, [numPages, currentPageNum, onLogProgress]);
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

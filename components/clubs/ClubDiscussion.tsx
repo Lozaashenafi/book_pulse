@@ -381,15 +381,16 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
           </div>
         ) : (
           pdfUrl && (
-            <ManuscriptReader 
-              pdfUrl={pdfUrl} 
-              clubName={clubName}
-              currentPage={currentPage}
-              isFullscreen={isFullscreen}
-              onToggleFullscreen={handleToggleFullscreen}
-              onClose={() => setViewMode("chat")}
-              onLogProgress={(page) => logProgress(page.toString())}
-            />
+             <ManuscriptReader 
+            pdfUrl={pdfUrl} 
+            clubId={clubId} // Pass this
+            clubName={clubName}
+            currentPage={currentPage}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={handleToggleFullscreen}
+            onClose={() => setViewMode("chat")}
+            onLogProgress={(page) => logProgress(page)} // Pass the number directly
+          />
           )
         )}
       </main>

@@ -10,6 +10,8 @@ import {
   profiles,
   posts,
   postLikes,
+  badges,
+  userBadges,
 } from "@/lib/db/schema";
 import { eq, count, and, sql, desc } from "drizzle-orm";
 
@@ -141,7 +143,6 @@ export async function getCurrentReads(userId: string) {
   if (!userId) return [];
 
   try {
-    // We use a standard SQL join instead of the complex .findMany relational query
     const data = await db
       .select({
         currentPage: readingProgress.currentPage,
@@ -150,6 +151,8 @@ export async function getCurrentReads(userId: string) {
         bookTitle: books.title,
         bookAuthor: books.author,
         totalPages: books.totalPages,
+        // We select the value and give it an alias 'cover'
+        cover: books.coverUrl 
       })
       .from(readingProgress)
       .innerJoin(clubs, eq(readingProgress.clubId, clubs.id))
@@ -165,6 +168,8 @@ export async function getCurrentReads(userId: string) {
     return data.map((item) => ({
       title: item.bookTitle || "Unknown",
       author: item.bookAuthor || "Unknown",
+      // FIX: Use 'item.cover' to get the actual data from the query result
+      cover: item.cover, 
       progress: Math.min(
         100,
         Math.round(((item.currentPage || 0) / (item.totalPages || 100)) * 100),
@@ -175,7 +180,6 @@ export async function getCurrentReads(userId: string) {
     return [];
   }
 }
-
 export async function getActiveCircles(userId: string) {
   if (!userId) return [];
 
@@ -305,11 +309,22 @@ export async function getPublicProfileByUsername(username: string) {
       .innerJoin(clubs, eq(clubMembers.clubId, clubs.id))
       .innerJoin(books, eq(clubs.bookId, books.id))
       .where(eq(clubMembers.userId, user.id));
+ const earnedBadges = await db
+      .select({
+        id: badges.id,
+        name: badges.name,
+        desc: badges.description,
+        icon: badges.icon,
+      })
+      .from(userBadges)
+      .innerJoin(badges, eq(userBadges.badgeId, badges.id))
+      .where(eq(userBadges.userId, user.id));
 
     // Serialize for Client Component
     return JSON.parse(
       JSON.stringify({
         ...user,
+        badges: earnedBadges, // Add this to the returned object
         posts: userPosts,
         clubs: userClubs,
       }),

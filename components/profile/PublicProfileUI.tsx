@@ -14,6 +14,7 @@ import {
   Pin,
   Bookmark,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const PublicProfileUI = ({ data }: { data: any }) => {
@@ -24,7 +25,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
     year: "numeric",
   });
 
-  // Achievement Logic based on stats
+  // Achievement Logic based on stats (Existing Logic)
   const achievements = [
     {
       show: data.role === "admin",
@@ -122,6 +123,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                 Recognition Seals
               </h4>
               <div className="flex flex-wrap gap-4">
+                {/* 1. Render Static Achievements Logic */}
                 {achievements
                   .filter((a) => a.show)
                   .map((a, i) => (
@@ -143,6 +145,32 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                       </div>
                     </div>
                   ))}
+
+                {/* 2. Render Dynamic Badges from Database */}
+                {data.badges?.map((badge: any) => (
+                  <div
+                    key={badge.id}
+                    className="flex items-center gap-3 group"
+                    title={badge.desc}
+                  >
+                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-tertiary dark:border-[#d4a373] flex items-center justify-center text-xl group-hover:bg-tertiary dark:group-hover:bg-[#d4a373] transition-all">
+                      <span>{badge.icon}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black font-mono leading-none dark:text-stone-300">
+                        {badge.name}
+                      </span>
+                      <span className="text-[8px] italic text-primary-half dark:text-[#d4a373]/70">
+                        Verified Seal
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Empty State */}
+                {achievements.filter((a) => a.show).length === 0 && (!data.badges || data.badges.length === 0) && (
+                  <p className="text-[9px] italic opacity-40">No seals earned yet.</p>
+                )}
               </div>
             </div>
           </aside>
@@ -150,10 +178,10 @@ const PublicProfileUI = ({ data }: { data: any }) => {
           {/* --- RIGHT COLUMN: ACTIVITY --- */}
           <main className="lg:col-span-8 space-y-12">
             {/* ACTIVE CIRCLES: Library Card Drawer */}
-            <section className="bg-white dark:bg-[#2c2420] p-10 shadow-md border-l-[15px] border-tertiary/10 dark:border-[#d4a373]/10 relative">
+            <section className="bg-white dark:bg-[#25201e] p-10 shadow-md border-l-[15px] border-tertiary/10 dark:border-[#d4a373]/10 relative">
               <h3 className="text-2xl font-serif font-black text-tertiary dark:text-[#d4a373] mb-8 flex items-center gap-3">
-                <Bookmark className="fill-tertiary text-tertiary dark:fill-[#d4a373] dark:text-[#d4a373]" />{" "}
-                Active Circles
+                <Bookmark className="fill-tertiary text-tertiary dark:fill-[#d4a373] dark:text-[#d4a373]" /> Active
+                Circles
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -75,66 +75,43 @@ async function retryQuery(fn: () => Promise<any>, retries = 3) {
     }
   }
 }
+
 export async function updateUserProgress(userId: string, clubId: string, pageNumber: number) {
   const cleanPage = Math.floor(Number(pageNumber));
-  if (isNaN(cleanPage) || cleanPage <= 0) return { success: false, error: "Invalid page" };
+  if (isNaN(cleanPage) || cleanPage <= 0) return { success: false };
 
   try {
-    return await retryQuery(async () => {
-      // 1. Fetch milestones
-      const allChapters = await db
-        .select()
-        .from(chapters)
-        .where(eq(chapters.clubId, clubId))
-        .orderBy(asc(chapters.chapterNumber));
+    // 1. Get ONLY the IDs of chapters (fast query)
+    const clubChapters = await db.select({ id: chapters.id, startPage: chapters.startPage, endPage: chapters.endPage })
+      .from(chapters)
+      .where(eq(chapters.clubId, clubId));
 
-      if (allChapters.length === 0) throw new Error("No milestones found.");
+    const currentChapter = clubChapters.find(ch => cleanPage >= ch.startPage && cleanPage <= ch.endPage) || clubChapters[0];
 
-      // 2. Identify current chapter
-      let currentChapter = allChapters.find(ch => cleanPage >= ch.startPage && cleanPage <= ch.endPage);
-      if (!currentChapter) {
-        currentChapter = cleanPage > allChapters[allChapters.length - 1].endPage 
-          ? allChapters[allChapters.length - 1] 
-          : allChapters[0];
-      }
-
-      // 3. Upsert progress record
-      const existing = await db.query.readingProgress.findFirst({
-        where: and(eq(readingProgress.userId, userId), eq(readingProgress.clubId, clubId))
-      });
-
-      if (existing) {
-        await db.update(readingProgress)
-          .set({ 
-            currentPage: cleanPage, 
-            chapterId: currentChapter.id, 
-            status: cleanPage >= currentChapter.endPage ? "COMPLETED" : "IN_PROGRESS",
-            updatedAt: new Date() 
-          })
-          .where(eq(readingProgress.id, existing.id));
-      } else {
-        await db.insert(readingProgress).values({
-          userId,
-          clubId,
-          chapterId: currentChapter.id,
-          currentPage: cleanPage,
-          status: "IN_PROGRESS"
-        });
-      }
-
-      // Clear cache immediately
-      cacheService.clearProgress(userId, clubId);
-      cacheService.clearRooms(clubId);
-      await checkReadingStreak(userId); 
-
-
-      return { success: true };
+    // 2. Perform a clean "Upsert"
+    const existing = await db.query.readingProgress.findFirst({
+      where: and(eq(readingProgress.userId, userId), eq(readingProgress.clubId, clubId))
     });
-  } catch (error: any) {
-    console.error("Final Sync Failure:", error.message);
-    return { success: false, error: "Connection timed out. Retrying in background..." };
+
+    if (existing) {
+      await db.update(readingProgress)
+        .set({ currentPage: cleanPage, chapterId: currentChapter.id, updatedAt: new Date() })
+        .where(eq(readingProgress.id, existing.id));
+    } else {
+      await db.insert(readingProgress).values({
+        userId, clubId, chapterId: currentChapter.id, currentPage: cleanPage, status: "IN_PROGRESS"
+      });
+    }
+
+    // 3. IMPORTANT: Update the Cache immediately so the Sidebar sees it
+    cacheService.setProgress(userId, clubId, cleanPage);
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false };
   }
 }
+
 // Update the progress function to invalidate cache
 export async function updateUserProgressWithCache(
   userId: string,

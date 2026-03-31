@@ -123,15 +123,14 @@ const ManuscriptReader = ({
   setError(`PDF Engine Error: ${err.message}. Try refreshing.`);
   setIsLoading(false); // This stops the spinner
 };
-
- const handlePageChange = useCallback((newPage: number) => {
+const handlePageChange = useCallback((newPage: number) => {
   if (newPage >= 1 && newPage <= numPages && newPage !== currentPageNum) {
     setCurrentPageNum(newPage);
     
-    // Only call the prop, let the parent handle the database update
+    // FIX: Only call the prop. 
+    // The parent (ClubDiscussion) already handles the database logic.
+    // Calling both causes a database collision.
     onLogProgress(newPage); 
-    logProgress(newPage);
-    
     
     setShowSyncIndicator(true);
     setTimeout(() => setShowSyncIndicator(false), 1000);

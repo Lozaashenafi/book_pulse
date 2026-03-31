@@ -102,7 +102,7 @@ export async function createFullClub(
         chapterId: ch.id,
         status:
           index === 0 ? ("IN_PROGRESS" as const) : ("NOT_STARTED" as const),
-        currentPage: index === 0 ? ch.startPage : null,
+        currentPage: 1 ,
       })),
     );
 

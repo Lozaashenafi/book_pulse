@@ -46,64 +46,58 @@ export function useChat(clubId: string, userId?: string) {
     };
   }, []);
 
-  // 1. Initial Data Load with Caching
-  const refreshData = useCallback(async () => {
-    if (!userId || !clubId) return;
+ // Inside hooks/useChat.ts
 
-    try {
-      // Check cache for rooms and progress first
-      const cachedRooms = cacheService.getRooms(clubId);
-      const cachedProgress = cacheService.getProgress(userId, clubId);
+// 1. Change the initial load to be more selective
+const refreshData = useCallback(async (isSilent = false) => {
+  if (!userId || !clubId) return;
 
-      // Use cached data immediately if available
-      if (cachedRooms && isMountedRef.current) {
-        setRooms(cachedRooms);
-        if (!activeRoom && cachedRooms.length > 0) {
-          const defaultRoom = cachedRooms.find((r: any) => r.type === "GENERAL") || cachedRooms[0];
-          setActiveRoom(defaultRoom);
-        }
-      }
-      
-      if (cachedProgress !== null && isMountedRef.current) {
-        setCurrentPage(cachedProgress);
-      }
+  if (!isSilent) setIsLoading(true); 
 
-      // Fetch fresh data in background
-      const [roomData, progress, pdfLink, name] = await Promise.all([
-        getClubRooms(clubId, userId),
-        getUserClubProgress(userId, clubId),
-        getClubPdfUrl(clubId),
-        getClubName(clubId),
-      ]);
+  try {
+    const [roomData, progress, pdfLink, name] = await Promise.all([
+      getClubRooms(clubId, userId),
+      getUserClubProgress(userId, clubId),
+      getClubPdfUrl(clubId),
+      getClubName(clubId),
+    ]);
 
-      if (!isMountedRef.current) return;
+    if (!isMountedRef.current) return;
 
-      // Update state if data changed
-      if (JSON.stringify(roomData) !== JSON.stringify(cachedRooms)) {
-        setRooms(roomData);
-        cacheService.setRooms(clubId, roomData);
-      }
-      
-      if (progress !== cachedProgress) {
-        setCurrentPage(progress);
-        cacheService.setProgress(userId, clubId, progress);
-      }
-      
-      setPdfUrl(pdfLink);
-      setClubName(name);
+    setRooms(roomData);
+    setCurrentPage(progress);
+    setPdfUrl(pdfLink);
+    setClubName(name);
 
-      if (!activeRoom && roomData.length > 0 && !cachedRooms) {
-        const defaultRoom = roomData.find((r: any) => r.type === "GENERAL") || roomData[0];
-        setActiveRoom(defaultRoom);
-      }
-    } catch (err) {
-      console.error("Initialization Error:", err);
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+    if (!activeRoom && roomData.length > 0) {
+      setActiveRoom(roomData.find((r: any) => r.type === "GENERAL") || roomData[0]);
     }
-  }, [clubId, userId, activeRoom]);
+  } finally {
+    if (isMountedRef.current) setIsLoading(false);
+  }
+}, [clubId, userId, activeRoom]);
+
+// 2. Optimized logProgress (prevents Sidebar 'rolling')
+const logProgress = useCallback(async (pageValue: any) => {
+  const page = parseInt(pageValue);
+  if (!userId || isNaN(page) || page === currentPage) return;
+
+  // Optimistic Update (Immediate UI change)
+  setCurrentPage(page);
+  cacheService.setProgress(userId, clubId, page);
+
+  try {
+    const res = await updateUserProgress(userId, clubId, page);
+    if (res.success) {
+       // Only refresh rooms to check for locks. 
+       // DON'T call refreshData() because it resets the whole chat state.
+       const roomData = await getClubRooms(clubId, userId);
+       setRooms(roomData);
+    }
+  } catch (err) {
+    console.error("Sync error");
+  }
+}, [userId, clubId, currentPage]);
 
   useEffect(() => {
     refreshData();
@@ -203,26 +197,7 @@ export function useChat(clubId: string, userId?: string) {
     };
   }, [activeRoom?.id, clubId, userId, loadMessages]);
 
-  // 4. Update Progress with Caching (Silent sync - no toast)
-  const logProgress = useCallback(async (pageValue: any) => {
-    const page = parseInt(pageValue);
-    if (!userId || isNaN(page) || page === currentPage) return;
-
-    try {
-      // Direct call to service (which now handles retries internally)
-      const res = await updateUserProgress(userId, clubId, page);
-      
-      if (res.success && isMountedRef.current) {
-        setCurrentPage(page);
-        // Only refresh rooms to check for unlocks, don't re-fetch PDF/Name
-        const updatedRooms = await getClubRooms(clubId, userId);
-        setRooms(updatedRooms);
-      }
-    } catch (err) {
-      console.error("Progress Sync Failed");
-    }
-  }, [userId, clubId, currentPage]);
-
+  
   // 5. Message Actions with Cache Invalidation
   const removeMessage = useCallback(async (msgId: string) => {
     if (!userId || !activeRoom?.id) return;

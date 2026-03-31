@@ -39,18 +39,3 @@ export async function markAllAsRead(userId: string) {
     throw new Error("Failed to clear unread notifications");
   }
 }
-
-/**
- * Delete a specific notification
- */
-export async function deleteNotificationRecord(id: string, userId: string) {
-  try {
-    await db
-      .delete(notifications)
-      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-    return { success: true };
-  } catch (error) {
-    console.error("Delete Notification Error:", error);
-    throw new Error("Failed to delete record");
-  }
-}

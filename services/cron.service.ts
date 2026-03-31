@@ -1,18 +1,25 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { profiles, notifications, readingProgress } from "@/lib/db/schema";
-import { eq, and, lt, isNull, or, sql } from "drizzle-orm";
+import { profiles, notifications, readingProgress, chatMessages } from "@/lib/db/schema";
+import { eq, and, isNull, or, notExists, sql } from "drizzle-orm";
 import { Resend } from "resend";
 import { nudgeEmailTemplate } from "@/lib/emails/NudgeEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function processInactivityNudges() {
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  // 1. Create the date and convert it to an ISO String immediately
+  // This is the CRITICAL fix for the 'ERR_INVALID_ARG_TYPE' error
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 3);
+  const cutoffStr = cutoffDate.toISOString(); 
+
+  console.log("🕒 Starting Inactivity Check for cutoff:", cutoffStr);
 
   try {
+    // 2. Find inactive users
+    // We use sql`${column} < ${string}::timestamp` to force the driver to send a string
     const inactiveUsers = await db
       .select({
         id: profiles.id,
@@ -22,46 +29,72 @@ export async function processInactivityNudges() {
       .from(profiles)
       .where(
         and(
-          lt(profiles.updatedAt, threeDaysAgo),
+          // Condition A: Haven't been reminded in 3 days
           or(
             isNull(profiles.lastReminderAt),
-            lt(profiles.lastReminderAt, threeDaysAgo),
+            sql`${profiles.lastReminderAt} < ${cutoffStr}::timestamp`
           ),
-        ),
+          // Condition B: No reading progress updates in 3 days
+          notExists(
+            db.select()
+              .from(readingProgress)
+              .where(
+                and(
+                  eq(readingProgress.userId, profiles.id),
+                  sql`${readingProgress.updatedAt} > ${cutoffStr}::timestamp`
+                )
+              )
+          ),
+          // Condition C: No chat messages sent in 3 days
+          notExists(
+            db.select()
+              .from(chatMessages)
+              .where(
+                and(
+                  eq(chatMessages.userId, profiles.id),
+                  sql`${chatMessages.createdAt} > ${cutoffStr}::timestamp`
+                )
+              )
+          )
+        )
       );
+
+    console.log(`📑 Found ${inactiveUsers.length} inactive curators.`);
 
     for (const user of inactiveUsers) {
       if (!user.email || !user.name) continue;
 
-      // 2. Insert System Notification
-      await db.insert(notifications).values({
-        userId: user.id,
-        type: "READING_REMINDER",
-        title: "The Archives are Waiting",
-        message:
-          "It's been 3 days since your last update. Don't let your fellow readers fall behind!",
-      });
+      try {
+        // 3. Dispatch Email
+        await resend.emails.send({
+          from: "BookPulse <auth@noreply.lozi.me>", 
+          to: user.email,
+          subject: `Psst... ${user.name.split(' ')[0]}, your book misses you!`,
+          html: nudgeEmailTemplate(user.name),
+        });
 
-      // 3. Send Professional Email
-      await resend.emails.send({
-        from: "Postmaster <auth@noreply.lozi.me>",
-        to: user.email,
-        subject: "A note from the BookPulse Archives",
-        html: nudgeEmailTemplate(user.name),
-      });
+        // 4. Send System Notification
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "READING_REMINDER",
+          title: "The archives are quiet...",
+          message: "It's been 3 days since your last update. The fellowship misses you!",
+        });
 
-      // 4. Update reminder timestamp to prevent spamming
-      await db
-        .update(profiles)
-        .set({ lastReminderAt: new Date() })
-        .where(eq(profiles.id, user.id));
+        // 5. Update timestamp (Standard .set() handles Dates fine, it's just the .where() that crashes)
+        await db.update(profiles)
+          .set({ lastReminderAt: new Date() })
+          .where(eq(profiles.id, user.id));
 
-      console.log(`Nudge sent to: ${user.email}`);
+        console.log(`✅ Nudge sent to: ${user.email}`);
+      } catch (emailErr: any) {
+        console.error(`❌ Email failed for ${user.email}:`, emailErr.message);
+      }
     }
 
     return { processed: inactiveUsers.length };
-  } catch (error) {
-    console.error("Cron Error:", error);
-    return { error: "Nudge processing failed" };
+  } catch (error: any) {
+    console.error("🔥 CRITICAL Cron Error:", error);
+    return { error: error.message || "Nudge processing failed" };
   }
 }

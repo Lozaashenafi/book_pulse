@@ -8,15 +8,11 @@ neonConfig.fetchConnectionCache = true;
 
 const connectionString = process.env.DATABASE_URL!;
 
-// We create a custom fetcher that is extremely patient (90 seconds)
-const sql = neon(connectionString, {
-  fetchOptions: {
-    // This signal tells the computer: "Do not give up for 90 seconds"
-    signal: AbortSignal.timeout(90000), 
-  },
-});
+
+const sql = neon(process.env.DATABASE_URL!);
 
 export const db = drizzle(sql, { schema });
+
 
 // import "server-only";
 // import { drizzle } from 'drizzle-orm/postgres-js';

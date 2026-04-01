@@ -2,39 +2,38 @@
 
 import { db } from "@/lib/db";
 import { profiles, notifications, readingProgress, chatMessages } from "@/lib/db/schema";
-import { eq, and, isNull, or, notExists, sql } from "drizzle-orm";
+import { eq, and, lt, isNull, or, sql, notExists } from "drizzle-orm";
 import { Resend } from "resend";
 import { nudgeEmailTemplate } from "@/lib/emails/NudgeEmail";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function processInactivityNudges() {
-  // 1. Create the date and convert it to an ISO String immediately
-  // This is the CRITICAL fix for the 'ERR_INVALID_ARG_TYPE' error
+  // 1. CHANGE: Increased timeframe to 5 days
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 3);
+  cutoffDate.setDate(cutoffDate.getDate() - 5);
   const cutoffStr = cutoffDate.toISOString(); 
 
-  console.log("🕒 Starting Inactivity Check for cutoff:", cutoffStr);
+  console.log("🕒 Starting Inactivity Check (5-Day Window)...");
 
   try {
-    // 2. Find inactive users
-    // We use sql`${column} < ${string}::timestamp` to force the driver to send a string
     const inactiveUsers = await db
       .select({
         id: profiles.id,
         name: profiles.name,
         email: profiles.email,
+        emailNotifications: profiles.emailNotifications, // Pull preference
       })
       .from(profiles)
       .where(
         and(
-          // Condition A: Haven't been reminded in 3 days
+          // 2. CHECK PREFERENCE: User must have notifications ENABLED
+          eq(profiles.emailNotifications, true),
+          
           or(
             isNull(profiles.lastReminderAt),
             sql`${profiles.lastReminderAt} < ${cutoffStr}::timestamp`
           ),
-          // Condition B: No reading progress updates in 3 days
           notExists(
             db.select()
               .from(readingProgress)
@@ -45,7 +44,6 @@ export async function processInactivityNudges() {
                 )
               )
           ),
-          // Condition C: No chat messages sent in 3 days
           notExists(
             db.select()
               .from(chatMessages)
@@ -59,34 +57,36 @@ export async function processInactivityNudges() {
         )
       );
 
-    console.log(`📑 Found ${inactiveUsers.length} inactive curators.`);
+    console.log(`📑 Found ${inactiveUsers.length} curators who permit dispatches.`);
 
     for (const user of inactiveUsers) {
       if (!user.email || !user.name) continue;
 
       try {
-        // 3. Dispatch Email
+        // 3. Dispatch Email with Anti-Spam Headers
         await resend.emails.send({
           from: "BookPulse <auth@noreply.lozi.me>", 
           to: user.email,
-          subject: `Psst... ${user.name.split(' ')[0]}, your book misses you!`,
+          subject: `Psst... ${user.name.split(' ')[0]}, your book is waiting!`,
           html: nudgeEmailTemplate(user.name),
+          // ANTI-SPAM: Adding a List-Unsubscribe header tells Gmail this is a clean app
+          headers: {
+            "List-Unsubscribe": `<${process.env.NEXT_PUBLIC_SITE_URL}/settings>`,
+          }
         });
 
-        // 4. Send System Notification
+        // 4. System Notification (Internal)
         await db.insert(notifications).values({
           userId: user.id,
           type: "READING_REMINDER",
-          title: "The archives are quiet...",
-          message: "It's been 3 days since your last update. The fellowship misses you!",
+          title: "Dusting off the covers...",
+          message: "It's been 5 days since your last archive update. See what's new in the circles!",
         });
 
-        // 5. Update timestamp (Standard .set() handles Dates fine, it's just the .where() that crashes)
         await db.update(profiles)
           .set({ lastReminderAt: new Date() })
           .where(eq(profiles.id, user.id));
 
-        console.log(`✅ Nudge sent to: ${user.email}`);
       } catch (emailErr: any) {
         console.error(`❌ Email failed for ${user.email}:`, emailErr.message);
       }

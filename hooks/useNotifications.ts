@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   getUserNotifications,
   markAllAsRead,
-  deleteNotificationRecord,
 } from "@/services/notification.service";
 import { toast } from "sonner";
 
@@ -43,24 +42,12 @@ export function useNotifications(userId?: string) {
     }
   };
 
-  const removeNotification = async (id: string) => {
-    if (!userId) return;
-    // Optimistic Update
-    setData(data.filter((n) => n.id !== id));
-
-    try {
-      await deleteNotificationRecord(id, userId);
-    } catch (err) {
-      fetchNotifications(); // Rollback if failed
-      toast.error("Failed to delete notification");
-    }
-  };
 
   return {
     notifications: data,
     isLoading,
     clearUnread,
-    removeNotification,
+    
     refresh: fetchNotifications,
   };
 }

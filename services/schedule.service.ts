@@ -61,46 +61,88 @@ export async function getUserSchedules(userId: string) {
  * Checks for books scheduled for today
  */
 export async function processBookReminders() {
+  // Get today's date in YYYY-MM-DD format based on server time
   const today = new Date().toISOString().split('T')[0];
   
-  // Find schedules for today that haven't been notified
-  const pending = await db
-    .select({
-      id: bookSchedules.id,
-      title: bookSchedules.title,
-      userId: bookSchedules.userId,
-      userEmail: profiles.email,
-      userName: profiles.name,
-    })
-    .from(bookSchedules)
-    .innerJoin(profiles, eq(bookSchedules.userId, profiles.id))
-    .where(
-      and(
-        eq(sql`DATE(${bookSchedules.scheduledDate})`, today),
-        eq(bookSchedules.isNotified, false)
-      )
-    );
+  console.log(`📅 Starting Reading Reminders for: ${today}`);
 
-  for (const item of pending) {
-    // 1. System Notification
-    await db.insert(notifications).values({
-      userId: item.userId,
-      type: "READING_REMINDER",
-      title: "Time to Start Reading",
-      message: `Today is the day! Open the covers of "${item.title}".`,
-    });
+  try {
+    // 1. Query pending schedules joined with user profiles
+    const pending = await db
+      .select({
+        id: bookSchedules.id,
+        title: bookSchedules.title,
+        userId: bookSchedules.userId,
+        userEmail: profiles.email,
+        userName: profiles.name,
+        emailNotifications: profiles.emailNotifications, // Check preference
+      })
+      .from(bookSchedules)
+      .innerJoin(profiles, eq(bookSchedules.userId, profiles.id))
+      .where(
+        and(
+          // Match the date (ignoring time)
+          eq(sql`DATE(${bookSchedules.scheduledDate})`, today),
+          // Only if not already notified
+          eq(bookSchedules.isNotified, false)
+        )
+      );
 
-    // 2. Email Dispatch
-    if (item.userEmail) {
-      await resend.emails.send({
-        from: "BookPulse <auth@noreply.lozi.me>",
-        to: item.userEmail,
-        subject: `Registry Alert: It's time for "${item.title}"`,
-        html: `<p>Greetings ${item.userName}, your scheduled reading date for <b>${item.title}</b> has arrived!</p>`
-      });
+    console.log(`📖 Found ${pending.length} scheduled readings for today.`);
+
+    for (const item of pending) {
+      try {
+        // 2. Internal System Notification
+        await db.insert(notifications).values({
+          userId: item.userId,
+          type: "READING_REMINDER",
+          title: "Time to Start Reading!",
+          message: `Today is the day! Dust off the covers of "${item.title}" and enjoy.`,
+        });
+
+        // 3. Dispatch Email (only if user permits and has email)
+        if (item.userEmail && item.emailNotifications) {
+          const firstName = item.userName?.split(' ')[0] || "Reader";
+          
+          await resend.emails.send({
+            from: "BookPulse <auth@noreply.lozi.me>",
+            to: item.userEmail,
+            subject: `Registry Alert: It's time for "${item.title}"`,
+            html: `
+              <div style="font-family: serif; line-height: 1.6; color: #1a3f22;">
+                <h2>Greetings, ${firstName}</h2>
+                <p>According to your personal archive, today is the scheduled date to begin reading:</p>
+                <div style="padding: 20px; border-left: 4px solid #d4a373; background: #fdfaf3; font-style: italic; font-size: 18px;">
+                  "${item.title}"
+                </div>
+                <p>Happy reading,<br/>The BookPulse Archive</p>
+                <hr style="border: none; border-top: 1px dashed #ccc; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #888;">
+                  You received this because you scheduled a reminder. 
+                  Update your preferences in <a href="${process.env.NEXT_PUBLIC_SITE_URL}/settings">Settings</a>.
+                </p>
+              </div>
+            `,
+            headers: {
+              "List-Unsubscribe": `<${process.env.NEXT_PUBLIC_SITE_URL}/settings>`,
+            }
+          });
+        }
+
+        // 4. Mark as Notified to prevent duplicate processing
+        await db
+          .update(bookSchedules)
+          .set({ isNotified: true })
+          .where(eq(bookSchedules.id, item.id));
+
+      } catch (innerErr: any) {
+        console.error(`❌ Failed to process item ${item.id}:`, innerErr.message);
+      }
     }
 
-    // 3. Mark as Done
-    await db.update(bookSchedules).set({ isNotified: true }).where(eq(bookSchedules.id, item.id));
+    return { processed: pending.length };
+  } catch (error: any) {
+    console.error("🔥 CRITICAL Reminder Cron Error:", error);
+    return { error: error.message || "Reminder processing failed" };
   }
 }

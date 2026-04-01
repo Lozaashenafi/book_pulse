@@ -321,11 +321,11 @@ const handlePageChange = useCallback((newPage: number) => {
             </div>
 
             {/* Page Indicator */}
-            {numPages > 0 && (
+            {/* {numPages > 0 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-mono">
                 Page {currentPageNum} of {numPages}
               </div>
-            )}
+            )} */}
           </>
         )}
       </div>

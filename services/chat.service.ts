@@ -13,7 +13,124 @@ import {
   notifications,
 } from "@/lib/db/schema";
 import { eq, and, asc, desc } from "drizzle-orm";
+import { cacheService } from "./cache.service";
+import { checkReadingStreak } from "./badge.service";
 
+// Add this at the top of your existing service file
+export async function getClubRoomsWithCache(clubId: string, userId: string) {
+  // Check cache first
+  const cachedRooms = cacheService.getRooms(clubId);
+  if (cachedRooms) {
+    // Still need to check locks with current progress
+    const progress = await getUserClubProgress(userId, clubId);
+    return cachedRooms.map(room => ({
+      ...room,
+      isLocked: room.type === "CHAPTER" && room.chapter
+        ? progress < (room.chapter?.startPage || 0)
+        : false
+    }));
+  }
+
+  // Fetch fresh data
+  const rooms = await getClubRooms(clubId, userId);
+  cacheService.setRooms(clubId, rooms);
+  return rooms;
+}
+
+export async function getRoomMessagesWithCache(roomId: string) {
+  // Check cache first
+  const cachedMessages = cacheService.getMessages(roomId);
+  if (cachedMessages) {
+    return cachedMessages;
+  }
+
+  // Fetch fresh data
+  const messages = await getRoomMessages(roomId);
+  cacheService.setMessages(roomId, messages);
+  return messages;
+}
+
+export async function getUserProgressWithCache(userId: string, clubId: string) {
+  // Check cache first
+  const cachedProgress = cacheService.getProgress(userId, clubId);
+  if (cachedProgress !== null) {
+    return cachedProgress;
+  }
+
+  // Fetch fresh data
+  const progress = await getUserClubProgress(userId, clubId);
+  cacheService.setProgress(userId, clubId, progress);
+  return progress;
+}
+
+// --- INTERNAL RETRY HELPER ---
+async function retryQuery(fn: () => Promise<any>, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      console.log(`🔄 Neon Sync Attempt ${i + 1} failed. Retrying...`);
+      await new Promise(res => setTimeout(res, 1500)); // Wait 1.5s
+    }
+  }
+}
+
+export async function updateUserProgress(userId: string, clubId: string, pageNumber: number) {
+  const cleanPage = Math.floor(Number(pageNumber));
+  if (isNaN(cleanPage) || cleanPage <= 0) return { success: false };
+
+  try {
+    // 1. Get ONLY the IDs of chapters (fast query)
+    const clubChapters = await db.select({ id: chapters.id, startPage: chapters.startPage, endPage: chapters.endPage })
+      .from(chapters)
+      .where(eq(chapters.clubId, clubId));
+
+    const currentChapter = clubChapters.find(ch => cleanPage >= ch.startPage && cleanPage <= ch.endPage) || clubChapters[0];
+
+    // 2. Perform a clean "Upsert"
+    const existing = await db.query.readingProgress.findFirst({
+      where: and(eq(readingProgress.userId, userId), eq(readingProgress.clubId, clubId))
+    });
+
+    if (existing) {
+      await db.update(readingProgress)
+        .set({ currentPage: cleanPage, chapterId: currentChapter.id, updatedAt: new Date() })
+        .where(eq(readingProgress.id, existing.id));
+    } else {
+      await db.insert(readingProgress).values({
+        userId, clubId, chapterId: currentChapter.id, currentPage: cleanPage, status: "IN_PROGRESS"
+      });
+    }
+
+    // 3. IMPORTANT: Update the Cache immediately so the Sidebar sees it
+    cacheService.setProgress(userId, clubId, cleanPage);
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+// Update the progress function to invalidate cache
+export async function updateUserProgressWithCache(
+  userId: string,
+  clubId: string,
+  pageNumber: number,
+) {
+  // Call the original function
+  const result = await updateUserProgress(userId, clubId, pageNumber);
+  
+  if (result.success) {
+    // Invalidate cache for this user and club
+    cacheService.clearProgress(userId, clubId);
+    
+    // Also invalidate rooms cache as lock status might change
+    cacheService.clearRooms(clubId);
+  }
+  
+  return result;
+}
 /**
  * Fetch all rooms for a club and calculate which ones are locked based on progress
  */
@@ -100,6 +217,7 @@ export async function sendRoomMessage(
         content,
       })
       .returning();
+    await checkReadingStreak(userId); 
 
     return JSON.parse(JSON.stringify(newMessage));
   } catch (error) {
@@ -107,63 +225,7 @@ export async function sendRoomMessage(
     throw new Error("Failed to send message");
   }
 }
-export async function updateUserProgress(
-  userId: string,
-  clubId: string,
-  pageNumber: number,
-) {
-  // 1. Safety check for NaN
-  if (!pageNumber || isNaN(pageNumber)) throw new Error("Invalid page number.");
 
-  try {
-    // 2. Find which chapter this page belongs to
-    const allChapters = await db
-      .select()
-      .from(chapters)
-      .where(eq(chapters.clubId, clubId));
-    const currentChapter = allChapters.find(
-      (ch) => pageNumber >= ch.startPage && pageNumber <= ch.endPage,
-    );
-
-    if (!currentChapter)
-      throw new Error("Page number is outside of club milestones.");
-
-    // 3. Check if progress already exists for THIS SPECIFIC CHAPTER
-    const existing = await db.query.readingProgress.findFirst({
-      where: and(
-        eq(readingProgress.userId, userId),
-        eq(readingProgress.chapterId, currentChapter.id),
-      ),
-    });
-
-    if (existing) {
-      // Update existing chapter progress
-      await db
-        .update(readingProgress)
-        .set({
-          currentPage: pageNumber,
-          status:
-            pageNumber === currentChapter.endPage ? "COMPLETED" : "IN_PROGRESS",
-          updatedAt: new Date(),
-        })
-        .where(eq(readingProgress.id, existing.id));
-    } else {
-      // Insert new progress for this chapter
-      await db.insert(readingProgress).values({
-        userId,
-        clubId,
-        chapterId: currentChapter.id,
-        currentPage: pageNumber,
-        status: "IN_PROGRESS",
-      });
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error("Sync Error:", error.message);
-    throw new Error(error.message || "Failed to log progress");
-  }
-}
 /**
  * Gets the latest message ID/Timestamp for each room to check for unread status
  */
@@ -284,38 +346,53 @@ export async function getPublicProfileData(userId: string) {
 /**
  * Enhanced Leave: Notifies Owner
  */
-export async function leaveClubRecord(
-  userId: string,
-  clubId: string,
-  userName: string,
-) {
-  const club = await db.query.clubs.findFirst({
-    where: eq(clubs.id, clubId),
-    columns: { ownerId: true, name: true },
-  });
-
-  const [membership] = await db
-    .select()
-    .from(clubMembers)
-    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
-
-  if (membership?.role === "OWNER")
-    throw new Error("Owners must dissolve in settings.");
-
-  await db
-    .delete(clubMembers)
-    .where(and(eq(clubMembers.userId, userId), eq(clubMembers.clubId, clubId)));
-
-  if (club) {
-    await db.insert(notifications).values({
-      userId: club.ownerId,
-      type: "NEW_MEMBER", // Re-using NEW_MEMBER or you can add MEMBER_LEFT to enum
-      title: "Member Departure",
-      message: `${userName} has left the circle: ${club.name}`,
+export async function leaveClubRecord(clubId: string, userId: string) {
+  try {
+    // 1. Check if the user exists in the club and what their role is
+    const member = await db.query.clubMembers.findFirst({
+      where: and(
+        eq(clubMembers.clubId, clubId),
+        eq(clubMembers.userId, userId)
+      ),
     });
-  }
 
-  return { success: true };
+    if (!member) {
+      return { success: false, error: "You are not a member of this circle." };
+    }
+
+    // 2. Prevent the Owner from leaving (they should delete the club instead)
+    if (member.role === "OWNER") {
+      return { 
+        success: false, 
+        error: "As the Architect (Owner), you cannot leave. You must delete the archive instead." 
+      };
+    }
+
+    // 3. Remove the record from clubMembers
+    await db
+      .delete(clubMembers)
+      .where(
+        and(
+          eq(clubMembers.clubId, clubId),
+          eq(clubMembers.userId, userId)
+        )
+      );
+
+    // 4. (Optional) Remove reading progress for this specific club to save space
+    await db
+      .delete(readingProgress)
+      .where(
+        and(
+          eq(readingProgress.clubId, clubId),
+          eq(readingProgress.userId, userId)
+        )
+      );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Drizzle Leave Error:", error);
+    return { success: false, error: "Failed to exit the fellowship." };
+  }
 }
 export async function getClubMembers(clubId: string) {
   try {

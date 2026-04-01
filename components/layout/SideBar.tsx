@@ -17,13 +17,15 @@ import {
   X,
   Sun,
   Moon,
+  BookMarked,
+  Calendar, // Added for Reading Schedule
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { getSidebarClubs } from "@/services/profile.service";
-import { getUserNotifications } from "@/services/notification.service"; // Import notification service
-import { useTheme } from "next-themes"; // Import theme hook
+import { getUserNotifications } from "@/services/notification.service";
+import { useTheme } from "next-themes";
 
 export default function SideBar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -231,6 +233,23 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
           </div>
 
           <NavItem
+            href="/reviews"
+            icon={<BookMarked size={20} />}
+            label="Review Registry"
+            active={pathname === "/reviews"}
+            isCollapsed={isCollapsed}
+          />
+
+          {/* --- ADDED: READING SCHEDULE --- */}
+          <NavItem
+            href="/schedule"
+            icon={<Calendar size={20} />}
+            label="Reading Queue"
+            active={pathname === "/schedule"}
+            isCollapsed={isCollapsed}
+          />
+
+          <NavItem
             href="/note"
             icon={<PenTool size={20} />}
             label="Brain Dumps"
@@ -238,7 +257,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             isCollapsed={isCollapsed}
           />
 
-          {/* UPDATED: THE BUZZ WITH DYNAMIC BADGE */}
           <NavItem
             href="/notices"
             icon={<Bell size={20} />}
@@ -260,7 +278,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             isCollapsed={isCollapsed}
           />
 
-          {/* NEW: THEME TOGGLE FOR DESKTOP */}
+          {/* THEME TOGGLE */}
           <button
             onClick={toggleTheme}
             className={`w-full flex items-center transition-all mt-4 ${isCollapsed ? "justify-center py-3" : "px-4 py-2"} text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary`}
@@ -348,7 +366,14 @@ const NavItem = ({
 }: any) => (
   <Link href={href || "#"}>
     <div
-      className={`flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${active ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"}`}
+      title={isCollapsed ? label : ""}
+      className={`flex items-center transition-all mb-1 ${
+        isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"
+      } ${
+        active
+          ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]"
+          : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 dark:hover:bg-white/5 border-b border-transparent hover:border-tertiary"
+      }`}
     >
       <div className="flex items-center space-x-3">
         <span className={active ? "animate-pulse" : ""}>{icon}</span>

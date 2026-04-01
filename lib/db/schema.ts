@@ -309,6 +309,83 @@ export const profileNoteRelations = relations(profiles, ({ many }) => ({
   notes: many(notes),
 }));
 
+export const bookReviews = pgTable("book_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => profiles.id, { onDelete: "cascade" })
+    .notNull(),
+  
+  bookTitle: text("book_title").notNull(),
+  authorName: text("author_name").notNull(),
+  content: text("content").notNull(),
+  rating: integer("rating").default(5),
+  imageUrl: text("image_url"),
+  
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+export const reviewLikes = pgTable("review_likes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reviewId: uuid("review_id").references(() => bookReviews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+}, (t) => ({
+  unq: unique().on(t.reviewId, t.userId),
+}));
+
+export const bookSchedules = pgTable("book_schedules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  
+  title: text("title").notNull(),
+  author: text("author").notNull(),
+  coverUrl: text("cover_url"),
+  notes: text("notes"),
+  
+  scheduledDate: timestamp("scheduled_date", { withTimezone: true }).notNull(),
+  isNotified: boolean("is_notified").default(false),
+  
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Relations
+export const bookScheduleRelations = relations(bookSchedules, ({ one }) => ({
+  user: one(profiles, {
+    fields: [bookSchedules.userId],
+    references: [profiles.id],
+  }),
+}));
+
+export const badges = pgTable("badges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(), // e.g., "Consistent Curator"
+  description: text("description").notNull(),
+  icon: text("icon").notNull(), // Lucide icon name or emoji
+  type: text("type").notNull(), // "READING" | "DISCUSSION" | "SOCIAL"
+  requirement: integer("requirement").notNull(), // e.g., 3 (days)
+});
+
+export const userBadges = pgTable("user_badges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  badgeId: uuid("badge_id").references(() => badges.id, { onDelete: 'cascade' }).notNull(),
+  earnedAt: timestamp("earned_at", { withTimezone: true }).defaultNow(),
+}, (t) => ({
+  unq: unique().on(t.userId, t.badgeId), // Can only earn a specific badge once
+}));
+export const reviewFavorites = pgTable("review_favorites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reviewId: uuid("review_id").references(() => bookReviews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+}, (t) => ({
+  unq: unique().on(t.reviewId, t.userId),
+}));
+// Add Relation
+export const bookReviewRelations = relations(bookReviews, ({ one }) => ({
+  user: one(profiles, {
+    fields: [bookReviews.userId],
+    references: [profiles.id],
+  }),
+}));
 // --- RELATIONS ---
 // 1. Club Relations (Already mostly correct, but needs books backlink)
 export const clubRelations = relations(clubs, ({ one, many }) => ({

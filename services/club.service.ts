@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, asc, sql, count, desc } from "drizzle-orm";
 import { InferInsertModel } from "drizzle-orm"; // Add this import at the top
+import { checkFounderBadge } from "./badge.service";
 
 export async function createFullClub(
   userId: string,
@@ -101,7 +102,7 @@ export async function createFullClub(
         chapterId: ch.id,
         status:
           index === 0 ? ("IN_PROGRESS" as const) : ("NOT_STARTED" as const),
-        currentPage: index === 0 ? ch.startPage : null,
+        currentPage: 1 ,
       })),
     );
 
@@ -129,6 +130,7 @@ export async function createFullClub(
         postType: "CLUB_ANNOUNCEMENT",
       });
     }
+    await checkFounderBadge(userId); 
 
     return { id: newClub.id, inviteLink: token };
   } catch (error) {

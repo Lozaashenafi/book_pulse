@@ -1,11 +1,12 @@
+// hooks/useChat.ts
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   getClubRooms,
   getRoomMessages,
   sendRoomMessage,
-  updateUserProgress,
+  updateUserProgress,  // This IS exported from chat.service.ts
   getRoomLastMessages,
   getUserClubProgress,
   deleteRoomMessage,
@@ -14,6 +15,7 @@ import {
 } from "@/services/chat.service";
 import { getClubName } from "@/services/club.service";
 import { toast } from "sonner";
+import { cacheService } from "@/services/cache.service";
 
 export function useChat(clubId: string, userId?: string) {
   const [rooms, setRooms] = useState<any[]>([]);
@@ -25,57 +27,147 @@ export function useChat(clubId: string, userId?: string) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [clubName, setClubName] = useState<string>("");
   const [viewMode, setViewMode] = useState<"chat" | "pdf">("chat");
-
-  // State to track if we are currently loading a specific room
   const [isFetchingMessages, setIsFetchingMessages] = useState(false);
+  
+  // Refs with proper initialization
+  const lastMessagesFetchRef = useRef<Map<string, number>>(new Map());
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef<boolean>(true);
 
-  // 1. Initial Data Load
-  const refreshData = useCallback(async () => {
-    if (!userId || !clubId) return;
-
-    try {
-      const [roomData, progress, pdfLink, name] = await Promise.all([
-        getClubRooms(clubId, userId),
-        getUserClubProgress(userId, clubId),
-        getClubPdfUrl(clubId),
-        getClubName(clubId),
-      ]);
-
-      setRooms(roomData);
-      setCurrentPage(progress);
-      setPdfUrl(pdfLink);
-      setClubName(name);
-
-      if (!activeRoom && roomData.length > 0) {
-        const defaultRoom =
-          roomData.find((r: any) => r.type === "GENERAL") || roomData[0];
-        setActiveRoom(defaultRoom);
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
-    } catch (err) {
-      console.error("Initialization Error:", err);
-    } finally {
-      setIsLoading(false);
+    };
+  }, []);
+
+ // Inside hooks/useChat.ts
+
+// 1. Change the initial load to be more selective
+const refreshData = useCallback(async (isSilent = false) => {
+  if (!userId || !clubId) return;
+
+  if (!isSilent) setIsLoading(true); 
+
+  try {
+    const [roomData, progress, pdfLink, name] = await Promise.all([
+      getClubRooms(clubId, userId),
+      getUserClubProgress(userId, clubId),
+      getClubPdfUrl(clubId),
+      getClubName(clubId),
+    ]);
+
+    if (!isMountedRef.current) return;
+
+    setRooms(roomData);
+    setCurrentPage(progress);
+    setPdfUrl(pdfLink);
+    setClubName(name);
+
+    if (!activeRoom && roomData.length > 0) {
+      setActiveRoom(roomData.find((r: any) => r.type === "GENERAL") || roomData[0]);
     }
-  }, [clubId, userId, activeRoom]);
+  } finally {
+    if (isMountedRef.current) setIsLoading(false);
+  }
+}, [clubId, userId, activeRoom]);
+
+// 2. Optimized logProgress (prevents Sidebar 'rolling')
+const logProgress = useCallback(async (pageValue: any) => {
+  const page = parseInt(pageValue);
+  if (!userId || isNaN(page) || page === currentPage) return;
+
+  // Optimistic Update (Immediate UI change)
+  setCurrentPage(page);
+  cacheService.setProgress(userId, clubId, page);
+
+  try {
+    const res = await updateUserProgress(userId, clubId, page);
+    if (res.success) {
+       // Only refresh rooms to check for locks. 
+       // DON'T call refreshData() because it resets the whole chat state.
+       const roomData = await getClubRooms(clubId, userId);
+       setRooms(roomData);
+    }
+  } catch (err) {
+    console.error("Sync error");
+  }
+}, [userId, clubId, currentPage]);
 
   useEffect(() => {
     refreshData();
   }, [refreshData]);
 
-  // 2. Polling Logic for Messages
-  useEffect(() => {
-    if (!activeRoom || !userId || !clubId || isFetchingMessages) return;
+  // 2. Load Messages for Active Room with Caching
+  const loadMessages = useCallback(async (roomId: string, forceRefresh = false) => {
+    if (!roomId) return;
+    
+    // Check if we fetched recently (within 2 seconds) to avoid rapid requests
+    const lastFetch = lastMessagesFetchRef.current.get(roomId);
+    const now = Date.now();
+    if (!forceRefresh && lastFetch && now - lastFetch < 2000) {
+      return;
+    }
+    
+    setIsFetchingMessages(true);
+    lastMessagesFetchRef.current.set(roomId, now);
+    
+    try {
+      // Check cache first
+      const cachedMessages = cacheService.getMessages(roomId);
+      if (cachedMessages && !forceRefresh && isMountedRef.current) {
+        setMessages(cachedMessages);
+      }
+      
+      // Always fetch fresh in background for real-time updates
+      const msgData = await getRoomMessages(roomId);
+      
+      if (!isMountedRef.current) return;
+      
+      // Update if different from cache
+      if (JSON.stringify(msgData) !== JSON.stringify(cachedMessages)) {
+        setMessages(msgData);
+        cacheService.setMessages(roomId, msgData);
+      }
+      
+      // Update last read timestamp
+      localStorage.setItem(`lastRead_${roomId}`, new Date().toISOString());
+    } catch (err) {
+      console.error("Error loading messages:", err);
+    } finally {
+      if (isMountedRef.current) {
+        setIsFetchingMessages(false);
+      }
+    }
+  }, []);
 
+  // 3. Optimized Polling Logic with Caching
+  useEffect(() => {
+    if (!activeRoom || !userId || !clubId) return;
+
+    // Initial load
+    loadMessages(activeRoom.id);
+
+    // Set up polling
     const poll = async () => {
+      if (!activeRoom?.id || !isMountedRef.current) return;
+      
       try {
+        // Fetch fresh messages
         const msgData = await getRoomMessages(activeRoom.id);
+        
+        if (!isMountedRef.current) return;
+        
+        // Update cache and state
+        cacheService.setMessages(activeRoom.id, msgData);
         setMessages(msgData);
 
-        localStorage.setItem(
-          `lastRead_${activeRoom.id}`,
-          new Date().toISOString(),
-        );
-
+        // Update unread rooms
         const lastMessages = await getRoomLastMessages(clubId);
         const unreads = lastMessages
           .filter((m: any) => {
@@ -87,84 +179,112 @@ export function useChat(clubId: string, userId?: string) {
           })
           .map((m: any) => m.roomId);
 
-        setUnreadRooms(unreads.filter((id: string) => id !== activeRoom.id));
+        if (isMountedRef.current) {
+          setUnreadRooms(unreads.filter((id: string) => id !== activeRoom.id));
+        }
       } catch (err) {
         console.error("Polling error:", err);
       }
     };
 
-    poll();
-    const interval = setInterval(poll, 4000); // Polling every 4 seconds
-    return () => clearInterval(interval);
-  }, [activeRoom, clubId, userId, isFetchingMessages]);
-
-  // 3. Update Progress (Fixing NaN issue)
-  const logProgress = async (pageValue: any) => {
-    const page = parseInt(pageValue);
-    if (!userId || isNaN(page)) {
-      return toast.error("Invalid page number provided.");
-    }
-
-    try {
-      const res = await updateUserProgress(userId, clubId, page);
-      if (res.success) {
-        setCurrentPage(page);
-        toast.success(`Progress synced to page ${page}`);
-        const roomData = await getClubRooms(clubId, userId);
-        setRooms(roomData);
+    pollingIntervalRef.current = setInterval(poll, 4000);
+    
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
-    } catch (err: any) {
-      toast.error(err.message || "Sync failed");
-    }
-  };
+    };
+  }, [activeRoom?.id, clubId, userId, loadMessages]);
 
-  // 4. Message Actions
-  const removeMessage = async (msgId: string) => {
+  
+  // 5. Message Actions with Cache Invalidation
+  const removeMessage = useCallback(async (msgId: string) => {
+    if (!userId || !activeRoom?.id) return;
+    
+    const previousMessages = [...messages];
+    
     try {
+      // Optimistic update
       setMessages((prev) => prev.filter((m) => m.id !== msgId));
-      await deleteRoomMessage(userId!, msgId);
+      await deleteRoomMessage(userId, msgId);
+      // Invalidate cache for this room
+      cacheService.clearMessages(activeRoom.id);
     } catch (err) {
+      // Revert on error
+      setMessages(previousMessages);
       toast.error("Could not delete message");
     }
-  };
+  }, [userId, activeRoom?.id, messages]);
 
-  const updateMessage = async (msgId: string, content: string) => {
-    if (!content.trim()) return;
+  const updateMessage = useCallback(async (msgId: string, content: string) => {
+    if (!userId || !activeRoom?.id || !content.trim()) return;
+    
+    const previousMessages = [...messages];
+    
     try {
+      // Optimistic update
       setMessages((prev) =>
         prev.map((m) => (m.id === msgId ? { ...m, content } : m)),
       );
-      await editRoomMessage(userId!, msgId, content);
+      await editRoomMessage(userId, msgId, content);
+      // Invalidate cache for this room
+      cacheService.clearMessages(activeRoom.id);
     } catch (err) {
+      // Revert on error
+      setMessages(previousMessages);
       toast.error("Update failed");
     }
-  };
+  }, [userId, activeRoom?.id, messages]);
 
-  const sendMessage = async (content: string) => {
-    if (!userId || !activeRoom || !content.trim()) return;
+  const sendMessage = useCallback(async (content: string) => {
+    if (!userId || !activeRoom?.id || !content.trim()) return;
+    
     try {
       await sendRoomMessage(userId, activeRoom.id, content);
-      // Immediately fetch to show the message
-      const msgData = await getRoomMessages(activeRoom.id);
-      setMessages(msgData);
+      // Clear cache to force refresh
+      cacheService.clearMessages(activeRoom.id);
+      // Load fresh messages
+      await loadMessages(activeRoom.id, true);
     } catch (err) {
       toast.error("Message failed to send");
     }
-  };
+  }, [userId, activeRoom?.id, loadMessages]);
 
-  // 5. Explicit Room Changer with Loading State
-  const handleSetRoom = async (room: any) => {
+  // 6. Explicit Room Changer with Caching
+  const handleSetRoom = useCallback(async (room: any) => {
     if (room.id === activeRoom?.id || isFetchingMessages) return;
 
-    setIsFetchingMessages(true);
     setActiveRoom(room);
-    try {
-      const msgData = await getRoomMessages(room.id);
-      setMessages(msgData);
-    } finally {
-      setIsFetchingMessages(false);
-    }
-  };
+    // Load messages immediately (they'll come from cache if available)
+    await loadMessages(room.id);
+  }, [activeRoom?.id, isFetchingMessages, loadMessages]);
+
+  // 7. Prefetch messages for nearby rooms
+  useEffect(() => {
+    if (!rooms.length || !activeRoom?.id) return;
+    
+    // Find current room index
+    const currentIndex = rooms.findIndex(r => r.id === activeRoom.id);
+    if (currentIndex === -1) return;
+    
+    // Prefetch next and previous rooms
+    const roomsToPrefetch = [
+      rooms[currentIndex - 1],
+      rooms[currentIndex + 1]
+    ].filter(Boolean);
+    
+    roomsToPrefetch.forEach(room => {
+      if (room && !cacheService.getMessages(room.id)) {
+        // Prefetch in background without blocking UI
+        setTimeout(() => {
+          getRoomMessages(room.id).then(messages => {
+            cacheService.setMessages(room.id, messages);
+          }).catch(console.error);
+        }, 1000);
+      }
+    });
+  }, [rooms, activeRoom?.id]);
 
   return {
     rooms,

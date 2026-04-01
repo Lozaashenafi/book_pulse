@@ -28,7 +28,6 @@ export async function getFeedPosts(currentUserId?: string) {
       })
       .from(posts)
       .innerJoin(profiles, eq(posts.userId, profiles.id))
-      .where(eq(posts.postType, "GENERAL"))
       .orderBy(desc(posts.createdAt));
 
     return JSON.parse(JSON.stringify(data));

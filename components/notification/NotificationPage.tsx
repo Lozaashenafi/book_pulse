@@ -20,7 +20,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 const NotificationPage = () => {
   const { user } = useAuthStore();
-  const { notifications, isLoading, clearUnread, removeNotification } =
+  const { notifications, isLoading, clearUnread } =
     useNotifications(user?.id);
 
   const getNotificationStyles = (type: string) => {

@@ -25,8 +25,22 @@ export const metadata: Metadata = {
   description:
     "BookPulse is a social reading platform that connects book lovers, allowing them to share their reading experiences, discover new books, and engage in meaningful discussions. Join our community and turn the page together!",
   openGraph: {
-    images: ["../public/image/home.png"],
+    title: "BookPulse | Turn the page, together",
+    description: "The social reading platform for book lovers.",
+    url: "https://bookpulse.lozi.me",
+    siteName: "BookPulse",
+    images: [
+      {
+        url: "/image/home.png", // Path relative to the public folder
+        width: 1200,
+        height: 630,
+        alt: "BookPulse Preview Image",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
   },
+ 
 };
 
 // app/layout.tsx

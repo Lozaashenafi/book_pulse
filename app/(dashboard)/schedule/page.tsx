@@ -69,7 +69,6 @@ const SchedulePage = () => {
     e.preventDefault();
     if (!user) return;
 
-    // --- DATE VALIDATION ---
     const selectedDate = new Date(formData.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -158,7 +157,7 @@ const SchedulePage = () => {
                     <input 
                       type="date" 
                       required 
-                      min={todayStr} // Native browser prevention of past dates
+                      min={todayStr}
                       value={formData.date} 
                       onChange={e => setFormData({...formData, date: e.target.value})} 
                       className="w-full bg-white dark:bg-black/20 border border-tertiary/10 p-2 font-mono text-xs uppercase" 
@@ -183,7 +182,26 @@ const SchedulePage = () => {
         </div>
       )}
 
-      {/* LIST VIEW */}
+      {/* EMPTY STATE - Shown when there are no schedules and form is closed */}
+      {schedules.length === 0 && !isFormOpen && (
+        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-tertiary/20 rounded-lg bg-stone-50/30 dark:bg-black/5 animate-in fade-in duration-700">
+          <div className="relative mb-6">
+            <BookOpen className="text-tertiary/10 w-20 h-20" />
+            <Plus className="absolute -bottom-2 -right-2 text-tertiary w-8 h-8 bg-[#fdfcf8] dark:bg-[#1a1c1a] rounded-full p-1.5 shadow-sm border border-tertiary/10" />
+          </div>
+          <h2 className="text-2xl font-serif italic text-tertiary/60 mb-2">The shelves are quiet...</h2>
+          <p className="text-stone-400 font-serif text-sm mb-6 text-center max-w-xs">
+            Your future reading queue is currently empty. Why not inscribe a new chapter?
+          </p>
+          <button 
+            onClick={() => setIsFormOpen(true)}
+            className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-[#8b5a2b] hover:text-tertiary transition-colors"
+          >
+            + Create your first entry
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {schedules.map((item) => (
           <div key={item.id} className="bg-white dark:bg-[#2c2420] border-2 border-tertiary/10 p-6 flex gap-6 relative group transition-all hover:shadow-md">

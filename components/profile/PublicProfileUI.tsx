@@ -48,7 +48,7 @@ const PublicProfileUI = ({ data }: { data: any }) => {
   ];
 
   return (
-    <div className="pb-12 transition-colors duration-500 bg-[#fcf8f1] dark:bg-[#1a1614] min-h-screen">
+    <div className="pb-12 transition-colors duration-500  dark:bg-[#1a1614] min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
         {/* HEADER: Library Bookmark Style */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between border-b-2 border-tertiary/20 dark:border-[#d4a373]/20 pb-6 gap-4">

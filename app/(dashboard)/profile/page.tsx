@@ -51,7 +51,7 @@ const BookPulseProfile = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#fdfcf8] dark:bg-[#1a1614]">
+      <div className="h-screen w-full flex items-center justify-center  ">
         <CuratorLoader />
       </div>
     );

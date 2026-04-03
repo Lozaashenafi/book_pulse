@@ -3,7 +3,16 @@
 import { db } from "@/lib/db";
 import { bookReviews, notifications, profiles, reviewFavorites, reviewLikes } from "@/lib/db/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
-
+export async function incrementReviewShare(reviewId: string) {
+  try {
+    await db.update(bookReviews)
+      .set({ shareCount: sql`${bookReviews.shareCount} + 1` })
+      .where(eq(bookReviews.id, reviewId));
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update share count");
+  }
+}
 export async function getBookReviews(currentUserId?: string) {
   try {
     const data = await db
@@ -18,6 +27,8 @@ export async function getBookReviews(currentUserId?: string) {
         userName: profiles.name,
         userImage: profiles.image,
         userId: profiles.id,
+                shareCount: bookReviews.shareCount, 
+
         // DYNAMIC COUNTS
         likeCount: sql<number>`(SELECT count(*) FROM ${reviewLikes} WHERE ${reviewLikes.reviewId} = ${bookReviews.id})`,
         isLiked: currentUserId 

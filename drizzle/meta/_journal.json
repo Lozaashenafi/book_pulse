@@ -15,6 +15,13 @@
       "when": 1775024577286,
       "tag": "0001_black_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775202044614,
+      "tag": "0002_sleepy_mentor",
+      "breakpoints": true
     }
   ]
 }

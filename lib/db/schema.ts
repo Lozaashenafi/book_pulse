@@ -320,9 +320,18 @@ export const bookReviews = pgTable("book_reviews", {
   content: text("content").notNull(),
   rating: integer("rating").default(5),
   imageUrl: text("image_url"),
-  
+  shareCount: integer("share_count").default(0),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// NEW: Review Shares Table
+export const reviewShares = pgTable("review_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reviewId: uuid("review_id").references(() => bookReviews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").references(() => profiles.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 export const reviewLikes = pgTable("review_likes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -380,9 +389,25 @@ export const reviewFavorites = pgTable("review_favorites", {
   unq: unique().on(t.reviewId, t.userId),
 }));
 // Add Relation
-export const bookReviewRelations = relations(bookReviews, ({ one }) => ({
+// UPDATED: Relations for bookReviews
+export const bookReviewRelations = relations(bookReviews, ({ one, many }) => ({
   user: one(profiles, {
     fields: [bookReviews.userId],
+    references: [profiles.id],
+  }),
+  likes: many(reviewLikes),
+  favorites: many(reviewFavorites),
+  shares: many(reviewShares), // Added this
+}));
+
+// NEW: Relations for reviewShares
+export const reviewShareRelations = relations(reviewShares, ({ one }) => ({
+  review: one(bookReviews, {
+    fields: [reviewShares.reviewId],
+    references: [bookReviews.id],
+  }),
+  user: one(profiles, {
+    fields: [reviewShares.userId],
     references: [profiles.id],
   }),
 }));

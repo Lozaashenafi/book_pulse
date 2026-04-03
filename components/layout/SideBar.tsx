@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -41,7 +40,7 @@ const PROTECTED_ROUTES = [
 
 export default function SideBar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -54,11 +53,15 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
   // SHOULD WE BLOCK THE PAGE?
   const isAccessBlocked = isCurrentPathProtected && !user;
 
+  // Data States
   const [clubsData, setClubsData] = useState<{ owned: any[]; all: any[] }>({
     owned: [],
     all: [],
   });
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const isInsideClub =
+    pathname.startsWith("/clubs/") && pathname !== "/clubs/myclubs";
 
   useEffect(() => {
     setMounted(true);
@@ -88,7 +91,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden bg-[#eaddcf] dark:bg-[#1a1614] transition-colors duration-500 flex flex-col lg:flex-row">
       
-      {/* --- AUTH REQUIRED MODAL (Triggered by Direct URL or Link Click) --- */}
+      {/* --- AUTH REQUIRED MODAL --- */}
       {isAccessBlocked && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-300">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
@@ -122,25 +125,16 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-    {/* --- MOBILE HEADER --- */}
+      {/* --- MOBILE HEADER --- */}
       <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-[#eaddcf] dark:bg-[#1a1614] border-b border-tertiary/10 z-50">
         <Link href="/" className="rotate-[-1deg]">
-          <h1 className="font-serif font-black text-tertiary dark:text-[#d4a373] text-2xl border-b-2 border-tertiary">
-            BookPulse
-          </h1>
+          <h1 className="font-serif font-black text-tertiary dark:text-[#d4a373] text-2xl border-b-2 border-tertiary">BookPulse</h1>
         </Link>
         <div className="flex items-center gap-2">
-          {/* Mobile Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-tertiary dark:text-[#d4a373]"
-          >
+          <button onClick={toggleTheme} className="p-2 text-tertiary dark:text-[#d4a373]">
             {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
           </button>
-          <button
-            onClick={() => setIsMobileOpen(true)}
-            className="p-2 text-tertiary dark:text-[#d4a373]"
-          >
+          <button onClick={() => setIsMobileOpen(true)} className="p-2 text-tertiary dark:text-[#d4a373]">
             <Menu size={28} />
           </button>
         </div>
@@ -157,16 +151,51 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
-          {/* PUBLIC */}
           <NavItem href="/posts" icon={<Home size={20} />} label="Daily Scribbles" active={pathname === "/posts"} isCollapsed={isCollapsed} />
-          
-          {/* PROTECTED (Links work normally, logic at top handles the blocking) */}
           <NavItem href="/search" icon={<Search size={20} />} label="Deep Search" active={pathname === "/search"} isCollapsed={isCollapsed} />
-          <NavItem href="/clubs/myclubs" icon={<Users size={20} />} label="My Book Squads" active={pathname === "/clubs/myclubs"} isCollapsed={isCollapsed} />
+          <NavItem 
+             href="/clubs/myclubs" 
+             icon={<Users size={20} />} 
+             label="My Book Squads" 
+             active={pathname === "/clubs/myclubs"} 
+             isCollapsed={isCollapsed} 
+             badge={!isCollapsed && clubsData.owned.length > 0 ? clubsData.owned.length.toString() : undefined}
+          />
+
+          {/* RESTORED: ENTER CIRCLES DROPDOWN */}
+          <div className="space-y-1">
+            <button
+              onClick={() => setIsBrowseOpen(!isBrowseOpen)}
+              className={`w-full flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${isInsideClub ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary"}`}
+            >
+              <div className="flex items-center space-x-3">
+                <MessageCircle size={20} className={isInsideClub ? "animate-pulse" : ""} />
+                {!isCollapsed && <span className="font-serif font-bold text-sm">Enter Circles</span>}
+              </div>
+              {!isCollapsed && <ChevronDown size={14} className={`transition-transform duration-300 ${isBrowseOpen ? "rotate-180" : ""}`} />}
+            </button>
+            {isBrowseOpen && !isCollapsed && (
+              <div className="pl-6 space-y-1 animate-in slide-in-from-top-2 duration-300">
+                {clubsData.all.map((club) => (
+                  <Link key={club.id} href={`/clubs/${club.id}`} className={`block px-4 py-1.5 text-sm font-bold font-serif italic border-l transition-all ${pathname === `/clubs/${club.id}` ? "text-tertiary border-tertiary" : "text-primary-half border-tertiary/20 hover:border-tertiary hover:text-tertiary"}`}>
+                    # {club.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           <NavItem href="/reviews" icon={<BookMarked size={20} />} label="Review Registry" active={pathname === "/reviews"} isCollapsed={isCollapsed} />
           <NavItem href="/schedule" icon={<Calendar size={20} />} label="Reading Queue" active={pathname === "/schedule"} isCollapsed={isCollapsed} />
           <NavItem href="/note" icon={<PenTool size={20} />} label="Brain Dumps" active={pathname === "/note"} isCollapsed={isCollapsed} />
-          <NavItem href="/notices" icon={<Bell size={20} />} label="The Buzz" active={pathname === "/notices"} isCollapsed={isCollapsed} />
+          <NavItem 
+            href="/notices" 
+            icon={<Bell size={20} />} 
+            label="The Buzz" 
+            active={pathname === "/notices"} 
+            isCollapsed={isCollapsed} 
+            badge={!isCollapsed && unreadCount > 0 ? unreadCount.toString() : undefined}
+          />
           <NavItem href="/settings" icon={<Settings size={20} />} label="The Setup" active={pathname === "/settings"} isCollapsed={isCollapsed} />
 
           <button onClick={toggleTheme} className={`w-full flex items-center transition-all mt-4 ${isCollapsed ? "justify-center py-3" : "px-4 py-2"} text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary`}>
@@ -199,7 +228,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
       </aside>
 
       <main className="flex-1 h-full overflow-y-auto custom-scrollbar px-4 lg:px-8 py-8 lg:py-0 relative">
-        {/* If access is blocked, we hide the actual content (children) so they can't see the page behind the blur */}
         {!isAccessBlocked ? children : (
           <div className="flex items-center justify-center h-full text-tertiary/20 font-serif italic text-4xl">
             Unauthorized Entry...
@@ -210,13 +238,18 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
   );
 }
 
-const NavItem = ({ icon, label, active = false, href, isCollapsed }: any) => (
+const NavItem = ({ icon, label, active = false, href, isCollapsed, badge }: any) => (
   <Link href={href || "#"}>
     <div className={`flex items-center transition-all mb-1 ${isCollapsed ? "justify-center py-3" : "justify-between px-4 py-2"} ${active ? "bg-tertiary text-[#f4ebd0] dark:bg-[#d4a373] dark:text-[#1a1614] translate-x-2 shadow-[-4px_4px_0px_#132f19]" : "text-[#5c4033] dark:text-gray-400 hover:bg-tertiary/5 border-b border-transparent hover:border-tertiary"}`}>
       <div className="flex items-center space-x-3">
         <span className={active ? "animate-pulse" : ""}>{icon}</span>
         {!isCollapsed && <span className="font-serif font-bold text-sm tracking-tight whitespace-nowrap">{label}</span>}
       </div>
+      {badge && !isCollapsed && (
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${active ? "bg-white text-tertiary" : "bg-tertiary text-white"}`}>
+          {badge}
+        </span>
+      )}
     </div>
   </Link>
 );

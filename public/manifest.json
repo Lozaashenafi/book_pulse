@@ -1,8 +1,8 @@
 {
-  "name": "My NextJS App",
-  "short_name": "NextApp",
-  "description": "My awesome Next.js Progressive Web App",
-  "start_url": "/",
+  "name": "BookPulse",
+  "short_name": "BookPulse",
+  "description": "Your Book Pulse App",
+   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",

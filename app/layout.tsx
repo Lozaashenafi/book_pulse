@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+};
 export const metadata: Metadata = {
   metadataBase: new URL("https://bookpulse.lozi.me"),
   title: {
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
     template: "%s | BookPulse",
   },
   description: "BookPulse is a social reading platform...",
+  manifest: "/manifest.json",
   openGraph: {
     title: "BookPulse | Turn the page, together",
     description: "The social reading platform for book lovers.",
@@ -36,6 +40,14 @@ export const metadata: Metadata = {
     ],
     locale: "en_US",
     type: "website",
+  },
+   appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "My NextJS App",
+  },
+  formatDetection: {
+    telephone: false,
   },
   twitter: {
     card: "summary_large_image",

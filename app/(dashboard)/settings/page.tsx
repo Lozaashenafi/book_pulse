@@ -20,6 +20,7 @@ import {
 } from "@/services/profile.service";
 import { toast } from "sonner";
 import CuratorLoader from "@/components/ui/CuratorLoader";
+import Image from "next/image";
 
 const SettingsPage = () => {
   const { profile, user, syncSession } = useAuthStore();
@@ -70,40 +71,74 @@ const SettingsPage = () => {
     }
   }, [profile]);
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    setPreviewUrl(URL.createObjectURL(file));
+ const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file || !user) return;
 
-    try {
-      setUploading(true);
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `user_avatars/${fileName}`;
+  // --- NEW SECURITY CHECK ---
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  const maxFileSize = 2 * 1024 * 1024; // 2MB
 
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file);
-      if (uploadError) throw uploadError;
+  // 1. Block SVGs and other dangerous types
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Invalid file type. Only JPG, PNG, and WebP are allowed. (SVGs are blocked for security)");
+    return;
+  }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+  // 2. Prevent massive file uploads
+  if (file.size > maxFileSize) {
+    toast.error("File is too large. Max size is 2MB.");
+    return;
+  }
+  // --- END SECURITY CHECK ---
 
-      await updateProfileImage(user.id, publicUrl);
+  setPreviewUrl(URL.createObjectURL(file));
+
+  try {
+    setUploading(true);
+    
+    // Use a strict extension check
+    const fileExt = file.type.split("/")[1]; 
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `user_avatars/${fileName}`;
+
+    // Upload to Supabase
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, {
+        upsert: true,
+        contentType: file.type // Force the correct content type
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+    // This calls your profile.service.ts (which should also have the domain check we wrote earlier)
+    const result = await updateProfileImage(user.id, publicUrl);
+    
+    if (result.success) {
       await syncSession();
       toast.success("Profile picture updated!");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setUploading(false);
+    } else {
+      throw new Error(result.error);
     }
-  };
+  } catch (error: any) {
+    toast.error(error.message);
+    setPreviewUrl(profile?.image || null); // Reset preview on failure
+  } finally {
+    setUploading(false);
+  }
+};
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
+  const forbiddenPattern = /<script\b[^>]*>([\s\S]*?)<\/script>/gim;
+    if (forbiddenPattern.test(formData.bio) || forbiddenPattern.test(formData.name)) {
+      toast.error("Invalid characters detected in form.");
+      return;
+    }
     setLoading(true);
     try {
       await updateProfile(user.id, formData);
@@ -181,11 +216,13 @@ const SettingsPage = () => {
             <div className="relative group flex-shrink-0">
               <div className="w-32 h-32 bg-[#f4ebd0] border-2 border-[#d6c7a1] shadow-[5px_5px_0px_#bcab79] overflow-hidden">
                 {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    className="w-full h-full object-cover"
-                    alt="Avatar"
-                  />
+                 <Image
+                  src={previewUrl}
+                  alt="Avatar"
+                  fill // Use fill for layout inside a fixed container
+                  className="object-cover"
+                  unoptimized={previewUrl.startsWith('blob:')} // Allow local blobs to show without optimization
+                />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-primary-half">
                     <User size={40} />

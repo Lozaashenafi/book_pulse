@@ -15,6 +15,8 @@ import {
   Bookmark,
 } from "lucide-react";
 import Link from "next/link";
+import Image from 'next/image'
+
 import { useRouter } from "next/navigation";
 
 const PublicProfileUI = ({ data }: { data: any }) => {
@@ -76,11 +78,14 @@ const PublicProfileUI = ({ data }: { data: any }) => {
                 <div className="w-40 h-40 bg-[#f4ebd0] dark:bg-[#1a1614] border-2 border-[#d6c7a1] dark:border-[#d4a373]/20 p-2 shadow-inner">
                   <div className="w-full h-full bg-white dark:bg-[#25201e] overflow-hidden border border-[#d6c7a1] dark:border-[#d4a373]/20">
                     {data.image ? (
-                      <img
-                        src={data.image}
-                        alt={data.name}
-                        className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-500"
-                      />
+                       <Image // <--- CHANGE THIS FROM img TO Image
+      src={data.image}
+      alt={data.name}
+      className="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-500"
+      width={160}
+      height={160}
+      // unoptimized={false} // You can remove this; false is the default
+    />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-primary-half dark:text-[#d4a373] font-serif text-5xl font-bold bg-[#fcf8f1] dark:bg-[#1c1917]">
                         {data.name[0]}

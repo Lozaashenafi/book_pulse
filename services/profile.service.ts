@@ -14,6 +14,11 @@ import {
   userBadges,
 } from "@/lib/db/schema";
 import { eq, count, and, sql, desc } from "drizzle-orm";
+import { env } from "process";
+
+// 1. Define allowed constants (Move these to env variables in a real app)
+const ALLOWED_STORAGE_DOMAIN = env.NEXT_PUBLIC_SUPABASE_STORAGE_DOMAIN 
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
 
 export async function getProfile(userId: string) {
   try {
@@ -124,19 +129,44 @@ export async function updateProfile(
   }
 }
 
+
 export async function updateProfileImage(userId: string, imageUrl: string) {
   try {
+    // --- SECURITY CHECKS ---
+
+    // A. Validate URL structure
+    const url = new URL(imageUrl);
+    
+    // B. Lockdown Domain: Ensure the image is actually hosted on YOUR Supabase
+    if (url.hostname !== ALLOWED_STORAGE_DOMAIN) {
+      throw new Error("Security Violation: Unauthorized image source.");
+    }
+
+    // C. Lockdown Extension: Block .svg, .html, .js disguised as images
+    const extension = imageUrl.split('.').pop()?.toLowerCase();
+    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+      throw new Error("Security Violation: Invalid file type. Only JPG, PNG, and WebP are allowed.");
+    }
+
+    // D. Protocol check
+    if (url.protocol !== 'https:') {
+      throw new Error("Security Violation: Unsecure protocol.");
+    }
+
+    // --- END SECURITY CHECKS ---
+
     await db
       .update(profiles)
       .set({
-        image: imageUrl,
+        image: imageUrl, // Now we know this is a safe URL pointing to our own storage
         updatedAt: new Date(),
       })
       .where(eq(profiles.id, userId));
+
     return { success: true };
-  } catch (error) {
-    console.error("Neon Image Update Error:", error);
-    throw new Error("Failed to update image link in database");
+  } catch (error: any) {
+    console.error("Neon Image Update Error:", error.message);
+    return { success: false, error: error.message };
   }
 }
 export async function getCurrentReads(userId: string) {

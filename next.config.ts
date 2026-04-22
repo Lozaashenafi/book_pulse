@@ -12,12 +12,17 @@ const withPWA = withPWAInit({
   },
 });
 
+// Storing the domain in a variable so it's clean to reuse
+const supabaseDomain = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_DOMAIN || 'bnzaxrmcvkurtuxpmnvt.supabase.co';
+
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https://${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_DOMAIN || 'bnzaxrmcvkurtuxpmnvt.supabase.co'};
-    font-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://vercel.live;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://${supabaseDomain} https://www.transparenttextures.com;
+    font-src 'self' data: https://fonts.gstatic.com;
+    connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https://vercel.live wss://ws-us3.pusher.com https://www.google-analytics.com;
+    frame-src 'self' https://vercel.live;
     object-src 'none';
     base-uri 'self';
     form-action 'self';

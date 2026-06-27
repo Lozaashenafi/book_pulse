@@ -22,7 +22,7 @@ const cspHeader = `
     img-src 'self' blob: data: https://${supabaseDomain} https://www.transparenttextures.com;
     font-src 'self' data: https://fonts.gstatic.com;
     connect-src 'self' https://${supabaseDomain} wss://${supabaseDomain} https://vercel.live wss://ws-us3.pusher.com https://www.google-analytics.com;
-    frame-src 'self' https://vercel.live;
+    frame-src 'self' blob: https://${supabaseDomain} https://vercel.live;
     object-src 'none';
     base-uri 'self';
     form-action 'self';

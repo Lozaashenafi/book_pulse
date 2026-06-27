@@ -40,8 +40,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import CuratorLoader from "../ui/CuratorLoader";
-import ManuscriptReader from "./ManuscriptReader";
-import dynamic from "next/dynamic";
+import PdfViewer from "./PdfViewer";
 
 const ClubDiscussion = ({ clubId }: { clubId: string }) => {
   const { user, profile: myProfile } = useAuthStore();
@@ -381,15 +380,12 @@ const ClubDiscussion = ({ clubId }: { clubId: string }) => {
           </div>
         ) : (
           pdfUrl && (
-             <ManuscriptReader 
-            pdfUrl={pdfUrl} 
-            clubId={clubId} // Pass this
+             <PdfViewer
+            pdfUrl={pdfUrl}
             clubName={clubName}
-            currentPage={currentPage}
             isFullscreen={isFullscreen}
             onToggleFullscreen={handleToggleFullscreen}
             onClose={() => setViewMode("chat")}
-            onLogProgress={(page) => logProgress(page)} // Pass the number directly
           />
           )
         )}
